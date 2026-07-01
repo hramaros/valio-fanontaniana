@@ -10,6 +10,7 @@ import {
   deleteSession,
   topupTest,
   debit,
+  getOrCreateByEmail,
 } from "./accounts.js";
 
 // Faux Redis en mémoire (clone = mime la (dé)sérialisation Upstash).
@@ -68,6 +69,23 @@ test("sessions : create → getByToken → delete", async () => {
   assert.equal((await getAccountByToken(token)).id, account.id);
   await deleteSession(token);
   assert.equal(await getAccountByToken(token), null);
+});
+
+test("getOrCreateByEmail : crée un compte Google puis le réutilise (pas de doublon)", async () => {
+  setRedisClient(createFakeRedis());
+  const r1 = await getOrCreateByEmail({ email: "Prof@Gmail.com", name: "Prof G" });
+  assert.equal(r1.ok, true);
+  assert.equal(r1.account.email, "prof@gmail.com");
+  assert.equal(r1.account.balanceAr, 0);
+  const r2 = await getOrCreateByEmail({ email: "prof@gmail.com", name: "Autre" });
+  assert.equal(r2.account.id, r1.account.id);
+});
+
+test("getOrCreateByEmail : relie un compte email+mdp existant (même email)", async () => {
+  setRedisClient(createFakeRedis());
+  const created = await createAccount({ email: "p@e.mg", password: "secret1" });
+  const g = await getOrCreateByEmail({ email: "p@e.mg", name: "G" });
+  assert.equal(g.account.id, created.account.id);
 });
 
 test("topup et debit", async () => {

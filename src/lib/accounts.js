@@ -46,6 +46,38 @@ export async function createAccount({ email, password, name }) {
     email: e,
     name: String(name || "").trim().slice(0, 60) || e.split("@")[0],
     passwordHash: hashPassword(password),
+    provider: "password",
+    balanceAr: 0,
+    createdAt: Date.now(),
+  };
+  await redis.set(accountKey(id), account);
+  await redis.set(emailKey(e), id);
+  return { ok: true, account: publicAccount(account) };
+}
+
+/**
+ * Compte fédéré (Google…) : retrouve par email vérifié, sinon crée un compte
+ * sans mot de passe. Réutilise le même modèle (sessions, solde, historique).
+ */
+export async function getOrCreateByEmail({ email, name, provider = "google" }) {
+  const redis = getRedis();
+  const e = normEmail(email);
+  if (!e || !/.+@.+\..+/.test(e))
+    return { ok: false, error: "Email Google invalide." };
+
+  const existingId = await redis.get(emailKey(e));
+  if (existingId) {
+    const acc = await redis.get(accountKey(existingId));
+    if (acc) return { ok: true, account: publicAccount(acc) };
+  }
+
+  const id = generateId("acc");
+  const account = {
+    id,
+    email: e,
+    name: String(name || "").trim().slice(0, 60) || e.split("@")[0],
+    passwordHash: null,
+    provider,
     balanceAr: 0,
     createdAt: Date.now(),
   };

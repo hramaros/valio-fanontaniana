@@ -10,6 +10,7 @@ export default function AuthModal({ onClose, onAuthed }) {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const googleEnabled = process.env.NEXT_PUBLIC_GOOGLE_ENABLED === "1";
 
   async function submit(e) {
     e.preventDefault();
@@ -67,6 +68,21 @@ export default function AuthModal({ onClose, onAuthed }) {
           </h2>
           <p className="tiny muted">Requis pour lancer un examen (mode payant).</p>
         </div>
+
+        {googleEnabled && (
+          <>
+            <button
+              type="button"
+              className="btn btn--ghost btn--block"
+              onClick={() => {
+                window.location.href = "/api/auth/google";
+              }}
+            >
+              Continuer avec Google
+            </button>
+            <div className="divider-or">ou</div>
+          </>
+        )}
 
         <form className="stack gap-12" onSubmit={submit}>
           {tab === "signup" && (
