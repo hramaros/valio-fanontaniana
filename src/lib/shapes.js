@@ -1,4 +1,4 @@
-export const DEFAULT_COLORS = ["#ff5d73", "#38a8ff", "#ffc24b", "#2fd6a6"];
+export const DEFAULT_COLORS = ["#ff5d73", "#38a8ff", "#ffc24b", "#32d267"];
 
 // Choisit un texte sombre/clair lisible sur une couleur de fond donnée.
 export function readableText(hex) {
