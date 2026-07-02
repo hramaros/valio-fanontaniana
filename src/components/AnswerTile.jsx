@@ -1,7 +1,9 @@
 import { readableText } from "@/lib/shapes";
+import { ShapeGlyph } from "@/components/Icon";
 
 export default function AnswerTile({
   answer,
+  index = 0,
   selected = false,
   dim = false,
   onClick,
@@ -19,6 +21,9 @@ export default function AnswerTile({
       disabled={disabled}
       aria-pressed={selected}
     >
+      <span className="answer-tile__glyph">
+        <ShapeGlyph index={index} />
+      </span>
       <span>{answer.text}</span>
     </button>
   );

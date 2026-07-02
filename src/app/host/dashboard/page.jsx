@@ -24,7 +24,7 @@ export default function HostDashboardPage() {
   }, [account]);
 
   if (loading) {
-    return <div className="center-screen"><div className="spin" /></div>;
+    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   if (!account) {
@@ -54,7 +54,7 @@ export default function HostDashboardPage() {
       </div>
 
       {!data ? (
-        <div className="spin" style={{ margin: "0 auto" }} />
+        <div className="spin" role="status" aria-label="Chargement" style={{ margin: "0 auto" }} />
       ) : stats.examCount === 0 ? (
         <div className="panel" style={{ textAlign: "center" }}>
           <p className="muted">

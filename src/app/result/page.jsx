@@ -3,6 +3,7 @@ import { Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Podium from "@/components/Podium";
+import Icon from "@/components/Icon";
 import { apiGet } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
@@ -30,7 +31,7 @@ function ResultInner() {
   const me = board?.leaderboard?.find((p) => p.id === playerId) || null;
 
   if (!board) {
-    return <div className="center-screen"><div className="spin" /></div>;
+    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   if (!ended) {
@@ -38,7 +39,7 @@ function ResultInner() {
     return (
       <div className="center-screen">
         <div className="container container--narrow stack gap-16" style={{ textAlign: "center" }}>
-          <div className="spin" style={{ margin: "0 auto" }} />
+          <div className="spin" role="status" aria-label="Chargement" style={{ margin: "0 auto" }} />
           <h1 style={{ fontSize: "2rem" }}>
             {reviewing ? "Correction en cours…" : "Encore un instant…"}
           </h1>
@@ -104,7 +105,7 @@ function ResultInner() {
           className="btn btn--primary btn--lg btn--block"
           onClick={() => exportPdf(board, me)}
         >
-          ⬇ Télécharger mon résultat (PDF)
+          <Icon name="download" /> Télécharger mon résultat (PDF)
         </button>
       )}
 
@@ -117,7 +118,7 @@ function ResultInner() {
 
 export default function ResultPage() {
   return (
-    <Suspense fallback={<div className="center-screen"><div className="spin" /></div>}>
+    <Suspense fallback={<div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>}>
       <ResultInner />
     </Suspense>
   );

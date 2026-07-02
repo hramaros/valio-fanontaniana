@@ -6,6 +6,7 @@ import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
 import RechargeModal from "@/components/RechargeModal";
+import Icon from "@/components/Icon";
 
 function LobbyInner() {
   const router = useRouter();
@@ -92,18 +93,22 @@ function LobbyInner() {
         )}
       </div>
 
-      {error && <div className="error">{error}</div>}
+      {error && <div className="error" role="alert">{error}</div>}
 
       <button
         className="btn btn--primary btn--lg btn--block"
         onClick={launch}
         disabled={busy || participants.length === 0}
       >
-        {busy
-          ? "Lancement…"
-          : participants.length === 0
-            ? "En attente de participants"
-            : "🚀 Lancer le quiz"}
+        {busy ? (
+          "Lancement…"
+        ) : participants.length === 0 ? (
+          "En attente de participants"
+        ) : (
+          <>
+            <Icon name="play" /> Lancer le quiz
+          </>
+        )}
       </button>
 
       {recharge && (
@@ -125,7 +130,7 @@ function LobbyInner() {
 
 export default function HostLobbyPage() {
   return (
-    <Suspense fallback={<div className="center-screen"><div className="spin" /></div>}>
+    <Suspense fallback={<div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>}>
       <LobbyInner />
     </Suspense>
   );

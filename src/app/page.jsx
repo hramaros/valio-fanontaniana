@@ -63,7 +63,7 @@ export default function HomePage() {
               autoFocus
             />
           </div>
-          {error && <div className="error">{error}</div>}
+          {error && <div className="error" role="alert">{error}</div>}
           <button
             type="submit"
             className="btn btn--primary btn--lg btn--block"

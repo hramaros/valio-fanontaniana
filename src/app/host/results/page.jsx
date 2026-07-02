@@ -8,6 +8,7 @@ import Leaderboard from "@/components/Leaderboard";
 import Podium from "@/components/Podium";
 import ReviewGrader from "@/components/ReviewGrader";
 import ConfirmButton from "@/components/ConfirmButton";
+import Icon from "@/components/Icon";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
@@ -84,7 +85,7 @@ function HostResultsInner() {
     : 0;
 
   if (!state) {
-    return <div className="center-screen"><div className="spin" /></div>;
+    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   const offset = state.serverNow - Date.now();
@@ -118,7 +119,7 @@ function HostResultsInner() {
           <ReviewGrader review={mergedReview} onGrade={grade} />
         ) : (
           <div className="panel" style={{ textAlign: "center" }}>
-            <div className="spin" style={{ margin: "0 auto" }} />
+            <div className="spin" role="status" aria-label="Chargement" style={{ margin: "0 auto" }} />
           </div>
         )}
 
@@ -147,7 +148,7 @@ function HostResultsInner() {
 
   // — Phase en cours / terminée : classement (comportement existant) —
   if (!board) {
-    return <div className="center-screen"><div className="spin" /></div>;
+    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   return (
@@ -213,7 +214,7 @@ function HostResultsInner() {
             className="btn btn--primary btn--lg btn--block"
             onClick={() => exportPdf(board)}
           >
-            ⬇ Télécharger le classement (PDF)
+            <Icon name="download" /> Télécharger le classement (PDF)
           </button>
           <Link href="/host" className="btn btn--ghost btn--block">
             Créer un nouveau quiz
@@ -226,7 +227,7 @@ function HostResultsInner() {
 
 export default function HostResultsPage() {
   return (
-    <Suspense fallback={<div className="center-screen"><div className="spin" /></div>}>
+    <Suspense fallback={<div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>}>
       <HostResultsInner />
     </Suspense>
   );

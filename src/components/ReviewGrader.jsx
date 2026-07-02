@@ -1,3 +1,5 @@
+import Icon from "@/components/Icon";
+
 // Vue formateur : valide / refuse chaque réponse libre, groupée par question.
 export default function ReviewGrader({ review, onGrade }) {
   if (!review || review.questions.length === 0) return null;
@@ -31,21 +33,23 @@ export default function ReviewGrader({ review, onGrade }) {
                   <div className="row gap-8">
                     <button
                       type="button"
-                      className={`btn ${s.correct === true ? "btn--primary" : "btn--ghost"}`}
-                      style={{ padding: "8px 12px" }}
+                      className={`btn btn--compact ${
+                        s.correct === true ? "btn--primary" : "btn--ghost"
+                      }`}
                       aria-pressed={s.correct === true}
                       onClick={() => onGrade(q.id, s.playerId, true)}
                     >
-                      ✓ Valider
+                      <Icon name="check" size={16} /> Valider
                     </button>
                     <button
                       type="button"
-                      className={`btn ${s.correct === false ? "btn--danger" : "btn--ghost"}`}
-                      style={{ padding: "8px 12px" }}
+                      className={`btn btn--compact ${
+                        s.correct === false ? "btn--danger" : "btn--ghost"
+                      }`}
                       aria-pressed={s.correct === false}
                       onClick={() => onGrade(q.id, s.playerId, false)}
                     >
-                      ✗ Refuser
+                      <Icon name="close" size={16} /> Refuser
                     </button>
                   </div>
                 </div>

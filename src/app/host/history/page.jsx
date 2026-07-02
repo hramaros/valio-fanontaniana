@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Brand from "@/components/Brand";
 import Leaderboard from "@/components/Leaderboard";
+import Modal from "@/components/Modal";
+import Icon from "@/components/Icon";
 import { apiGet } from "@/lib/api";
 import { useAccount } from "@/lib/account-client";
 
@@ -37,7 +39,7 @@ export default function HostHistoryPage() {
   }
 
   if (loading) {
-    return <div className="center-screen"><div className="spin" /></div>;
+    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   if (!account) {
@@ -71,7 +73,7 @@ export default function HostHistoryPage() {
       </div>
 
       {!records ? (
-        <div className="spin" style={{ margin: "0 auto" }} />
+        <div className="spin" role="status" aria-label="Chargement" style={{ margin: "0 auto" }} />
       ) : records.length === 0 ? (
         <div className="panel" style={{ textAlign: "center" }}>
           <p className="muted">
@@ -103,36 +105,36 @@ export default function HostHistoryPage() {
       )}
 
       {selected && (
-        <div className="modal-backdrop" onClick={() => setSelected(null)}>
-          <div
-            className="modal stack gap-16"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 560 }}
-          >
-            <div className="row row--between">
-              <h2 style={{ fontSize: "1.3rem" }}>{selected.title}</h2>
-              <button
-                type="button"
-                className="btn btn--ghost"
-                style={{ padding: "6px 10px" }}
-                onClick={() => setSelected(null)}
-              >
-                ✕
-              </button>
-            </div>
-            <span className="tiny muted">
-              {frDate(selected.endedAt)} · Salle {selected.code} · {selected.priceAr} Ar
-            </span>
-            <Leaderboard players={selected.leaderboard} />
+        <Modal
+          onClose={() => setSelected(null)}
+          labelledBy="history-title"
+          maxWidth={560}
+        >
+          <div className="row row--between">
+            <h2 id="history-title" style={{ fontSize: "1.3rem" }}>
+              {selected.title}
+            </h2>
             <button
               type="button"
-              className="btn btn--primary btn--block"
-              onClick={() => exportPdf(selected)}
+              className="btn btn--ghost btn--icon"
+              onClick={() => setSelected(null)}
+              aria-label="Fermer"
             >
-              ⬇ Télécharger le PDF
+              <Icon name="close" />
             </button>
           </div>
-        </div>
+          <span className="tiny muted">
+            {frDate(selected.endedAt)} · Salle {selected.code} · {selected.priceAr} Ar
+          </span>
+          <Leaderboard players={selected.leaderboard} />
+          <button
+            type="button"
+            className="btn btn--primary btn--block"
+            onClick={() => exportPdf(selected)}
+          >
+            <Icon name="download" /> Télécharger le PDF
+          </button>
+        </Modal>
       )}
     </div>
   );

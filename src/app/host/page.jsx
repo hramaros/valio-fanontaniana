@@ -284,7 +284,7 @@ export default function HostPage() {
                 </div>
               )}
             </div>
-            {error && <div className="error">{error}</div>}
+            {error && <div className="error" role="alert">{error}</div>}
             <button
               type="submit"
               className="btn btn--primary btn--lg btn--block"
@@ -345,7 +345,7 @@ export default function HostPage() {
         + Ajouter une question
       </button>
 
-      {error && <div className="error">{error}</div>}
+      {error && <div className="error" role="alert">{error}</div>}
 
       <button
         type="button"

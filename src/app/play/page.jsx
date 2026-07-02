@@ -137,7 +137,7 @@ function PlayInner() {
   }
 
   if (phase === "loading") {
-    return <div className="center-screen"><div className="spin" /></div>;
+    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
   if (phase === "error") {
     return (
@@ -169,7 +169,7 @@ function PlayInner() {
 
       {phase === "done" ? (
         <div className="card stack gap-16" style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "2.4rem" }}>🎉</div>
+          <div style={{ fontSize: "2.4rem" }} aria-hidden="true">🎉</div>
           <h1 style={{ fontSize: "2rem" }}>Quiz terminé !</h1>
           <p className="muted">
             Vos réponses sont enregistrées. Le classement s'affiche à la fin du
@@ -202,6 +202,7 @@ function PlayInner() {
               <div className="stack gap-12">
                 <textarea
                   className="input input--area"
+                  aria-label="Votre réponse"
                   placeholder="Saisissez votre réponse…"
                   value={freeText}
                   onChange={(e) => setFreeText(e.target.value)}
@@ -221,10 +222,11 @@ function PlayInner() {
           ) : (
             <>
               <div className="answers">
-                {question.answers.map((a) => (
+                {question.answers.map((a, i) => (
                   <AnswerTile
                     key={a.id}
                     answer={a}
+                    index={i}
                     selected={selected.includes(a.id)}
                     dim={!!feedback}
                     disabled={!!feedback || submitting}
@@ -278,7 +280,7 @@ function PlayInner() {
 
 export default function PlayPage() {
   return (
-    <Suspense fallback={<div className="center-screen"><div className="spin" /></div>}>
+    <Suspense fallback={<div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>}>
       <PlayInner />
     </Suspense>
   );

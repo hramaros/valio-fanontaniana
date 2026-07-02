@@ -49,6 +49,7 @@ body {
     radial-gradient(900px 600px at 100% 0%, rgba(47, 214, 166, 0.12), transparent 55%),
     var(--ink);
   min-height: 100vh;
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
 }
@@ -76,7 +77,7 @@ button {
   width: 100%;
   max-width: 1040px;
   margin: 0 auto;
-  padding: 28px 22px 64px;
+  padding: 28px 22px calc(64px + env(safe-area-inset-bottom, 0px));
 }
 .container--narrow {
   max-width: 560px;
@@ -84,6 +85,7 @@ button {
 
 .center-screen {
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
   padding: 24px;
@@ -221,6 +223,13 @@ button {
 .btn--lg { padding: 16px 26px; font-size: 1.08rem; }
 .btn--block { width: 100%; }
 .btn--danger { background: transparent; border-color: rgba(255, 93, 115, 0.5); color: #ff96a4; }
+.btn--icon {
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  flex: none;
+}
+.btn--compact { padding: 9px 14px; min-height: 44px; }
 
 /* ---------- Helpers ---------- */
 .row { display: flex; align-items: center; }
@@ -249,10 +258,18 @@ button {
   background: var(--ink);
   border: 1px solid var(--line-strong);
   border-radius: 999px;
-  padding: 6px 13px;
+  padding: 6px 15px;
+  min-height: 40px;
   font-size: 0.82rem;
   font-weight: 600;
+  text-decoration: none;
 }
+a.pill,
+button.pill { cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+a.pill:hover,
+button.pill:hover { background: var(--ink-2); border-color: var(--accent); }
+a.pill:focus-visible,
+button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-offset: 2px; }
 .code-chip {
   font-family: var(--font-display);
   font-weight: 800;
@@ -409,7 +426,7 @@ button {
 .podium-score { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; }
 
 /* ---------- Big stat (result) ---------- */
-.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
 .stat {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -518,7 +535,7 @@ button {
   height: 8px;
   border-radius: 50%;
   background: var(--line-strong);
-  transition: background 0.2s, width 0.2s;
+  transition: background 0.2s;
 }
 .onb-dot--on {
   background: var(--accent);
@@ -566,6 +583,8 @@ button {
   font-weight: 600;
   font-size: 0.85rem;
 }
+.seg button { min-height: 38px; }
+.seg button:focus-visible { outline: 3px solid var(--accent-bright); outline-offset: 1px; }
 .seg button[aria-pressed="true"] { background: var(--accent); color: #06140d; }
 
 .check {
@@ -577,7 +596,7 @@ button {
   cursor: pointer;
   user-select: none;
 }
-.check input { width: 17px; height: 17px; accent-color: var(--accent-bright); }
+.check input { width: 20px; height: 20px; accent-color: var(--accent-bright); }
 
 /* ---------- Hero (home) ---------- */
 .hero {
@@ -606,12 +625,25 @@ button {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (max-width: 560px) {
   .answers { grid-template-columns: 1fr; }
-  .stat-grid { grid-template-columns: 1fr 1fr 1fr; }
   .stat__num { font-size: 1.7rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
+  /* Le spinner reste animé : c'est un indicateur d'état essentiel,
+     pas un mouvement décoratif. */
+  *:not(.spin) { animation: none !important; transition: none !important; }
 }

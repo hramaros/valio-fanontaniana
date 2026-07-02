@@ -36,7 +36,7 @@ export default function HostClassesPage() {
   }
 
   if (loading) {
-    return <div className="center-screen"><div className="spin" /></div>;
+    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   if (!account) {
@@ -67,6 +67,7 @@ export default function HostClassesPage() {
         <input
           className="input"
           style={{ flex: 1, minWidth: 180 }}
+          aria-label="Nom de la classe"
           placeholder="Nom de la classe (ex. 6ème A)"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -76,7 +77,7 @@ export default function HostClassesPage() {
       </form>
 
       {!classes ? (
-        <div className="spin" style={{ margin: "0 auto" }} />
+        <div className="spin" role="status" aria-label="Chargement" style={{ margin: "0 auto" }} />
       ) : classes.length === 0 ? (
         <div className="panel" style={{ textAlign: "center" }}>
           <p className="muted">

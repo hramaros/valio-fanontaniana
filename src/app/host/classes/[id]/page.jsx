@@ -45,7 +45,7 @@ export default function ClassDetailPage() {
   }
 
   if (loading) {
-    return <div className="center-screen"><div className="spin" /></div>;
+    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   if (!account) {
@@ -72,7 +72,7 @@ export default function ClassDetailPage() {
   }
 
   if (!classroom) {
-    return <div className="center-screen"><div className="spin" /></div>;
+    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   const hasExams = gradebook && gradebook.exams.length > 0;
@@ -97,6 +97,7 @@ export default function ClassDetailPage() {
           <input
             className="input"
             style={{ flex: 1, minWidth: 180 }}
+            aria-label="Nom de l'élève"
             placeholder="Nom de l'élève"
             value={studentName}
             onChange={(e) => setStudentName(e.target.value)}
@@ -117,12 +118,11 @@ export default function ClassDetailPage() {
               <div key={s.id} className="grade-row">
                 <div className="grade-row__ans">{s.name}</div>
                 <ConfirmButton
-                  className="btn btn--ghost"
-                  style={{ padding: "6px 10px" }}
+                  className="btn btn--ghost btn--compact"
                   confirmLabel="Retirer ?"
                   onConfirm={() => removeStu(s.id)}
                 >
-                  ✕
+                  Retirer
                 </ConfirmButton>
               </div>
             ))}

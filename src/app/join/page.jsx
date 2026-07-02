@@ -133,14 +133,18 @@ function JoinInner() {
                   );
                 })}
               </div>
-              {error && <div className="error">{error}</div>}
+              {error && <div className="error" role="alert">{error}</div>}
             </div>
           ) : (
             <form className="card stack gap-16" onSubmit={register}>
               <span className="eyebrow">Étape 2 / 2</span>
               <h1 style={{ fontSize: "2rem" }}>Votre pseudo</h1>
               <p className="muted">Il apparaîtra dans le classement.</p>
+              <label className="label" htmlFor="pseudo">
+                Pseudo
+              </label>
               <input
+                id="pseudo"
                 className="input"
                 placeholder="ex. Lucie"
                 value={pseudo}
@@ -149,7 +153,7 @@ function JoinInner() {
                 autoFocus
                 autoComplete="off"
               />
-              {error && <div className="error">{error}</div>}
+              {error && <div className="error" role="alert">{error}</div>}
               <button
                 type="submit"
                 className="btn btn--primary btn--lg btn--block"
@@ -168,7 +172,7 @@ function JoinInner() {
   return (
     <div className="center-screen">
       <div className="container container--narrow stack gap-24" style={{ textAlign: "center" }}>
-        <div className="spin" style={{ margin: "0 auto" }} />
+        <div className="spin" role="status" aria-label="Chargement" style={{ margin: "0 auto" }} />
         <div className="stack gap-8">
           <span className="eyebrow">Salle {code}</span>
           <h1 style={{ fontSize: "2rem" }}>Bienvenue, {pseudo} !</h1>
@@ -203,7 +207,7 @@ function JoinInner() {
 
 export default function JoinPage() {
   return (
-    <Suspense fallback={<div className="center-screen"><div className="spin" /></div>}>
+    <Suspense fallback={<div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>}>
       <JoinInner />
     </Suspense>
   );

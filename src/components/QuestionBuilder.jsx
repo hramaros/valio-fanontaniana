@@ -1,6 +1,7 @@
 "use client";
 import { generateId } from "@/lib/code";
 import { DEFAULT_COLORS } from "@/lib/shapes";
+import Icon from "@/components/Icon";
 
 export default function QuestionBuilder({
   question,
@@ -109,6 +110,7 @@ export default function QuestionBuilder({
       <input
         className="input"
         placeholder="Énoncé de la question"
+        aria-label={`Énoncé de la question ${index + 1}`}
         value={question.text}
         onChange={(e) => patch({ text: e.target.value })}
         maxLength={500}
@@ -148,6 +150,7 @@ export default function QuestionBuilder({
               className="input"
               style={{ flex: 1 }}
               placeholder={`Réponse ${i + 1}`}
+              aria-label={`Texte de la réponse ${i + 1}`}
               value={a.text}
               onChange={(e) => patchAnswer(a.id, { text: e.target.value })}
               maxLength={240}
@@ -164,12 +167,11 @@ export default function QuestionBuilder({
             {question.answers.length > 2 && (
               <button
                 type="button"
-                className="btn btn--ghost"
-                style={{ padding: "8px 10px" }}
+                className="btn btn--ghost btn--icon"
                 onClick={() => removeAnswer(a.id)}
-                aria-label="Retirer cette réponse"
+                aria-label={`Retirer la réponse ${i + 1}`}
               >
-                ✕
+                <Icon name="close" size={16} />
               </button>
             )}
           </div>

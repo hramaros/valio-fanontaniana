@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { apiPost } from "@/lib/api";
+import Modal from "@/components/Modal";
+import Icon from "@/components/Icon";
 
 // Modale connexion / inscription du formateur (requise pour le mode Examen).
 export default function AuthModal({ onClose, onAuthed }) {
@@ -32,95 +34,115 @@ export default function AuthModal({ onClose, onAuthed }) {
   }
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal stack gap-16" onClick={(e) => e.stopPropagation()}>
-        <div className="row row--between">
-          <div className="seg" role="group" aria-label="Connexion ou inscription">
-            <button
-              type="button"
-              aria-pressed={tab === "login"}
-              onClick={() => setTab("login")}
-            >
-              Connexion
-            </button>
-            <button
-              type="button"
-              aria-pressed={tab === "signup"}
-              onClick={() => setTab("signup")}
-            >
-              Inscription
-            </button>
-          </div>
+    <Modal onClose={onClose} labelledBy="auth-title">
+      <div className="row row--between">
+        <div className="seg" role="group" aria-label="Connexion ou inscription">
           <button
             type="button"
-            className="btn btn--ghost"
-            style={{ padding: "6px 10px" }}
-            onClick={onClose}
-            aria-label="Fermer"
+            aria-pressed={tab === "login"}
+            onClick={() => setTab("login")}
           >
-            ✕
+            Connexion
+          </button>
+          <button
+            type="button"
+            aria-pressed={tab === "signup"}
+            onClick={() => setTab("signup")}
+          >
+            Inscription
           </button>
         </div>
+        <button
+          type="button"
+          className="btn btn--ghost btn--icon"
+          onClick={onClose}
+          aria-label="Fermer"
+        >
+          <Icon name="close" />
+        </button>
+      </div>
 
-        <div className="stack gap-8" style={{ textAlign: "center" }}>
-          <h2 style={{ fontSize: "1.4rem" }}>
-            {tab === "login" ? "Se connecter" : "Créer un compte formateur"}
-          </h2>
-          <p className="tiny muted">Requis pour lancer un examen (mode payant).</p>
-        </div>
+      <div className="stack gap-8" style={{ textAlign: "center" }}>
+        <h2 id="auth-title" style={{ fontSize: "1.4rem" }}>
+          {tab === "login" ? "Se connecter" : "Créer un compte formateur"}
+        </h2>
+        <p className="tiny muted">Requis pour lancer un examen (mode payant).</p>
+      </div>
 
-        {googleEnabled && (
-          <>
-            <button
-              type="button"
-              className="btn btn--ghost btn--block"
-              onClick={() => {
-                window.location.href = "/api/auth/google";
-              }}
-            >
-              Continuer avec Google
-            </button>
-            <div className="divider-or">ou</div>
-          </>
-        )}
+      {googleEnabled && (
+        <>
+          <button
+            type="button"
+            className="btn btn--ghost btn--block"
+            onClick={() => {
+              window.location.href = "/api/auth/google";
+            }}
+          >
+            Continuer avec Google
+          </button>
+          <div className="divider-or">ou</div>
+        </>
+      )}
 
-        <form className="stack gap-12" onSubmit={submit}>
-          {tab === "signup" && (
+      <form className="stack gap-12" onSubmit={submit}>
+        {tab === "signup" && (
+          <div>
+            <label className="label" htmlFor="auth-name">
+              Votre nom
+            </label>
             <input
+              id="auth-name"
               className="input"
-              placeholder="Votre nom"
+              placeholder="ex. M. Rakoto"
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={60}
+              autoComplete="name"
             />
-          )}
+          </div>
+        )}
+        <div>
+          <label className="label" htmlFor="auth-email">
+            Email
+          </label>
           <input
+            id="auth-email"
             className="input"
             type="email"
-            placeholder="Email"
+            placeholder="vous@exemple.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
             autoFocus
           />
+        </div>
+        <div>
+          <label className="label" htmlFor="auth-password">
+            Mot de passe{tab === "signup" ? " (6 caractères min.)" : ""}
+          </label>
           <input
+            id="auth-password"
             className="input"
             type="password"
-            placeholder="Mot de passe (6 caractères min.)"
+            placeholder="••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete={tab === "login" ? "current-password" : "new-password"}
           />
-          {error && <div className="error">{error}</div>}
-          <button
-            type="submit"
-            className="btn btn--primary btn--lg btn--block"
-            disabled={busy}
-          >
-            {busy ? "…" : tab === "login" ? "Connexion" : "Créer le compte"}
-          </button>
-        </form>
-      </div>
-    </div>
+        </div>
+        {error && (
+          <div className="error" role="alert">
+            {error}
+          </div>
+        )}
+        <button
+          type="submit"
+          className="btn btn--primary btn--lg btn--block"
+          disabled={busy}
+        >
+          {busy ? "…" : tab === "login" ? "Connexion" : "Créer le compte"}
+        </button>
+      </form>
+    </Modal>
   );
 }
