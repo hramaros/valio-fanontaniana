@@ -6,7 +6,7 @@ import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
 import RechargeModal from "@/components/RechargeModal";
-import Icon from "@/components/Icon";
+import Icon, { ShapeStrip } from "@/components/Icon";
 
 function LobbyInner() {
   const router = useRouter();
@@ -62,9 +62,18 @@ function LobbyInner() {
 
       <div className="card stack gap-16" style={{ textAlign: "center" }}>
         <span className="eyebrow">Salle d'attente</span>
-        <h1 style={{ fontSize: "2.6rem" }}>
-          Rejoignez avec le code <span style={{ color: "var(--accent-bright)" }}>{code}</span>
-        </h1>
+        <h1 style={{ fontSize: "2.2rem" }}>Rejoignez avec le code</h1>
+        <div
+          className="code-tiles"
+          role="img"
+          aria-label={`Code de la salle : ${code.split("").join(" ")}`}
+        >
+          {code.split("").map((ch, i) => (
+            <span key={i} className="code-tile">
+              {ch}
+            </span>
+          ))}
+        </div>
         <p className="muted">
           Les participants apparaissent ci-dessous. Lancez quand tout le monde
           est prêt — les inscriptions seront alors fermées.
@@ -78,8 +87,13 @@ function LobbyInner() {
           </span>
         </div>
         {participants.length === 0 ? (
-          <div className="panel" style={{ textAlign: "center" }}>
-            <p className="muted">En attente des premiers participants…</p>
+          <div className="panel stack gap-12" style={{ textAlign: "center", padding: 24 }}>
+            <div>
+              <ShapeStrip size={18} />
+            </div>
+            <p className="muted" style={{ margin: 0 }}>
+              En attente des premiers participants…
+            </p>
           </div>
         ) : (
           <div className="players">

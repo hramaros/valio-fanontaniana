@@ -61,7 +61,7 @@ function ResultInner() {
       </div>
 
       {me ? (
-        <div className="card stack gap-16">
+        <div className={`card stack gap-16${me.rank === 1 ? " card--gold" : ""}`}>
           <div style={{ textAlign: "center" }}>
             <div className="eyebrow">{me.pseudo}</div>
             <div style={{ fontSize: "1.1rem", marginTop: 4 }}>
@@ -72,7 +72,9 @@ function ResultInner() {
           </div>
           <div className="stat-grid">
             <div className="stat">
-              <div className="stat__num">{me.score}</div>
+              <div className="stat__num" style={{ color: "var(--c-amber)" }}>
+                {me.score}
+              </div>
               <div className="stat__label">Points</div>
             </div>
             <div className="stat">
@@ -80,7 +82,9 @@ function ResultInner() {
               <div className="stat__label">Note / 20</div>
             </div>
             <div className="stat">
-              <div className="stat__num">#{me.rank}</div>
+              <div className="stat__num" style={{ color: "var(--c-sky)" }}>
+                #{me.rank}
+              </div>
               <div className="stat__label">Classement</div>
             </div>
           </div>

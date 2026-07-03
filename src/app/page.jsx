@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Brand from "@/components/Brand";
+import Icon, { ShapeStrip } from "@/components/Icon";
 import { apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 
@@ -38,6 +39,7 @@ export default function HomePage() {
         </div>
 
         <div className="hero stack gap-16">
+          <ShapeStrip size={22} />
           <h1>
             Un code, un pseudo, <em>et c'est parti.</em>
           </h1>
@@ -69,7 +71,13 @@ export default function HomePage() {
             className="btn btn--primary btn--lg btn--block"
             disabled={loading}
           >
-            {loading ? "Connexion…" : "Participer →"}
+            {loading ? (
+              "Connexion…"
+            ) : (
+              <>
+                Participer <Icon name="arrowRight" size={18} />
+              </>
+            )}
           </button>
         </form>
 

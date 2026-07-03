@@ -33,8 +33,8 @@ export default function RechargeModal({
           Solde insuffisant
         </h2>
         <p className="muted">
-          Lancer cet examen coûte <strong>{priceAr} Ar</strong>. Votre solde est
-          de <strong>{balance} Ar</strong>.
+          Lancer cet examen coûte <strong className="money">{priceAr} Ar</strong>.
+          Votre solde est de <strong className="money">{balance} Ar</strong>.
         </p>
       </div>
 

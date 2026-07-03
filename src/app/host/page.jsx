@@ -10,6 +10,7 @@ import { saveHostSession } from "@/lib/session";
 import { useAccount } from "@/lib/account-client";
 import AuthModal from "@/components/AuthModal";
 import Brand from "@/components/Brand";
+import Icon from "@/components/Icon";
 
 function newQuestion() {
   return {
@@ -144,7 +145,7 @@ export default function HostPage() {
                 className="btn btn--ghost"
                 style={{ alignSelf: "flex-start" }}
               >
-                ▶ Visite guidée (30 s)
+                <Icon name="play" size={14} /> Visite guidée (30 s)
               </Link>
               <Link
                 href="/host/classes"
@@ -290,7 +291,13 @@ export default function HostPage() {
               className="btn btn--primary btn--lg btn--block"
               disabled={busy}
             >
-              {busy ? "…" : "Créer la salle →"}
+              {busy ? (
+                "…"
+              ) : (
+                <>
+                  Créer la salle <Icon name="arrowRight" size={16} />
+                </>
+              )}
             </button>
           </form>
         </div>
@@ -353,7 +360,13 @@ export default function HostPage() {
         onClick={saveAndLaunch}
         disabled={busy}
       >
-        {busy ? "Enregistrement…" : "Enregistrer et aller au lancement →"}
+        {busy ? (
+          "Enregistrement…"
+        ) : (
+          <>
+            Enregistrer et aller au lancement <Icon name="arrowRight" size={16} />
+          </>
+        )}
       </button>
     </div>
   );

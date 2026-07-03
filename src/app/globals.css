@@ -54,6 +54,11 @@ body {
   line-height: 1.5;
 }
 
+::selection {
+  background: var(--accent);
+  color: #06140d;
+}
+
 h1,
 h2,
 h3 {
@@ -327,6 +332,93 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
 }
 .answer-tile--dim { opacity: 0.55; }
 
+/* ---------- Motif de formes (signature du langage jeu) ---------- */
+.shape-strip {
+  display: inline-flex;
+  gap: 12px;
+  vertical-align: middle;
+}
+.shape-strip__item {
+  display: grid;
+  animation: bob 3.2s ease-in-out infinite;
+}
+.shape-strip__item:nth-child(2) { animation-delay: 0.4s; }
+.shape-strip__item:nth-child(3) { animation-delay: 0.8s; }
+.shape-strip__item:nth-child(4) { animation-delay: 1.2s; }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* ---------- Marquee du code (lobby projeté en salle) ---------- */
+.code-tiles {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.code-tile {
+  display: grid;
+  place-items: center;
+  width: clamp(50px, 10vw, 78px);
+  height: clamp(62px, 12vw, 94px);
+  border-radius: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.18);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.9rem, 5vw, 3rem);
+  color: #06140d;
+  box-shadow: var(--shadow);
+}
+.code-tile:nth-child(4n + 1) { background: var(--c-coral); }
+.code-tile:nth-child(4n + 2) { background: var(--c-sky); }
+.code-tile:nth-child(4n + 3) { background: var(--c-amber); }
+.code-tile:nth-child(4n + 4) { background: var(--c-mint); }
+
+/* ---------- Progression des questions (participant) ---------- */
+.qtrack {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.qtrack__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+  transform-origin: left;
+  transition: transform 0.3s ease-out;
+}
+
+/* ---------- Cartes d'état (feedback participant) ---------- */
+.card--ok {
+  border-color: var(--c-mint);
+  background: linear-gradient(180deg, rgba(50, 210, 103, 0.14), var(--ink-2));
+}
+.card--ok h2 { color: var(--c-mint); }
+.card--ko {
+  border-color: rgba(255, 93, 115, 0.6);
+  background: linear-gradient(180deg, rgba(255, 93, 115, 0.12), var(--ink-2));
+}
+.card--ko h2 { color: #ff96a4; }
+.card--wait {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, rgba(49, 211, 92, 0.1), var(--ink-2));
+}
+.card--wait h2 { color: var(--accent-bright); }
+.card--gold {
+  border-color: rgba(255, 194, 75, 0.55);
+  background: linear-gradient(180deg, rgba(255, 194, 75, 0.13), var(--ink-2));
+}
+
+/* ---------- Sémantique argent (Ariary → ambre, côté formateur) ---------- */
+.money { color: var(--c-amber); }
+.pill--money {
+  color: var(--c-amber);
+  border-color: rgba(255, 194, 75, 0.35);
+}
+
 /* ---------- Countdown ring ---------- */
 .ring {
   --p: 100;
@@ -346,7 +438,12 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
 }
 .ring--low { background:
     radial-gradient(closest-side, var(--ink-2) 78%, transparent 79% 100%),
-    conic-gradient(var(--c-coral) calc(var(--p) * 1%), rgba(255, 255, 255, 0.1) 0); }
+    conic-gradient(var(--c-coral) calc(var(--p) * 1%), rgba(255, 255, 255, 0.1) 0);
+  animation: ring-pulse 1s ease-in-out infinite; }
+@keyframes ring-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
 
 /* ---------- Lobby participants ---------- */
 .players {
@@ -369,6 +466,10 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
   width: 9px; height: 9px; border-radius: 50%;
   background: var(--c-mint);
 }
+/* Les pastilles des participants cyclent sur le quatuor (identité jeu). */
+.players .player-chip:nth-child(4n + 1) .player-chip__dot { background: var(--c-coral); }
+.players .player-chip:nth-child(4n + 2) .player-chip__dot { background: var(--c-sky); }
+.players .player-chip:nth-child(4n + 3) .player-chip__dot { background: var(--c-amber); }
 @keyframes pop {
   from { opacity: 0; transform: scale(0.85); }
   to { opacity: 1; transform: scale(1); }

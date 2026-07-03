@@ -77,7 +77,7 @@ export default function HostDashboardPage() {
               <div className="stat__label">Note moyenne / 20</div>
             </div>
             <div className="stat">
-              <div className="stat__num">{stats.totalSpentAr}</div>
+              <div className="stat__num money">{stats.totalSpentAr}</div>
               <div className="stat__label">Dépensé (Ar)</div>
             </div>
           </div>
@@ -96,7 +96,7 @@ export default function HostDashboardPage() {
                         {typeof r.avgNote === "number" ? r.avgNote : "—"}/20
                       </div>
                     </div>
-                    <span className="pill">{r.priceAr} Ar</span>
+                    <span className="pill pill--money">{r.priceAr} Ar</span>
                   </div>
                 ))}
               </div>

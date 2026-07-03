@@ -199,7 +199,7 @@ function HostResultsInner() {
       {ended && state.mode === "examen" && (
         <div className="panel" style={{ textAlign: "center" }}>
           <span className="tiny muted">Coût de cet examen</span>
-          <div style={{ fontSize: "1.4rem", fontWeight: 800 }}>
+          <div className="money" style={{ fontSize: "1.4rem", fontWeight: 800 }}>
             {board.priceAr} Ar
           </div>
           <span className="tiny muted">

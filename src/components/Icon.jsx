@@ -67,3 +67,24 @@ export function ShapeGlyph({ index, size = 20 }) {
     </svg>
   );
 }
+
+// Bandeau décoratif du quatuor (▲ ■ ● ◆) : signature visuelle du jeu,
+// utilisé sur les moments participants (accueil, attentes, fin de quiz).
+const STRIP_COLORS = [
+  "var(--c-coral)",
+  "var(--c-sky)",
+  "var(--c-amber)",
+  "var(--c-mint)",
+];
+
+export function ShapeStrip({ size = 18 }) {
+  return (
+    <span className="shape-strip" aria-hidden="true">
+      {STRIP_COLORS.map((color, i) => (
+        <span key={i} className="shape-strip__item" style={{ color }}>
+          <ShapeGlyph index={i} size={size} />
+        </span>
+      ))}
+    </span>
+  );
+}

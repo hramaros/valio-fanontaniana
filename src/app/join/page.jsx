@@ -6,6 +6,7 @@ import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
 import { savePlayerSession, getPlayerSession } from "@/lib/session";
+import { ShapeStrip } from "@/components/Icon";
 
 function JoinInner() {
   const router = useRouter();
@@ -172,8 +173,10 @@ function JoinInner() {
   return (
     <div className="center-screen">
       <div className="container container--narrow stack gap-24" style={{ textAlign: "center" }}>
-        <div className="spin" role="status" aria-label="Chargement" style={{ margin: "0 auto" }} />
-        <div className="stack gap-8">
+        <div>
+          <ShapeStrip size={22} />
+        </div>
+        <div className="stack gap-8" role="status">
           <span className="eyebrow">Salle {code}</span>
           <h1 style={{ fontSize: "2rem" }}>Bienvenue, {pseudo} !</h1>
           <p className="muted">

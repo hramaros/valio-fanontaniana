@@ -3,6 +3,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AnswerTile from "@/components/AnswerTile";
+import { ShapeStrip } from "@/components/Icon";
 import Countdown from "@/components/Countdown";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
@@ -155,21 +156,33 @@ function PlayInner() {
 
   return (
     <div className="container stack gap-24">
-      <div className="row row--between wrap gap-12">
-        <span className="pill">
-          Question {Math.min(qIndex + 1, total)} / {total}
-        </span>
-        <Countdown
-          endsAt={endsAt}
-          durationMs={quiz.durationMs}
-          serverOffset={offset}
-          onExpire={goToResult}
-        />
+      <div className="stack gap-12">
+        <div className="row row--between wrap gap-12">
+          <span className="pill">
+            Question {Math.min(qIndex + 1, total)} / {total}
+          </span>
+          <Countdown
+            endsAt={endsAt}
+            durationMs={quiz.durationMs}
+            serverOffset={offset}
+            onExpire={goToResult}
+          />
+        </div>
+        <div className="qtrack" aria-hidden="true">
+          <div
+            className="qtrack__fill"
+            style={{
+              transform: `scaleX(${phase === "done" ? 1 : qIndex / total})`,
+            }}
+          />
+        </div>
       </div>
 
       {phase === "done" ? (
         <div className="card stack gap-16" style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "2.4rem" }} aria-hidden="true">🎉</div>
+          <div>
+            <ShapeStrip size={24} />
+          </div>
           <h1 style={{ fontSize: "2rem" }}>Quiz terminé !</h1>
           <p className="muted">
             Vos réponses sont enregistrées. Le classement s'affiche à la fin du
@@ -249,26 +262,18 @@ function PlayInner() {
 
           {feedback &&
             (feedback.pending ? (
-              <div
-                className="card"
-                style={{ textAlign: "center", borderColor: "var(--accent)" }}
-              >
-                <h2 style={{ color: "var(--accent-bright)" }}>Réponse envoyée</h2>
+              <div className="card card--wait" style={{ textAlign: "center" }}>
+                <h2>Réponse envoyée</h2>
                 <p className="muted">
                   Elle sera validée par le formateur après le chrono.
                 </p>
               </div>
             ) : (
               <div
-                className="card"
-                style={{
-                  textAlign: "center",
-                  borderColor: feedback.correct ? "var(--c-mint)" : "var(--c-coral)",
-                }}
+                className={`card ${feedback.correct ? "card--ok" : "card--ko"}`}
+                style={{ textAlign: "center" }}
               >
-                <h2 style={{ color: feedback.correct ? "var(--c-mint)" : "var(--c-coral)" }}>
-                  {feedback.correct ? "Bonne réponse !" : "Raté…"}
-                </h2>
+                <h2>{feedback.correct ? "Bonne réponse !" : "Raté…"}</h2>
                 <p className="muted">+{feedback.points} points</p>
               </div>
             ))}
