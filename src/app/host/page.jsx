@@ -9,7 +9,6 @@ import { DEFAULT_COLORS } from "@/lib/shapes";
 import { saveHostSession } from "@/lib/session";
 import { useAccount } from "@/lib/account-client";
 import AuthModal from "@/components/AuthModal";
-import Brand from "@/components/Brand";
 import Icon from "@/components/Icon";
 
 function newQuestion() {
@@ -75,14 +74,6 @@ export default function HostPage() {
     });
   }, [account]);
 
-  // Visite guidée au premier accès d'un formateur connecté (non onboardé).
-  useEffect(() => {
-    if (!account) return;
-    try {
-      if (!localStorage.getItem("valio:onboarded")) router.replace("/host/welcome");
-    } catch {}
-  }, [account, router]);
-
   async function createRoom(e) {
     e.preventDefault();
     if (!hostName.trim()) {
@@ -135,52 +126,28 @@ export default function HostPage() {
     router.push(`/host/lobby?code=${code}`);
   }
 
+  const showAside = account && account.balanceAr === 0;
+
   if (step === "identity") {
     return (
-      <div className="center-screen">
-        <div className="container container--narrow stack gap-24">
-          <div className="row row--between">
-            <Link href="/" className="pill">← Accueil</Link>
-            {account && (
-              <span className="row gap-8">
-                <Link href="/host/dashboard" className="pill">Tableau de bord</Link>
-                <Link href="/host/classes" className="pill">Classes</Link>
-                <Link href="/host/history" className="pill">Mes examens</Link>
-              </span>
-            )}
+      <div className="stack gap-24">
+        <div className="stack gap-8">
+          <span className="eyebrow">Nouveau quiz</span>
+          <h1 style={{ fontSize: "2rem" }}>Configurer un quiz</h1>
+          <p className="muted">
+            Libre pour l'entraînement (gratuit), Examen pour une session notée.
+          </p>
+        </div>
+        {authError && (
+          <div className="error" role="alert">
+            {authError}
           </div>
-          {authError && (
-            <div className="error" role="alert">
-              {authError}
-            </div>
-          )}
-          {account && account.balanceAr === 0 && (
-            <div className="card stack gap-8">
-              <span className="eyebrow">Premiers pas · mode Examen</span>
-              <ol className="muted" style={{ margin: 0, paddingLeft: 20, lineHeight: 1.7 }}>
-                <li>Construisez votre quiz (réponse libre disponible en mode Examen).</li>
-                <li>Au lancement, rechargez votre solde (actuellement 0 Ar).</li>
-                <li>Lancez, corrigez, publiez — notes et historique sauvegardés.</li>
-              </ol>
-              <Link
-                href="/host/welcome"
-                className="btn btn--ghost"
-                style={{ alignSelf: "flex-start" }}
-              >
-                <Icon name="play" size={14} /> Visite guidée (30 s)
-              </Link>
-              <Link
-                href="/host/classes"
-                className="tiny"
-                style={{ color: "var(--accent-bright)" }}
-              >
-                Astuce : créez une classe pour des examens nominatifs + un carnet de notes →
-              </Link>
-            </div>
-          )}
+        )}
+        <div
+          className={showAside ? "work-grid" : undefined}
+          style={showAside ? undefined : { maxWidth: 760 }}
+        >
           <form className="card stack gap-16" onSubmit={createRoom}>
-            <span className="eyebrow">Espace formateur</span>
-            <h1 style={{ fontSize: "2rem" }}>Configurer un quiz</h1>
             <div>
               <label className="label" htmlFor="host">Votre nom</label>
               <input
@@ -322,6 +289,30 @@ export default function HostPage() {
               )}
             </button>
           </form>
+          {showAside && (
+            <aside className="card stack gap-8">
+              <span className="eyebrow">Premiers pas · mode Examen</span>
+              <ol className="muted" style={{ margin: 0, paddingLeft: 20, lineHeight: 1.7 }}>
+                <li>Construisez votre quiz (réponse libre disponible en mode Examen).</li>
+                <li>Au lancement, rechargez votre solde (actuellement 0 Ar).</li>
+                <li>Lancez, corrigez, publiez — notes et historique sauvegardés.</li>
+              </ol>
+              <Link
+                href="/host/welcome"
+                className="btn btn--ghost"
+                style={{ alignSelf: "flex-start" }}
+              >
+                <Icon name="play" size={14} /> Visite guidée (30 s)
+              </Link>
+              <Link
+                href="/host/classes"
+                className="tiny"
+                style={{ color: "var(--accent-bright)" }}
+              >
+                Astuce : créez une classe pour des examens nominatifs + un carnet de notes →
+              </Link>
+            </aside>
+          )}
         </div>
         {showAuth && (
           <AuthModal
@@ -338,22 +329,20 @@ export default function HostPage() {
   }
 
   return (
-    <div className="container stack gap-24">
+    <div className="stack gap-24">
       <div className="row row--between wrap gap-12">
-        <Brand as="span" />
+        <div className="stack gap-8">
+          <span className="eyebrow">Configuration · {questions.length} question
+            {questions.length > 1 ? "s" : ""}</span>
+          <h1 style={{ fontSize: "1.8rem" }}>{title || "Quiz"}</h1>
+          <p className="muted">
+            Ajoutez vos questions et réponses, choisissez le type et les couleurs.
+          </p>
+        </div>
         <div className="panel row gap-12" style={{ padding: "10px 16px" }}>
           <span className="tiny muted">Code à partager</span>
           <span className="code-chip">{code}</span>
         </div>
-      </div>
-
-      <div className="stack gap-8">
-        <span className="eyebrow">Configuration · {questions.length} question
-          {questions.length > 1 ? "s" : ""}</span>
-        <h1 style={{ fontSize: "1.8rem" }}>{title || "Quiz"}</h1>
-        <p className="muted">
-          Ajoutez vos questions et réponses, choisissez le type et les couleurs.
-        </p>
       </div>
 
       <div className="stack gap-16">

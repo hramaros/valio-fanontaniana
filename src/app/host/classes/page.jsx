@@ -1,7 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import Brand from "@/components/Brand";
 import { apiGet, apiPost, apiDelete } from "@/lib/api";
 import { useAccount } from "@/lib/account-client";
 import ConfirmButton from "@/components/ConfirmButton";
@@ -36,30 +35,25 @@ export default function HostClassesPage() {
   }
 
   if (loading) {
-    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
+    return <div className="center-work"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   if (!account) {
     return (
-      <div className="center-screen">
-        <div className="card stack gap-16" style={{ textAlign: "center" }}>
+      <div className="center-work">
+        <div className="card stack gap-16" style={{ textAlign: "center", maxWidth: 440 }}>
           <h2>Mes classes</h2>
           <p className="muted">Connectez-vous pour gérer vos classes.</p>
-          <Link href="/host" className="btn btn--primary">Espace formateur</Link>
+          <Link href="/host" className="btn btn--primary">Créer un quiz</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container stack gap-24">
-      <div className="row row--between wrap gap-12">
-        <Brand />
-        <Link href="/host" className="pill">← Espace formateur</Link>
-      </div>
-
+    <div className="stack gap-24">
       <div className="stack gap-8">
-        <span className="eyebrow">{account.email}</span>
+        <span className="eyebrow">Examens nominatifs &amp; carnet de notes</span>
         <h1 style={{ fontSize: "2rem" }}>Mes classes</h1>
       </div>
 

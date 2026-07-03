@@ -322,6 +322,173 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
 }
 .answer-tile--dim { opacity: 0.55; }
 
+/* ---------- Shell formateur (header / nav / espace de travail / footer) ---------- */
+.shell {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-areas:
+    "header header"
+    "nav main"
+    "footer footer";
+}
+.shell--focus {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "header"
+    "main"
+    "footer";
+}
+.shell-header {
+  grid-area: header;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 10px 24px;
+  background: rgba(15, 26, 20, 0.88);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.shell-header .brand__logo { height: 30px; }
+.shell-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 5px 11px;
+}
+.shell-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  min-width: 0;
+}
+.shell-account__id {
+  text-align: right;
+  line-height: 1.35;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shell-nav {
+  grid-area: nav;
+  border-right: 1px solid var(--line);
+  padding: 18px 12px;
+}
+.shell-nav__inner {
+  position: sticky;
+  top: 84px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.shell-nav a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 44px;
+  padding: 10px 13px;
+  border-radius: 11px;
+  border: 1px solid transparent;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.shell-nav a:hover { background: rgba(255, 255, 255, 0.05); color: var(--text); }
+.shell-nav a:focus-visible { outline: 3px solid var(--accent-bright); outline-offset: 2px; }
+.shell-nav a[aria-current="page"] {
+  background: rgba(49, 211, 92, 0.12);
+  border-color: rgba(49, 211, 92, 0.25);
+  color: var(--accent-bright);
+}
+.shell-nav__sep {
+  height: 1px;
+  background: var(--line);
+  margin: 10px 8px;
+}
+
+.shell-main {
+  grid-area: main;
+  width: 100%;
+  max-width: 1160px;
+  justify-self: center;
+  padding: 34px clamp(20px, 4vw, 48px) 80px;
+}
+.shell-footer {
+  grid-area: footer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  padding: 14px 24px calc(14px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.shell-footer a { color: var(--muted); text-decoration: none; }
+.shell-footer a:hover { color: var(--text); text-decoration: underline; }
+.shell-footer a:focus-visible { outline: 3px solid var(--accent-bright); outline-offset: 2px; }
+
+@media (max-width: 1023px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "header"
+      "nav"
+      "main"
+      "footer";
+  }
+  .shell-nav {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 10px 14px;
+    overflow-x: auto;
+  }
+  .shell-nav__inner {
+    position: static;
+    flex-direction: row;
+    gap: 6px;
+  }
+  .shell-nav a { white-space: nowrap; min-height: 42px; padding: 9px 13px; }
+  .shell-nav__sep { display: none; }
+  .shell-main { padding: 24px 18px 64px; }
+  .shell-tag { display: none; }
+  .shell-account__id { max-width: 40vw; }
+}
+@media (max-width: 640px) {
+  .shell-guest { display: none; }
+}
+
+/* Espace de travail : contenu principal + panneau latéral */
+.work-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .work-grid { grid-template-columns: minmax(0, 1fr); }
+}
+.center-work {
+  min-height: 50vh;
+  display: grid;
+  place-items: center;
+}
+
 /* ---------- Marquee du code (lobby projeté en salle) ---------- */
 .code-tiles {
   display: flex;

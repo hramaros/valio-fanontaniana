@@ -77,7 +77,18 @@ Règles :
 
 ## Layout & Spacing
 
-- Conteneur max 1040px (`.container`), variante étroite 560px.
+- **Shell formateur** (`HostShell` + `src/app/host/layout.jsx`) : toutes les
+  pages `/host/*` vivent dans une grille header (sticky, compte + solde ambre +
+  déconnexion ; en mode invité, « Se connecter » ouvre `AuthModal` depuis
+  n'importe quelle page) / nav latérale 248px (icône + libellé, état actif
+  teinté accent, barre horizontale sous 1024px) / espace de travail (max
+  1160px, gouttières `clamp`) / footer slim. Lobby et suivi de session passent
+  en mode `--focus` (nav masquée pour la projection). La visite guidée est une
+  page normale du shell — **jamais de redirection forcée**.
+- `.work-grid` : contenu principal + panneau latéral 330px (1 colonne < 900px).
+- Côté participants : layouts focalisés plein écran conservés (zéro friction,
+  une action par écran) — le shell est un pattern formateur.
+- Conteneur participant max 1040px (`.container`), variante étroite 560px.
 - Espacement : utilitaires `gap-8/12/16/24` ; padding cartes 26px.
 - `min-height: 100dvh`, safe-area sur le padding bas.
 - Grilles : `auto-fit, minmax(140px, 1fr)` pour les stats ; réponses 2 col → 1

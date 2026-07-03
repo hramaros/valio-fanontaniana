@@ -2,7 +2,6 @@
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Brand from "@/components/Brand";
 import Countdown from "@/components/Countdown";
 import Leaderboard from "@/components/Leaderboard";
 import Podium from "@/components/Podium";
@@ -23,16 +22,28 @@ function HostResultsInner() {
   const params = useSearchParams();
   const code = normalizeCode(params.get("code") || "");
 
+  // Les fetchers ne renvoient que des données valides : un payload d'erreur
+  // (salle expirée, Redis indisponible…) ne doit jamais entrer dans l'état.
   const stateFetcher = useMemo(
-    () => async () => (await apiGet(`/api/room/${code}/state`)).data,
+    () => async () => {
+      const { ok, status, data } = await apiGet(`/api/room/${code}/state`);
+      if (ok) return data;
+      return status === 404 ? { notFound: true } : undefined;
+    },
     [code],
   );
   const resultsFetcher = useMemo(
-    () => async () => (await apiGet(`/api/room/${code}/results`)).data,
+    () => async () => {
+      const { ok, data } = await apiGet(`/api/room/${code}/results`);
+      return ok ? data : undefined;
+    },
     [code],
   );
   const reviewFetcher = useMemo(
-    () => async () => (await apiGet(`/api/host/${code}/review`)).data,
+    () => async () => {
+      const { ok, data } = await apiGet(`/api/host/${code}/review`);
+      return ok ? data : undefined;
+    },
     [code],
   );
 
@@ -85,7 +96,23 @@ function HostResultsInner() {
     : 0;
 
   if (!state) {
-    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
+    return <div className="center-work"><div className="spin" role="status" aria-label="Chargement" /></div>;
+  }
+
+  if (state.notFound) {
+    return (
+      <div className="center-work">
+        <div className="card stack gap-16" style={{ textAlign: "center", maxWidth: 440 }}>
+          <h2>Session introuvable</h2>
+          <p className="muted">
+            Cette salle n'existe plus ou a expiré. Retrouvez vos sessions
+            passées dans « Mes examens ».
+          </p>
+          <Link href="/host" className="btn btn--primary">Créer un quiz</Link>
+          <Link href="/host/history" className="btn btn--ghost">Mes examens</Link>
+        </div>
+      </div>
+    );
   }
 
   const offset = state.serverNow - Date.now();
@@ -93,7 +120,7 @@ function HostResultsInner() {
 
   const header = (
     <div className="row row--between wrap gap-12">
-      <Brand />
+      <span className="eyebrow">Session en direct</span>
       <div className="panel row gap-12" style={{ padding: "10px 16px" }}>
         <span className="tiny muted">Code</span>
         <span className="code-chip">{code}</span>
@@ -104,7 +131,7 @@ function HostResultsInner() {
   // — Phase de correction : le formateur valide les réponses libres —
   if (review) {
     return (
-      <div className="container stack gap-24">
+      <div className="stack gap-24">
         {header}
         <div className="card stack gap-8" style={{ textAlign: "center" }}>
           <span className="eyebrow">Chrono terminé</span>
@@ -148,11 +175,11 @@ function HostResultsInner() {
 
   // — Phase en cours / terminée : classement (comportement existant) —
   if (!board) {
-    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
+    return <div className="center-work"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   return (
-    <div className="container stack gap-24">
+    <div className="stack gap-24">
       {header}
 
       {ended ? (
@@ -227,7 +254,7 @@ function HostResultsInner() {
 
 export default function HostResultsPage() {
   return (
-    <Suspense fallback={<div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>}>
+    <Suspense fallback={<div className="center-work"><div className="spin" role="status" aria-label="Chargement" /></div>}>
       <HostResultsInner />
     </Suspense>
   );

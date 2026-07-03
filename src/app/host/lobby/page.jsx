@@ -1,7 +1,7 @@
 "use client";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Brand from "@/components/Brand";
+import Link from "next/link";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
@@ -16,8 +16,14 @@ function LobbyInner() {
   const [busy, setBusy] = useState(false);
   const [recharge, setRecharge] = useState(null); // { priceAr, balanceAr } | null
 
+  // Ne renvoie que des données valides : un payload d'erreur (salle expirée,
+  // Redis indisponible…) ne doit jamais entrer dans l'état.
   const fetcher = useMemo(
-    () => async () => (await apiGet(`/api/room/${code}/state`)).data,
+    () => async () => {
+      const { ok, status, data } = await apiGet(`/api/room/${code}/state`);
+      if (ok) return data;
+      return status === 404 ? { notFound: true } : undefined;
+    },
     [code],
   );
   const state = usePolling(fetcher, 1200, true);
@@ -50,16 +56,23 @@ function LobbyInner() {
 
   const participants = state?.participants || [];
 
-  return (
-    <div className="container stack gap-24">
-      <div className="row row--between wrap gap-12">
-        <Brand />
-        <div className="panel row gap-12" style={{ padding: "10px 16px" }}>
-          <span className="tiny muted">Code</span>
-          <span className="code-chip">{code}</span>
+  if (state?.notFound) {
+    return (
+      <div className="center-work">
+        <div className="card stack gap-16" style={{ textAlign: "center", maxWidth: 440 }}>
+          <h2>Salle introuvable</h2>
+          <p className="muted">
+            Cette salle n'existe plus ou a expiré. Créez un nouveau quiz pour
+            obtenir un nouveau code.
+          </p>
+          <Link href="/host" className="btn btn--primary">Créer un quiz</Link>
         </div>
       </div>
+    );
+  }
 
+  return (
+    <div className="stack gap-24">
       <div className="card stack gap-16" style={{ textAlign: "center" }}>
         <span className="eyebrow">Salle d'attente</span>
         <h1 style={{ fontSize: "2.2rem" }}>Rejoignez avec le code</h1>
@@ -139,7 +152,7 @@ function LobbyInner() {
 
 export default function HostLobbyPage() {
   return (
-    <Suspense fallback={<div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>}>
+    <Suspense fallback={<div className="center-work"><div className="spin" role="status" aria-label="Chargement" /></div>}>
       <LobbyInner />
     </Suspense>
   );

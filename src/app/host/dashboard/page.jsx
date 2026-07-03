@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Brand from "@/components/Brand";
 import { apiGet } from "@/lib/api";
 import { useAccount } from "@/lib/account-client";
 
@@ -24,16 +23,16 @@ export default function HostDashboardPage() {
   }, [account]);
 
   if (loading) {
-    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
+    return <div className="center-work"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   if (!account) {
     return (
-      <div className="center-screen">
-        <div className="card stack gap-16" style={{ textAlign: "center" }}>
+      <div className="center-work">
+        <div className="card stack gap-16" style={{ textAlign: "center", maxWidth: 440 }}>
           <h2>Tableau de bord</h2>
           <p className="muted">Connectez-vous pour voir vos statistiques.</p>
-          <Link href="/host" className="btn btn--primary">Espace formateur</Link>
+          <Link href="/host" className="btn btn--primary">Créer un quiz</Link>
         </div>
       </div>
     );
@@ -42,14 +41,9 @@ export default function HostDashboardPage() {
   const stats = data?.stats;
 
   return (
-    <div className="container stack gap-24">
-      <div className="row row--between wrap gap-12">
-        <Brand />
-        <Link href="/host" className="pill">← Espace formateur</Link>
-      </div>
-
+    <div className="stack gap-24">
       <div className="stack gap-8">
-        <span className="eyebrow">{account.email} · Solde {account.balanceAr} Ar</span>
+        <span className="eyebrow">Statistiques de vos examens</span>
         <h1 style={{ fontSize: "2rem" }}>Tableau de bord</h1>
       </div>
 

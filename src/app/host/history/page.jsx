@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Brand from "@/components/Brand";
 import Leaderboard from "@/components/Leaderboard";
 import Modal from "@/components/Modal";
 import Icon from "@/components/Icon";
@@ -39,19 +38,19 @@ export default function HostHistoryPage() {
   }
 
   if (loading) {
-    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
+    return <div className="center-work"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   if (!account) {
     return (
-      <div className="center-screen">
-        <div className="card stack gap-16" style={{ textAlign: "center" }}>
+      <div className="center-work">
+        <div className="card stack gap-16" style={{ textAlign: "center", maxWidth: 440 }}>
           <h2>Mes examens</h2>
           <p className="muted">
             Connectez-vous pour consulter l'historique de vos examens.
           </p>
           <Link href="/host" className="btn btn--primary">
-            Espace formateur
+            Créer un quiz
           </Link>
         </div>
       </div>
@@ -59,16 +58,9 @@ export default function HostHistoryPage() {
   }
 
   return (
-    <div className="container stack gap-24">
-      <div className="row row--between wrap gap-12">
-        <Brand />
-        <Link href="/host" className="pill">← Espace formateur</Link>
-      </div>
-
+    <div className="stack gap-24">
       <div className="stack gap-8">
-        <span className="eyebrow">
-          {account.email} · Solde {account.balanceAr} Ar
-        </span>
+        <span className="eyebrow">Historique, classements &amp; exports PDF</span>
         <h1 style={{ fontSize: "2rem" }}>Mes examens</h1>
       </div>
 

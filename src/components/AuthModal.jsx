@@ -26,10 +26,6 @@ export default function AuthModal({ onClose, onAuthed }) {
       setError(data?.error || "Échec de l'opération.");
       return;
     }
-    // Auth pendant la création d'un examen : on ne redirige pas vers la visite guidée.
-    try {
-      localStorage.setItem("valio:onboarded", "1");
-    } catch {}
     onAuthed(data.account);
   }
 

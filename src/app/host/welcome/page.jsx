@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Brand from "@/components/Brand";
 
 const STEPS = [
   {
@@ -32,78 +31,71 @@ export default function WelcomePage() {
   const last = step === STEPS.length - 1;
 
   function done(href = "/host") {
-    try {
-      localStorage.setItem("valio:onboarded", "1");
-    } catch {}
     router.push(href);
   }
 
   const s = STEPS[step];
 
   return (
-    <div className="center-screen">
-      <div className="container container--narrow stack gap-24">
-        <div className="row row--between">
-          <Brand />
-          <button type="button" className="pill" onClick={() => done()}>
-            Passer
-          </button>
+    <div className="stack gap-24" style={{ maxWidth: 640, margin: "0 auto" }}>
+      <div className="stack gap-8">
+        <span className="eyebrow">Visite guidée · 30 secondes</span>
+        <h1 style={{ fontSize: "2rem" }}>Bien démarrer avec valio</h1>
+      </div>
+
+      <div className="card stack gap-16">
+        <span className="eyebrow">
+          {step + 1} / {STEPS.length}
+        </span>
+        <h2 style={{ fontSize: "1.6rem" }}>{s.title}</h2>
+        <div className="stack gap-12">
+          {s.lines.map((l, i) => (
+            <p key={i} className="muted" style={{ margin: 0 }}>{l}</p>
+          ))}
         </div>
 
-        <div className="card stack gap-16">
-          <span className="eyebrow">
-            Bienvenue · {step + 1} / {STEPS.length}
-          </span>
-          <h1 style={{ fontSize: "1.9rem" }}>{s.title}</h1>
-          <div className="stack gap-12">
-            {s.lines.map((l, i) => (
-              <p key={i} className="muted">{l}</p>
-            ))}
-          </div>
+        <div className="onb-dots" aria-hidden>
+          {STEPS.map((_, i) => (
+            <span key={i} className={`onb-dot${i === step ? " onb-dot--on" : ""}`} />
+          ))}
+        </div>
 
-          <div className="onb-dots" aria-hidden>
-            {STEPS.map((_, i) => (
-              <span key={i} className={`onb-dot${i === step ? " onb-dot--on" : ""}`} />
-            ))}
+        {last ? (
+          <div className="stack gap-8">
+            <button
+              className="btn btn--primary btn--lg btn--block"
+              onClick={() => done("/host")}
+            >
+              Créer mon premier quiz
+            </button>
+            <button
+              className="btn btn--ghost btn--block"
+              onClick={() => done("/host/classes")}
+            >
+              Créer une classe
+            </button>
           </div>
-
-          {last ? (
-            <div className="stack gap-8">
-              <button
-                className="btn btn--primary btn--lg btn--block"
-                onClick={() => done("/host")}
-              >
-                Créer mon premier quiz
-              </button>
-              <button
-                className="btn btn--ghost btn--block"
-                onClick={() => done("/host/classes")}
-              >
-                Créer une classe
-              </button>
-            </div>
-          ) : (
-            <div className="row gap-12">
-              {step > 0 && (
-                <button
-                  type="button"
-                  className="btn btn--ghost"
-                  onClick={() => setStep((n) => n - 1)}
-                >
-                  Retour
-                </button>
-              )}
+        ) : (
+          <div className="row gap-12">
+            {step > 0 && (
               <button
                 type="button"
-                className="btn btn--primary btn--block"
-                style={{ flex: 1 }}
-                onClick={() => setStep((n) => n + 1)}
+                className="btn btn--ghost"
+                onClick={() => setStep((n) => n - 1)}
               >
-                Suivant
+                Retour
               </button>
-            </div>
-          )}
-        </div>
+            )}
+            <button
+              type="button"
+              className="btn btn--primary btn--block"
+              style={{ flex: 1 }}
+              onClick={() => setStep((n) => n + 1)}
+            >
+              Suivant
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

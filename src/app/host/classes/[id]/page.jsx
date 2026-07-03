@@ -1,7 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import Brand from "@/components/Brand";
 import { useParams } from "next/navigation";
 import { apiGet, apiPost, apiDelete } from "@/lib/api";
 import { useAccount } from "@/lib/account-client";
@@ -45,16 +44,16 @@ export default function ClassDetailPage() {
   }
 
   if (loading) {
-    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
+    return <div className="center-work"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   if (!account) {
     return (
-      <div className="center-screen">
-        <div className="card stack gap-16" style={{ textAlign: "center" }}>
+      <div className="center-work">
+        <div className="card stack gap-16" style={{ textAlign: "center", maxWidth: 440 }}>
           <h2>Classe</h2>
           <p className="muted">Connectez-vous pour gérer cette classe.</p>
-          <Link href="/host" className="btn btn--primary">Espace formateur</Link>
+          <Link href="/host" className="btn btn--primary">Créer un quiz</Link>
         </div>
       </div>
     );
@@ -62,8 +61,8 @@ export default function ClassDetailPage() {
 
   if (notFound) {
     return (
-      <div className="center-screen">
-        <div className="card stack gap-16" style={{ textAlign: "center" }}>
+      <div className="center-work">
+        <div className="card stack gap-16" style={{ textAlign: "center", maxWidth: 440 }}>
           <h2>Classe introuvable</h2>
           <Link href="/host/classes" className="btn btn--primary">Mes classes</Link>
         </div>
@@ -72,20 +71,17 @@ export default function ClassDetailPage() {
   }
 
   if (!classroom) {
-    return <div className="center-screen"><div className="spin" role="status" aria-label="Chargement" /></div>;
+    return <div className="center-work"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
   const hasExams = gradebook && gradebook.exams.length > 0;
 
   return (
-    <div className="container stack gap-24">
-      <div className="row row--between wrap gap-12">
-        <Brand />
-        <Link href="/host/classes" className="pill">← Mes classes</Link>
-      </div>
-
+    <div className="stack gap-24">
       <div className="stack gap-8">
-        <span className="eyebrow">Classe</span>
+        <Link href="/host/classes" className="tiny" style={{ color: "var(--muted)" }}>
+          ← Mes classes
+        </Link>
         <h1 style={{ fontSize: "2rem" }}>{classroom.name}</h1>
       </div>
 
