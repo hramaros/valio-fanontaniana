@@ -57,7 +57,7 @@ export default function HostShell({ focus = false, children }) {
               <span className="tiny muted shell-guest">Mode invité</span>
               <button
                 type="button"
-                className="btn btn--ghost btn--compact"
+                className="btn btn--primary btn--compact"
                 onClick={() => setShowAuth(true)}
               >
                 Se connecter
