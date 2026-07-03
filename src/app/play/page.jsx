@@ -3,7 +3,6 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AnswerTile from "@/components/AnswerTile";
-import { ShapeStrip } from "@/components/Icon";
 import Countdown from "@/components/Countdown";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
@@ -180,9 +179,7 @@ function PlayInner() {
 
       {phase === "done" ? (
         <div className="card stack gap-16" style={{ textAlign: "center" }}>
-          <div>
-            <ShapeStrip size={24} />
-          </div>
+          <div style={{ fontSize: "2.4rem" }} aria-hidden="true">🎉</div>
           <h1 style={{ fontSize: "2rem" }}>Quiz terminé !</h1>
           <p className="muted">
             Vos réponses sont enregistrées. Le classement s'affiche à la fin du
@@ -235,11 +232,10 @@ function PlayInner() {
           ) : (
             <>
               <div className="answers">
-                {question.answers.map((a, i) => (
+                {question.answers.map((a) => (
                   <AnswerTile
                     key={a.id}
                     answer={a}
-                    index={i}
                     selected={selected.includes(a.id)}
                     dim={!!feedback}
                     disabled={!!feedback || submitting}

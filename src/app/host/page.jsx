@@ -43,6 +43,23 @@ export default function HostPage() {
   const [busy, setBusy] = useState(false);
   const { account, setAccount } = useAccount();
   const [showAuth, setShowAuth] = useState(false);
+  const [authError, setAuthError] = useState("");
+
+  // Affiche l'échec d'une connexion Google (retour du callback OAuth),
+  // puis nettoie l'URL. Lu via window.location pour éviter le Suspense
+  // qu'exigerait useSearchParams.
+  useEffect(() => {
+    try {
+      const err = new URLSearchParams(window.location.search).get("authError");
+      if (!err) return;
+      setAuthError(
+        err === "google_config"
+          ? "La connexion Google n'est pas configurée sur ce serveur. Utilisez email + mot de passe."
+          : "La connexion Google a échoué. Réessayez, ou utilisez email + mot de passe.",
+      );
+      window.history.replaceState({}, "", window.location.pathname);
+    } catch {}
+  }, []);
 
   // Le mode Examen exige un compte : sinon on ouvre la modale de connexion.
   function chooseExamen() {
@@ -132,6 +149,11 @@ export default function HostPage() {
               </span>
             )}
           </div>
+          {authError && (
+            <div className="error" role="alert">
+              {authError}
+            </div>
+          )}
           {account && account.balanceAr === 0 && (
             <div className="card stack gap-8">
               <span className="eyebrow">Premiers pas · mode Examen</span>

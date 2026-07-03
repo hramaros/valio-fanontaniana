@@ -6,7 +6,7 @@ import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
 import RechargeModal from "@/components/RechargeModal";
-import Icon, { ShapeStrip } from "@/components/Icon";
+import Icon from "@/components/Icon";
 
 function LobbyInner() {
   const router = useRouter();
@@ -87,13 +87,8 @@ function LobbyInner() {
           </span>
         </div>
         {participants.length === 0 ? (
-          <div className="panel stack gap-12" style={{ textAlign: "center", padding: 24 }}>
-            <div>
-              <ShapeStrip size={18} />
-            </div>
-            <p className="muted" style={{ margin: 0 }}>
-              En attente des premiers participants…
-            </p>
+          <div className="panel" style={{ textAlign: "center" }}>
+            <p className="muted">En attente des premiers participants…</p>
           </div>
         ) : (
           <div className="players">

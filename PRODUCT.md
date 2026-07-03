@@ -35,6 +35,6 @@ valio.fanontaniana est le quiz en direct « style Kahoot » **qui produit une vr
 ## Accessibility & Inclusion
 
 - WCAG AA : contraste ≥ 4.5:1 (texte), ≥ 3:1 (grands éléments) — audité, à maintenir sur tout nouveau jeu de couleurs.
-- La couleur n'est jamais seule porteuse de sens : les tuiles de réponse portent des glyphes de forme (triangle/carré/rond/losange) pour les daltoniens.
+- La couleur n'est jamais seule porteuse de sens : chaque tuile de réponse porte son propre texte (pas de glyphes de forme — signature Kahoot, voir anti-références).
 - `prefers-reduced-motion` respecté partout (les spinners d'état restent animés).
 - Cibles tactiles ≥ 44 px, modales avec Échap/role=dialog, erreurs en `role="alert"`.

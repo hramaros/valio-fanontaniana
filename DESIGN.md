@@ -53,8 +53,9 @@ Règles :
   avec texte `#06140d` ; `--ghost` bordé ; `--danger` bordé coral ; `--icon`
   44×44 ; focus visible 3px `--accent-bright`.
 - **`.answer-tile`** : signature du produit — grandes tuiles colorées (quatuor),
-  glyphe de forme SVG (▲■●◆, `ShapeGlyph` dans `Icon.jsx`), texte
-  auto-contrasté (`readableText`), sélection = anneau blanc + ✓.
+  texte auto-contrasté (`readableText`), sélection = anneau blanc + ✓.
+  **Pas de glyphes de forme** (anti-référence : clone de Kahoot) — le texte de
+  la réponse porte le sens, jamais la couleur seule.
 - **`.pill`** : navigation secondaire en chips (min-height 40px).
 - **`.ring`** : chrono conique (`--p` en %), passe coral sous 10 s.
 - **`.seg`** : contrôle segmenté (aria-pressed → fond accent).
@@ -62,9 +63,6 @@ Règles :
 - **Modales** : `Modal.jsx` (role=dialog, Échap, focus) sur backdrop noir 60 %.
 - **Icônes** : SVG inline (`Icon.jsx`, style Lucide, trait 2px). Jamais d'émoji
   structurel ; émojis autorisés en contenu décoratif (`aria-hidden`).
-- **`ShapeStrip`** (`Icon.jsx`) : bandeau ▲■●◆ aux couleurs du quatuor —
-  signature de marque des moments participants (hero accueil, attentes, fin de
-  quiz, état vide du lobby). Décoratif (`aria-hidden`), flottement `bob` doux.
 - **`.code-tiles` / `.code-tile`** : marquee du code de salle (lobby projeté) —
   chaque caractère sur une tuile du quatuor, texte sombre `#06140d` (≥6:1),
   `role="img"` + aria-label épelé.
@@ -92,4 +90,3 @@ Règles :
 - Apparition des chips participants : `pop` 300ms ; pastilles cyclant sur le
   quatuor (`nth-child`).
 - Chrono `.ring--low` : pulsation `scale(1.04)` 1s (urgence < 10 s).
-- `ShapeStrip` : flottement `bob` 3.2s décalé par forme.
