@@ -163,8 +163,7 @@ function VerifierInner() {
             </label>
             <input
               id="verify-code"
-              className="input input--code"
-              style={{ fontSize: "1.4rem", letterSpacing: "0.18em" }}
+              className="input input--code input--code--long"
               placeholder="VF-XXXX-XXXX"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}

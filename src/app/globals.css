@@ -172,11 +172,18 @@ button {
 
 .input--code {
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 8vw, 2rem);
   font-weight: 700;
-  letter-spacing: 0.32em;
+  letter-spacing: clamp(0.08em, 3vw, 0.32em);
   text-align: center;
   text-transform: uppercase;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+/* Codes plus longs (ex. VF-XXXX-XXXX) : échelle réduite pour tenir sur 320px. */
+.input--code--long {
+  font-size: clamp(1.05rem, 5.2vw, 1.4rem);
+  letter-spacing: clamp(0.04em, 1.6vw, 0.18em);
 }
 
 .input--area {
@@ -453,11 +460,15 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
     border-bottom: 1px solid var(--line);
     padding: 10px 14px;
     overflow-x: auto;
+    /* Estompe le bord droit pour signaler que la nav défile horizontalement. */
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
   }
   .shell-nav__inner {
     position: static;
     flex-direction: row;
     gap: 6px;
+    padding-right: 20px;
   }
   .shell-nav a { white-space: nowrap; min-height: 42px; padding: 9px 13px; }
   .shell-nav__sep { display: none; }
