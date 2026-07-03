@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Leaderboard from "@/components/Leaderboard";
 import Modal from "@/components/Modal";
+import CopyButton from "@/components/CopyButton";
 import Icon from "@/components/Icon";
 import { apiGet } from "@/lib/api";
 import { useAccount } from "@/lib/account-client";
@@ -76,13 +77,7 @@ export default function HostHistoryPage() {
       ) : (
         <div className="stack gap-8">
           {records.map((r) => (
-            <button
-              key={r.id}
-              type="button"
-              className="grade-row"
-              style={{ width: "100%", textAlign: "left", cursor: "pointer" }}
-              onClick={() => open(r.id)}
-            >
+            <div key={r.id} className="grade-row">
               <div className="grade-row__ans">
                 <div style={{ fontWeight: 700 }}>{r.title}</div>
                 <div className="muted tiny">
@@ -90,8 +85,17 @@ export default function HostHistoryPage() {
                   {r.participantCount > 1 ? "s" : ""} · {r.priceAr} Ar
                 </div>
               </div>
-              <span className="pill">Voir</span>
-            </button>
+              {r.verifyCode && (
+                <CopyButton value={r.verifyCode} label={r.verifyCode} />
+              )}
+              <button
+                type="button"
+                className="btn btn--ghost btn--compact"
+                onClick={() => open(r.id)}
+              >
+                Voir
+              </button>
+            </div>
           ))}
         </div>
       )}

@@ -8,10 +8,11 @@ product
 
 - **Formateurs / enseignants** (Madagascar, francophone) : ils créent des quiz depuis un ordinateur, projettent la salle d'attente et les résultats sur vidéoprojecteur, corrigent les réponses libres, suivent les notes de leurs classes. Contexte : salle de classe ou de formation, souvent connexion modeste.
 - **Participants / élèves** : ils rejoignent sur smartphone (souvent bas de gamme) avec un code + pseudo, sans compte. Contexte : téléphone en main, ambiance de jeu en direct, temps limité.
+- **Vérificateurs** (parents, établissements supérieurs, cabinets de formation) : munis d'un code de consultation `VF-XXXX-XXXX` fourni par le formateur, ils consultent la fiche publique d'un examen (`/verifier`) — sans compte. Contexte : transparence et vérification de notes.
 
 ## Product Purpose
 
-valio.fanontaniana est le quiz en direct « style Kahoot » **qui produit une vraie note /20 exploitable**. Deux modes : Libre (gratuit, QCM, ≤ 10 participants, sans compte) et Examen (payant en Ariary : réponses libres corrigées à la main, export PDF, historique, classes nominatives, carnet de notes). Succès = un formateur lance un examen en quelques minutes et ressort avec des notes fiables ; un élève joue sans aucune friction.
+valio.fanontaniana est le quiz en direct « style Kahoot » **qui produit une vraie note /20 exploitable**. Deux modes : Libre (gratuit, QCM, ≤ 10 participants, sans compte) et Examen (payant en Ariary : réponses libres corrigées à la main, export PDF, historique, classes nominatives, carnet de notes). Chaque Examen clôturé reçoit un **code de consultation publique** (gratuit) : quiconque le connaît peut vérifier la fiche officielle des résultats sur `/verifier` — le code, copiable partout dans l'interface formateur, fait office de clé d'accès. Succès = un formateur lance un examen en quelques minutes et ressort avec des notes fiables ; un élève joue sans aucune friction.
 
 ## Brand Personality
 

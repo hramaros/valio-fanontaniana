@@ -111,6 +111,7 @@ export default function HostShell({ focus = false, children }) {
         <span>valio.fanontaniana — quiz en direct, avec une vraie note /20.</span>
         <span className="row gap-16 wrap">
           <Link href="/">Accès participant</Link>
+          <Link href="/verifier">Consultation publique</Link>
           <Link href="/host/welcome">Aide &amp; visite guidée</Link>
         </span>
       </footer>

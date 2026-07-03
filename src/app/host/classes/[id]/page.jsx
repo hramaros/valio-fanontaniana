@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { apiGet, apiPost, apiDelete } from "@/lib/api";
 import { useAccount } from "@/lib/account-client";
 import ConfirmButton from "@/components/ConfirmButton";
+import CopyButton from "@/components/CopyButton";
 
 export default function ClassDetailPage() {
   const { account, loading } = useAccount();
@@ -142,7 +143,18 @@ export default function ClassDetailPage() {
                 <tr>
                   <th>Élève</th>
                   {gradebook.exams.map((e) => (
-                    <th key={e.id}>{e.title}</th>
+                    <th key={e.id}>
+                      <div className="stack gap-8">
+                        <span>{e.title}</span>
+                        {e.verifyCode && (
+                          <CopyButton
+                            value={e.verifyCode}
+                            label="Code public"
+                            className="btn btn--ghost btn--compact tiny"
+                          />
+                        )}
+                      </div>
+                    </th>
                   ))}
                   <th>Moy.</th>
                 </tr>

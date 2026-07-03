@@ -7,6 +7,7 @@ import Leaderboard from "@/components/Leaderboard";
 import Podium from "@/components/Podium";
 import ReviewGrader from "@/components/ReviewGrader";
 import ConfirmButton from "@/components/ConfirmButton";
+import CopyButton from "@/components/CopyButton";
 import Icon from "@/components/Icon";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
@@ -222,6 +223,26 @@ function HostResultsInner() {
         </span>
         <Leaderboard players={board.leaderboard} />
       </div>
+
+      {ended && board.verifyCode && (
+        <div className="panel stack gap-8" style={{ textAlign: "center" }}>
+          <span className="tiny muted">Consultation publique des résultats</span>
+          <div className="code-chip" style={{ fontSize: "1.2rem" }}>
+            {board.verifyCode}
+          </div>
+          <p className="tiny muted" style={{ margin: 0 }}>
+            Partagez ce code (parents, établissements…) : il donne accès à la
+            fiche de l'examen sur la page « Vérifier un examen ».
+          </p>
+          <div className="row gap-12" style={{ justifyContent: "center" }}>
+            <CopyButton value={board.verifyCode} label="Copier le code" />
+            <CopyButton
+              value={`${typeof window !== "undefined" ? window.location.origin : ""}/verifier?code=${board.verifyCode}`}
+              label="Copier le lien"
+            />
+          </div>
+        </div>
+      )}
 
       {ended && state.mode === "examen" && (
         <div className="panel" style={{ textAlign: "center" }}>

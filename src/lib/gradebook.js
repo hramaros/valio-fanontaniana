@@ -2,7 +2,12 @@
 
 export function buildGradebook(students, examRecords) {
   const records = Array.isArray(examRecords) ? examRecords : [];
-  const exams = records.map((r) => ({ id: r.id, title: r.title, endedAt: r.endedAt }));
+  const exams = records.map((r) => ({
+    id: r.id,
+    title: r.title,
+    endedAt: r.endedAt,
+    verifyCode: r.verifyCode || null,
+  }));
   const rows = (students || []).map((s) => {
     const notes = {};
     let sum = 0;

@@ -88,6 +88,13 @@ Règles :
 - `.work-grid` : contenu principal + panneau latéral 330px (1 colonne < 900px).
 - Côté participants : layouts focalisés plein écran conservés (zéro friction,
   une action par écran) — le shell est un pattern formateur.
+- **Consultation publique** (`/verifier`) : page autonome hors shell, registre
+  sobre (aucun élément game-show — ni podium, ni points, note /20 uniquement).
+  Saisie du code `VF-XXXX-XXXX` puis fiche : en-tête examen, `stat-grid`,
+  classement en `.lb` avec la note en chiffre fort. Deep-link `?code=`.
+- **`CopyButton`** : pattern de copie (icône `copy` → `check` + « Copié ! »
+  2 s, `aria-live="polite"`) — utilisé pour le code de consultation (fin
+  d'examen, historique, carnet de notes).
 - Conteneur participant max 1040px (`.container`), variante étroite 560px.
 - Espacement : utilitaires `gap-8/12/16/24` ; padding cartes 26px.
 - `min-height: 100dvh`, safe-area sur le padding bas.

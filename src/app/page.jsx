@@ -84,6 +84,11 @@ export default function HomePage() {
         <Link href="/host" className="btn btn--ghost btn--block">
           Créer un quiz (formateur)
         </Link>
+
+        <p className="tiny muted" style={{ textAlign: "center", margin: 0 }}>
+          Parent ou établissement ?{" "}
+          <Link href="/verifier">Vérifier les résultats d'un examen</Link>
+        </p>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { getRedis } from "./redis.js";
-import { generateCode, generateId } from "./code.js";
+import { generateCode, generateId, generateVerifyCode } from "./code.js";
 import {
   isAnswerCorrect,
   computePoints,
@@ -519,15 +519,19 @@ export async function getLeaderboard(code) {
   // (le débit réel arrive avec le wallet/compte ; `charged` reste false).
   if (status === "ended" && mode === "examen" && !meta.settled) {
     let charged = false;
+    let verifyCode = null;
     if (meta.hostAccountId) {
       const d = await debit(meta.hostAccountId, priceAr);
       charged = d.ok;
       // Snapshot durable dans l'historique du compte (hors TTL).
       const agg = examAggregate(withNote);
+      verifyCode = generateVerifyCode();
       await saveExamRecord({
         id: generateId("ex"),
         accountId: meta.hostAccountId,
         code: meta.code,
+        hostName: meta.hostName || null,
+        verifyCode,
         title: meta.quiz?.title || "Quiz",
         mode,
         capacity,
@@ -545,7 +549,7 @@ export async function getLeaderboard(code) {
         podium: getPodium(withNote),
       });
     }
-    meta.settled = { amountAr: priceAr, currency: "MGA", at: now(), charged };
+    meta.settled = { amountAr: priceAr, currency: "MGA", at: now(), charged, verifyCode };
     await saveMeta(meta);
   }
 
@@ -557,6 +561,7 @@ export async function getLeaderboard(code) {
     capacity,
     priceAr,
     settled: meta.settled || null,
+    verifyCode: meta.settled?.verifyCode || null,
     leaderboard: withNote,
     podium: getPodium(withNote),
     nbQuestions,
