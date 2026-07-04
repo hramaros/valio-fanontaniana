@@ -22,6 +22,11 @@ export function createFakeRedis() {
     async del(key) {
       return store.delete(key) ? 1 : 0;
     },
+    async getdel(key) {
+      const v = store.has(key) ? clone(store.get(key)) : null;
+      store.delete(key);
+      return v;
+    },
     async exists(key) {
       return store.has(key) ? 1 : 0;
     },
@@ -33,6 +38,15 @@ export function createFakeRedis() {
     },
     async smembers(key) {
       return [...(sets.get(key) || [])];
+    },
+    async srem(key, ...members) {
+      const s = sets.get(key);
+      if (!s) return 0;
+      let removed = 0;
+      for (const m of members.flat()) {
+        if (s.delete(m)) removed++;
+      }
+      return removed;
     },
     async mget(...keys) {
       return keys.flat().map((k) => (store.has(k) ? clone(store.get(k)) : null));
