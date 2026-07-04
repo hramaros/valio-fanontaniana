@@ -4,14 +4,25 @@ import { apiPost } from "@/lib/api";
 import Modal from "@/components/Modal";
 import Icon from "@/components/Icon";
 
+const linkButtonStyle = {
+  background: "none",
+  border: "none",
+  color: "var(--accent-bright)",
+  textDecoration: "underline",
+  cursor: "pointer",
+  padding: 0,
+  font: "inherit",
+};
+
 // Modale connexion / inscription du formateur (requise pour le mode Examen).
 export default function AuthModal({ onClose, onAuthed }) {
-  const [tab, setTab] = useState("login"); // login | signup
+  const [tab, setTab] = useState("login"); // login | signup | forgot
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
   const googleEnabled = process.env.NEXT_PUBLIC_GOOGLE_ENABLED === "1";
 
   async function submit(e) {
@@ -27,6 +38,82 @@ export default function AuthModal({ onClose, onAuthed }) {
       return;
     }
     onAuthed(data.account);
+  }
+
+  async function submitForgot(e) {
+    e.preventDefault();
+    setBusy(true);
+    await apiPost("/api/auth/password-reset/request", { email });
+    setBusy(false);
+    setForgotSent(true);
+  }
+
+  function backToLogin() {
+    setTab("login");
+    setForgotSent(false);
+    setError("");
+  }
+
+  if (tab === "forgot") {
+    return (
+      <Modal onClose={onClose} labelledBy="auth-title">
+        <div className="row row--between">
+          <h2 id="auth-title" style={{ fontSize: "1.4rem" }}>
+            Mot de passe oublié
+          </h2>
+          <button
+            type="button"
+            className="btn btn--ghost btn--icon"
+            onClick={onClose}
+            aria-label="Fermer"
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+
+        {forgotSent ? (
+          <p className="muted" style={{ textAlign: "center" }}>
+            Si un compte existe pour cet email, un lien de réinitialisation
+            vient d'être envoyé. Vérifiez votre boîte de réception.
+          </p>
+        ) : (
+          <form className="stack gap-12" onSubmit={submitForgot}>
+            <p className="tiny muted">
+              Indiquez votre email : si un compte existe, vous recevrez un
+              lien pour choisir un nouveau mot de passe.
+            </p>
+            <div>
+              <label className="label" htmlFor="forgot-email">
+                Email
+              </label>
+              <input
+                id="forgot-email"
+                className="input"
+                type="email"
+                placeholder="vous@exemple.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                autoFocus
+              />
+            </div>
+            <button
+              type="submit"
+              className="btn btn--primary btn--lg btn--block"
+              disabled={busy || !email.trim()}
+            >
+              {busy ? "…" : "Envoyer le lien"}
+            </button>
+          </form>
+        )}
+
+        <p className="tiny muted" style={{ textAlign: "center" }}>
+          <button type="button" style={linkButtonStyle} onClick={backToLogin}>
+            Retour à la connexion
+          </button>
+        </p>
+      </Modal>
+    );
   }
 
   return (
@@ -126,6 +213,15 @@ export default function AuthModal({ onClose, onAuthed }) {
             autoComplete={tab === "login" ? "current-password" : "new-password"}
           />
         </div>
+        {tab === "login" && (
+          <button
+            type="button"
+            style={{ ...linkButtonStyle, textAlign: "left" }}
+            onClick={() => setTab("forgot")}
+          >
+            Mot de passe oublié ?
+          </button>
+        )}
         {error && (
           <div className="error" role="alert">
             {error}
