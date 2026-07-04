@@ -1,5 +1,6 @@
 import { getOrCreateByEmail, createSession } from "@/lib/accounts";
 import { sessionSetCookie } from "@/lib/authServer";
+import { notify } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,10 @@ export async function GET(request) {
       provider: "google",
     });
     if (!res.ok) return redirect(origin, "/host?authError=google");
+
+    if (res.created) {
+      await notify("google_welcome", { email: res.account.email, name: res.account.name });
+    }
 
     const token = await createSession(res.account.id);
     const headers = new Headers({ location: `${origin}/host` });
