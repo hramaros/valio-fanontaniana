@@ -9,6 +9,7 @@ const SESSION_TTL_SEC = 30 * 24 * 3600;
 const accountKey = (id) => `account:${id}`;
 const emailKey = (email) => `accountEmail:${email}`;
 const sessionKey = (token) => `session:${token}`;
+const sessionsByAccountKey = (accountId) => `sessionsByAccount:${accountId}`;
 
 const normEmail = (e) => String(e || "").trim().toLowerCase();
 
@@ -106,6 +107,8 @@ export async function createSession(accountId) {
   const redis = getRedis();
   const token = randomBytes(32).toString("hex");
   await redis.set(sessionKey(token), accountId, { ex: SESSION_TTL_SEC });
+  await redis.sadd(sessionsByAccountKey(accountId), token);
+  await redis.expire(sessionsByAccountKey(accountId), SESSION_TTL_SEC);
   return token;
 }
 
@@ -120,7 +123,26 @@ export async function getAccountByToken(token) {
 export async function deleteSession(token) {
   if (!token) return;
   const redis = getRedis();
+  const accountId = await redis.get(sessionKey(token));
   await redis.del(sessionKey(token));
+  if (accountId) await redis.srem(sessionsByAccountKey(accountId), token);
+}
+
+/**
+ * Révoque toutes les sessions actives d'un compte sauf `exceptToken` (utilisé
+ * après un reset de mot de passe si l'utilisateur coche « se déconnecter des
+ * autres appareils »). Best-effort : des tokens déjà expirés naturellement
+ * dans l'index n'ont plus de clé `session:*` à supprimer, sans conséquence.
+ */
+export async function revokeOtherSessions(accountId, exceptToken) {
+  const redis = getRedis();
+  const tokens = await redis.smembers(sessionsByAccountKey(accountId));
+  const others = tokens.filter((t) => t !== exceptToken);
+  for (const t of others) {
+    await redis.del(sessionKey(t));
+    await redis.srem(sessionsByAccountKey(accountId), t);
+  }
+  return { ok: true, revoked: others.length };
 }
 
 /**

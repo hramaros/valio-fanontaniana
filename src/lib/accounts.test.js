@@ -13,6 +13,7 @@ import {
   debit,
   credit,
   getOrCreateByEmail,
+  revokeOtherSessions,
 } from "./accounts.js";
 
 test("createAccount : crée (email normalisé, solde 0) puis refuse le doublon", async () => {
@@ -102,4 +103,20 @@ test("credit/debit concurrents sur le même compte : pas de mise à jour perdue"
   assert.ok(results.every((r) => r.ok));
   const final = await getAccountById(account.id);
   assert.equal(final.balanceAr, 1000 + 20 * 100 - 10 * 50);
+});
+
+test("revokeOtherSessions : révoque les autres sessions, garde celle exceptée", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "multi@e.mg", password: "secret1" });
+  const tokenA = await createSession(account.id);
+  const tokenB = await createSession(account.id);
+  const tokenC = await createSession(account.id);
+
+  const res = await revokeOtherSessions(account.id, tokenC);
+  assert.equal(res.ok, true);
+  assert.equal(res.revoked, 2);
+
+  assert.equal(await getAccountByToken(tokenA), null);
+  assert.equal(await getAccountByToken(tokenB), null);
+  assert.equal((await getAccountByToken(tokenC)).id, account.id);
 });
