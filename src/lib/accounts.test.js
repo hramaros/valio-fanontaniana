@@ -66,8 +66,11 @@ test("getOrCreateByEmail : crée un compte Google puis le réutilise (pas de dou
   assert.equal(r1.ok, true);
   assert.equal(r1.account.email, "prof@gmail.com");
   assert.equal(r1.account.balanceAr, 0);
+  assert.equal(r1.created, true, "premier appel = création");
+
   const r2 = await getOrCreateByEmail({ email: "prof@gmail.com", name: "Autre" });
   assert.equal(r2.account.id, r1.account.id);
+  assert.equal(r2.created, false, "second appel = réutilisation, pas de nouveau compte");
 });
 
 test("getOrCreateByEmail : relie un compte email+mdp existant (même email)", async () => {

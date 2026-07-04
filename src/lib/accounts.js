@@ -70,7 +70,7 @@ export async function getOrCreateByEmail({ email, name, provider = "google" }) {
   const existingId = await redis.get(emailKey(e));
   if (existingId) {
     const acc = await redis.get(accountKey(existingId));
-    if (acc) return { ok: true, account: publicAccount(acc) };
+    if (acc) return { ok: true, account: publicAccount(acc), created: false };
   }
 
   const id = generateId("acc");
@@ -85,7 +85,7 @@ export async function getOrCreateByEmail({ email, name, provider = "google" }) {
   };
   await redis.set(accountKey(id), account);
   await redis.set(emailKey(e), id);
-  return { ok: true, account: publicAccount(account) };
+  return { ok: true, account: publicAccount(account), created: true };
 }
 
 export async function authenticate({ email, password }) {
