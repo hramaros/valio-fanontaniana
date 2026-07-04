@@ -52,19 +52,21 @@ export default function ConfirmButton({
 
   if (armed && split) {
     return (
-      <div className="row gap-8 wrap" style={{ justifyContent: "flex-end", ...style }}>
-        <span className="tiny muted" style={{ alignSelf: "center" }}>{confirmLabel}</span>
-        <button type="button" className="btn btn--ghost btn--compact" onClick={cancel}>
-          {confirmNoLabel}
-        </button>
-        <button
-          type="button"
-          className="btn btn--primary btn--compact"
-          disabled={disabled}
-          onClick={confirm}
-        >
-          {confirmYesLabel}
-        </button>
+      <div className="confirm-split" style={style}>
+        <span className="tiny muted">{confirmLabel}</span>
+        <div className="row gap-8">
+          <button type="button" className="btn btn--ghost btn--compact" onClick={cancel}>
+            {confirmNoLabel}
+          </button>
+          <button
+            type="button"
+            className="btn btn--primary btn--compact"
+            disabled={disabled}
+            onClick={confirm}
+          >
+            {confirmYesLabel}
+          </button>
+        </div>
       </div>
     );
   }

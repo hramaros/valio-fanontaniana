@@ -189,7 +189,7 @@ function HostResultsInner() {
           <h1 style={{ fontSize: "2.4rem" }}>Classement final</h1>
         </div>
       ) : (
-        <div className="card row row--between wrap gap-16">
+        <div className="card session-live">
           <div className="stack gap-8">
             <span className="eyebrow">Quiz en cours</span>
             <h1 style={{ fontSize: "1.8rem" }}>
@@ -198,7 +198,7 @@ function HostResultsInner() {
             </h1>
             <p className="muted tiny">Le classement se fige à la fin du chrono.</p>
           </div>
-          <div className="stack gap-8" style={{ alignItems: "flex-end" }}>
+          <div className="stack gap-8 session-live__actions">
             <Countdown
               endsAt={endsAt}
               durationMs={state.durationMs}

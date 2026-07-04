@@ -244,6 +244,38 @@ button {
 .row--between { justify-content: space-between; }
 .wrap { flex-wrap: wrap; }
 .spacer { flex: 1; }
+
+/* ---------- ConfirmButton (mode split) ---------- */
+.confirm-split {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  text-align: right;
+}
+.confirm-split .row { justify-content: flex-end; }
+@media (max-width: 640px) {
+  .confirm-split {
+    align-items: center;
+    text-align: center;
+    width: 100%;
+  }
+  .confirm-split .row { justify-content: center; }
+}
+
+/* ---------- Carte « quiz en cours » (host/results) ---------- */
+.session-live {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.session-live__actions { align-items: flex-end; }
+@media (max-width: 640px) {
+  .session-live { flex-direction: column; align-items: stretch; text-align: center; }
+  .session-live__actions { align-items: center; width: 100%; }
+}
 .muted { color: var(--muted); }
 .tiny { font-size: 0.8rem; }
 .error {
