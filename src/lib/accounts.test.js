@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { setRedisClient } from "./redis.js";
+import { createFakeRedis } from "./testFakeRedis.js";
 import {
   createAccount,
   authenticate,
@@ -10,26 +11,9 @@ import {
   deleteSession,
   topupTest,
   debit,
+  credit,
   getOrCreateByEmail,
 } from "./accounts.js";
-
-// Faux Redis en mémoire (clone = mime la (dé)sérialisation Upstash).
-function createFakeRedis() {
-  const store = new Map();
-  const clone = (v) => (v == null ? v : JSON.parse(JSON.stringify(v)));
-  return {
-    async set(key, value) {
-      store.set(key, clone(value));
-      return "OK";
-    },
-    async get(key) {
-      return store.has(key) ? clone(store.get(key)) : null;
-    },
-    async del(key) {
-      return store.delete(key) ? 1 : 0;
-    },
-  };
-}
 
 test("createAccount : crée (email normalisé, solde 0) puis refuse le doublon", async () => {
   setRedisClient(createFakeRedis());
@@ -100,4 +84,22 @@ test("topup et debit", async () => {
   const bad = await debit(account.id, 999999);
   assert.equal(bad.ok, false);
   assert.equal((await getAccountById(account.id)).balanceAr, 4000);
+});
+
+test("credit/debit concurrents sur le même compte : pas de mise à jour perdue", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "race@e.mg", password: "secret1" });
+  await topupTest(account.id, 1000);
+
+  // 20 crédits de 100 Ar + 10 débits de 50 Ar en parallèle (host + participants
+  // qui déclenchent des règlements presque simultanés). Sans verrou, ces
+  // lecture-modification-écriture concurrentes sur le même blob JSON se
+  // marchent dessus et perdent des mises à jour.
+  const credits = Array.from({ length: 20 }, () => credit(account.id, 100));
+  const debits = Array.from({ length: 10 }, () => debit(account.id, 50));
+  const results = await Promise.all([...credits, ...debits]);
+
+  assert.ok(results.every((r) => r.ok));
+  const final = await getAccountById(account.id);
+  assert.equal(final.balanceAr, 1000 + 20 * 100 - 10 * 50);
 });

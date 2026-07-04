@@ -19,6 +19,7 @@ import { canAfford } from "./wallet.js";
 import { saveExamRecord } from "./history.js";
 import { examAggregate } from "./analytics.js";
 import { getClass } from "./classrooms.js";
+import { withLock } from "./lock.js";
 
 // Durée de vie d'une salle dans Redis (auto-suppression = côté « éphémère »).
 const ROOM_TTL_SEC = 2 * 60 * 60; // 2h
@@ -517,40 +518,56 @@ export async function getLeaderboard(code) {
 
   // Stub de débit : à la clôture d'un Examen, on enregistre l'intention
   // (le débit réel arrive avec le wallet/compte ; `charged` reste false).
+  //
+  // Cet endpoint est pollé par le host ET chaque participant dès la fin de
+  // partie (thundering herd) : sans verrou, plusieurs requêtes concurrentes
+  // liraient toutes `meta.settled === null` avant qu'aucune ne persiste,
+  // débitant/enregistrant l'examen en double. Le verrou Redis (`withLock`)
+  // sérialise ce bloc entre invocations ; une seule requête gagne, les
+  // autres voient l'état posé par le gagnant au prochain poll (≤1.5 s).
   if (status === "ended" && mode === "examen" && !meta.settled) {
-    let charged = false;
-    let verifyCode = null;
-    if (meta.hostAccountId) {
-      const d = await debit(meta.hostAccountId, priceAr);
-      charged = d.ok;
-      // Snapshot durable dans l'historique du compte (hors TTL).
-      const agg = examAggregate(withNote);
-      verifyCode = generateVerifyCode();
-      await saveExamRecord({
-        id: generateId("ex"),
-        accountId: meta.hostAccountId,
-        code: meta.code,
-        hostName: meta.hostName || null,
-        verifyCode,
-        title: meta.quiz?.title || "Quiz",
-        mode,
-        capacity,
-        classId: meta.quiz?.classId || null,
-        className: meta.quiz?.className || null,
-        priceAr,
-        charged,
-        nbQuestions,
-        participantCount: withNote.length,
-        avgNote: agg.avgNote,
-        avgScore: agg.avgScore,
-        topScore: agg.topScore,
-        endedAt: now(),
-        leaderboard: withNote,
-        podium: getPodium(withNote),
-      });
-    }
-    meta.settled = { amountAr: priceAr, currency: "MGA", at: now(), charged, verifyCode };
-    await saveMeta(meta);
+    const { locked, result } = await withLock(`settle-lock:${code}`, async () => {
+      const fresh = await getMeta(code);
+      if (!fresh || fresh.settled) return fresh?.settled || null;
+
+      let charged = false;
+      let verifyCode = null;
+      if (fresh.hostAccountId) {
+        const d = await debit(fresh.hostAccountId, priceAr);
+        charged = d.ok;
+        // Snapshot durable dans l'historique du compte (hors TTL).
+        const agg = examAggregate(withNote);
+        verifyCode = generateVerifyCode();
+        await saveExamRecord({
+          id: generateId("ex"),
+          accountId: fresh.hostAccountId,
+          code: fresh.code,
+          hostName: fresh.hostName || null,
+          verifyCode,
+          title: fresh.quiz?.title || "Quiz",
+          mode,
+          capacity,
+          classId: fresh.quiz?.classId || null,
+          className: fresh.quiz?.className || null,
+          priceAr,
+          charged,
+          nbQuestions,
+          participantCount: withNote.length,
+          avgNote: agg.avgNote,
+          avgScore: agg.avgScore,
+          topScore: agg.topScore,
+          endedAt: now(),
+          leaderboard: withNote,
+          podium: getPodium(withNote),
+        });
+      }
+      fresh.settled = { amountAr: priceAr, currency: "MGA", at: now(), charged, verifyCode };
+      await saveMeta(fresh);
+      return fresh.settled;
+    });
+    if (locked && result) meta.settled = result;
+    // Verrou non obtenu : une autre requête règle (ou a réglé) la clôture
+    // à l'instant même ; on renvoie l'état courant tel quel.
   }
 
   return {

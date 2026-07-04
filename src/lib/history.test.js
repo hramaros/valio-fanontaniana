@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { setRedisClient } from "./redis.js";
+import { createFakeRedis } from "./testFakeRedis.js";
 import {
   saveExamRecord,
   listExamRecords,
@@ -8,40 +9,6 @@ import {
   getClassExamRecords,
   getExamRecordByVerifyCode,
 } from "./history.js";
-
-function createFakeRedis() {
-  const store = new Map();
-  const lists = new Map();
-  const clone = (v) => (v == null ? v : JSON.parse(JSON.stringify(v)));
-  const end = (arr, stop) => (stop < 0 ? arr.length + stop + 1 : stop + 1);
-  return {
-    async set(key, value) {
-      store.set(key, clone(value));
-      return "OK";
-    },
-    async get(key) {
-      return store.has(key) ? clone(store.get(key)) : null;
-    },
-    async lpush(key, ...vals) {
-      const arr = lists.get(key) || [];
-      for (const v of vals.flat()) arr.unshift(v);
-      lists.set(key, arr);
-      return arr.length;
-    },
-    async lrange(key, start, stop) {
-      const arr = lists.get(key) || [];
-      return arr.slice(start, end(arr, stop)).map(clone);
-    },
-    async ltrim(key, start, stop) {
-      const arr = lists.get(key) || [];
-      lists.set(key, arr.slice(start, end(arr, stop)));
-      return "OK";
-    },
-    async mget(...keys) {
-      return keys.flat().map((k) => (store.has(k) ? clone(store.get(k)) : null));
-    },
-  };
-}
 
 function rec(id, accountId, extra = {}) {
   return {

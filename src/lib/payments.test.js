@@ -1,25 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { setRedisClient } from "./redis.js";
+import { createFakeRedis } from "./testFakeRedis.js";
 import { createAccount, getAccountById } from "./accounts.js";
 import { initiateTopup, completeTransaction } from "./payments.js";
-
-function createFakeRedis() {
-  const store = new Map();
-  const clone = (v) => (v == null ? v : JSON.parse(JSON.stringify(v)));
-  return {
-    async set(key, value) {
-      store.set(key, clone(value));
-      return "OK";
-    },
-    async get(key) {
-      return store.has(key) ? clone(store.get(key)) : null;
-    },
-    async del(key) {
-      return store.delete(key) ? 1 : 0;
-    },
-  };
-}
 
 test("initiateTopup (stub) : crédite immédiatement et marque completed", async () => {
   setRedisClient(createFakeRedis());

@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { setRedisClient } from "./redis.js";
+import { createFakeRedis } from "./testFakeRedis.js";
 import {
   createRoom,
   setQuiz,
@@ -21,59 +22,6 @@ import {
 import { createAccount, topupTest, getAccountById } from "./accounts.js";
 import { listExamRecords, getExamRecord } from "./history.js";
 import { createClass, addStudent } from "./classrooms.js";
-
-// Faux Redis en mémoire qui clone les valeurs (mime la (dé)sérialisation Upstash
-// et attrape ainsi les bugs de mutation par référence).
-function createFakeRedis() {
-  const store = new Map();
-  const sets = new Map();
-  const lists = new Map();
-  const clone = (v) => (v == null ? v : JSON.parse(JSON.stringify(v)));
-  return {
-    async set(key, value) {
-      store.set(key, clone(value));
-      return "OK";
-    },
-    async get(key) {
-      return store.has(key) ? clone(store.get(key)) : null;
-    },
-    async exists(key) {
-      return store.has(key) ? 1 : 0;
-    },
-    async sadd(key, ...members) {
-      const s = sets.get(key) || new Set();
-      members.flat().forEach((m) => s.add(m));
-      sets.set(key, s);
-      return members.length;
-    },
-    async smembers(key) {
-      return [...(sets.get(key) || [])];
-    },
-    async mget(...keys) {
-      return keys.flat().map((k) => (store.has(k) ? clone(store.get(k)) : null));
-    },
-    async expire() {
-      return 1;
-    },
-    async lpush(key, ...vals) {
-      const arr = lists.get(key) || [];
-      for (const v of vals.flat()) arr.unshift(v);
-      lists.set(key, arr);
-      return arr.length;
-    },
-    async lrange(key, start, stop) {
-      const arr = lists.get(key) || [];
-      const e = stop < 0 ? arr.length + stop + 1 : stop + 1;
-      return arr.slice(start, e).map(clone);
-    },
-    async ltrim(key, start, stop) {
-      const arr = lists.get(key) || [];
-      const e = stop < 0 ? arr.length + stop + 1 : stop + 1;
-      lists.set(key, arr.slice(start, e));
-      return "OK";
-    },
-  };
-}
 
 const sampleQuiz = {
   title: "Capitales",
@@ -536,6 +484,49 @@ test("Examen + compte : un enregistrement est ajouté à l'historique à la clô
 
   const detail = await getExamRecord(account.id, list[0].id);
   assert.equal(detail.leaderboard[0].pseudo, "Alice");
+});
+
+test("Examen + compte : clôture pollée simultanément par host+participants ne débite qu'une fois", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "concurrent@e.mg", password: "secret1" });
+  const meta = await createRoom("Prof", account.id);
+  await setQuiz(meta.code, {
+    title: "Exam concurrent",
+    mode: "examen",
+    capacity: "small",
+    totalDurationSec: 600,
+    questions: [
+      {
+        text: "2+2 ?",
+        type: "single",
+        basePoints: 1000,
+        answers: [
+          { text: "4", color: "#fff", correct: true },
+          { text: "5", color: "#fff", correct: false },
+        ],
+      },
+    ],
+  });
+  await registerPlayer(meta.code, "Alice");
+  await topupTest(account.id, 5000);
+  await startGame(meta.code);
+  await endSession(meta.code);
+
+  // Thundering herd : host + plusieurs participants pollent
+  // /api/room/[code]/results (→ getLeaderboard) en même temps dès la fin
+  // de partie. Sans verrou, chacun lirait `settled === null` et
+  // débiterait/enregistrerait l'examen en double.
+  const boards = await Promise.all(
+    Array.from({ length: 10 }, () => getLeaderboard(meta.code)),
+  );
+  assert.ok(boards.every((b) => b.settled?.charged === true));
+
+  // Un seul débit de 1000 Ar (pas dix) : 5000 - 1000 = 4000.
+  assert.equal((await getAccountById(account.id)).balanceAr, 4000);
+
+  // Un seul enregistrement d'historique (pas dix doublons).
+  const list = await listExamRecords(account.id);
+  assert.equal(list.length, 1);
 });
 
 test("Examen nominatif : roster figé, inscription par élève, résultats nominatifs", async () => {

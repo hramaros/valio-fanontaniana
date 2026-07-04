@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { setRedisClient } from "./redis.js";
+import { createFakeRedis } from "./testFakeRedis.js";
 import {
   createClass,
   listClasses,
@@ -10,44 +11,6 @@ import {
   addStudent,
   removeStudent,
 } from "./classrooms.js";
-
-function createFakeRedis() {
-  const store = new Map();
-  const lists = new Map();
-  const clone = (v) => (v == null ? v : JSON.parse(JSON.stringify(v)));
-  return {
-    async set(key, value) {
-      store.set(key, clone(value));
-      return "OK";
-    },
-    async get(key) {
-      return store.has(key) ? clone(store.get(key)) : null;
-    },
-    async del(key) {
-      return store.delete(key) ? 1 : 0;
-    },
-    async lpush(key, ...vals) {
-      const arr = lists.get(key) || [];
-      for (const v of vals.flat()) arr.unshift(v);
-      lists.set(key, arr);
-      return arr.length;
-    },
-    async lrange(key, start, stop) {
-      const arr = lists.get(key) || [];
-      const e = stop < 0 ? arr.length + stop + 1 : stop + 1;
-      return arr.slice(start, e).map(clone);
-    },
-    async lrem(key, _count, value) {
-      const arr = lists.get(key) || [];
-      const filtered = arr.filter((v) => v !== value);
-      lists.set(key, filtered);
-      return arr.length - filtered.length;
-    },
-    async mget(...keys) {
-      return keys.flat().map((k) => (store.has(k) ? clone(store.get(k)) : null));
-    },
-  };
-}
 
 test("createClass → listClasses → getClass (appartenance)", async () => {
   setRedisClient(createFakeRedis());

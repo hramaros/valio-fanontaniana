@@ -1,5 +1,6 @@
 import { getRedis } from "./redis.js";
 import { generateId } from "./code.js";
+import { withLock } from "./lock.js";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
 // Comptes formateur durables (sans TTL). Sessions par token (TTL 30 j).
@@ -122,14 +123,26 @@ export async function deleteSession(token) {
   await redis.del(sessionKey(token));
 }
 
-/** Crédite le solde d'un compte (primitive utilisée par la couche paiement). */
+/**
+ * Crédite le solde d'un compte (primitive utilisée par la couche paiement).
+ *
+ * Le solde vit dans le blob JSON `account:*` (lecture-modification-écriture,
+ * pas d'INCRBY atomique) : deux crédits/débits concurrents sur le même
+ * compte (ex. deux salles Examen qui se règlent presque en même temps pour
+ * le même formateur) pourraient sinon s'écraser l'un l'autre (mise à jour
+ * perdue). Le verrou par compte sérialise cet accès sans changer le schéma.
+ */
 export async function credit(accountId, amountAr) {
-  const redis = getRedis();
-  const account = await redis.get(accountKey(accountId));
-  if (!account) return { ok: false, status: 404, error: "Compte introuvable." };
-  account.balanceAr = (Number(account.balanceAr) || 0) + (Number(amountAr) || 0);
-  await redis.set(accountKey(accountId), account);
-  return { ok: true, balanceAr: account.balanceAr };
+  const { locked, result } = await withLock(`lock:account:${accountId}`, async () => {
+    const redis = getRedis();
+    const account = await redis.get(accountKey(accountId));
+    if (!account) return { ok: false, status: 404, error: "Compte introuvable." };
+    account.balanceAr = (Number(account.balanceAr) || 0) + (Number(amountAr) || 0);
+    await redis.set(accountKey(accountId), account);
+    return { ok: true, balanceAr: account.balanceAr };
+  });
+  if (!locked) return { ok: false, status: 503, error: "Compte occupé, réessayez." };
+  return result;
 }
 
 /** Recharge de test : alias de credit (conservé pour les tests / le stub). */
@@ -137,15 +150,19 @@ export async function topupTest(accountId, amountAr) {
   return credit(accountId, amountAr);
 }
 
-/** Débite le solde (refuse si insuffisant). */
+/** Débite le solde (refuse si insuffisant). Voir credit() pour le verrou. */
 export async function debit(accountId, amountAr) {
-  const redis = getRedis();
-  const account = await redis.get(accountKey(accountId));
-  if (!account) return { ok: false, error: "Compte introuvable." };
-  const amt = Number(amountAr) || 0;
-  if ((Number(account.balanceAr) || 0) < amt)
-    return { ok: false, error: "Solde insuffisant." };
-  account.balanceAr -= amt;
-  await redis.set(accountKey(accountId), account);
-  return { ok: true, balanceAr: account.balanceAr };
+  const { locked, result } = await withLock(`lock:account:${accountId}`, async () => {
+    const redis = getRedis();
+    const account = await redis.get(accountKey(accountId));
+    if (!account) return { ok: false, error: "Compte introuvable." };
+    const amt = Number(amountAr) || 0;
+    if ((Number(account.balanceAr) || 0) < amt)
+      return { ok: false, error: "Solde insuffisant." };
+    account.balanceAr -= amt;
+    await redis.set(accountKey(accountId), account);
+    return { ok: true, balanceAr: account.balanceAr };
+  });
+  if (!locked) return { ok: false, error: "Compte occupé, réessayez." };
+  return result;
 }
