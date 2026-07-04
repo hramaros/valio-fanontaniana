@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AnswerTile from "@/components/AnswerTile";
@@ -7,6 +7,7 @@ import Countdown from "@/components/Countdown";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { getPlayerSession } from "@/lib/session";
+import { usePolling } from "@/lib/usePolling";
 
 function PlayInner() {
   const router = useRouter();
@@ -63,6 +64,19 @@ function PlayInner() {
   const goToResult = useCallback(() => {
     router.replace(`/result?code=${code}`);
   }, [router, code]);
+
+  // Le formateur peut clôturer manuellement avant la fin du chrono affiché
+  // localement (bouton « Terminer ») : on surveille le statut de la salle
+  // pour basculer vers les résultats dès que ce n'est plus "running", sans
+  // attendre que le chrono local (calculé une fois au chargement) expire.
+  const stateFetcher = useMemo(
+    () => async () => (await apiGet(`/api/room/${code}/state`)).data,
+    [code],
+  );
+  const state = usePolling(stateFetcher, 1200, phase === "playing" || phase === "done");
+  useEffect(() => {
+    if (state && state.status !== "running") goToResult();
+  }, [state, goToResult]);
 
   function toggle(answerId) {
     if (!question || feedback) return;

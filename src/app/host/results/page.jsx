@@ -205,8 +205,11 @@ function HostResultsInner() {
               serverOffset={offset}
             />
             <ConfirmButton
-              className="btn btn--ghost"
-              confirmLabel="Terminer maintenant ?"
+              className="btn btn--danger"
+              confirmLabel="Clôturer pour tous les participants ?"
+              confirmYesLabel="Oui, terminer"
+              confirmNoLabel="Non"
+              split
               onConfirm={endExam}
             >
               Terminer l'examen
