@@ -6,6 +6,7 @@ import {
   createAccount,
   authenticate,
   getAccountById,
+  getAccountByEmail,
   createSession,
   getAccountByToken,
   deleteSession,
@@ -14,6 +15,9 @@ import {
   credit,
   getOrCreateByEmail,
   revokeOtherSessions,
+  createPasswordResetToken,
+  consumePasswordResetToken,
+  setPassword,
 } from "./accounts.js";
 
 test("createAccount : crée (email normalisé, solde 0) puis refuse le doublon", async () => {
@@ -119,4 +123,49 @@ test("revokeOtherSessions : révoque les autres sessions, garde celle exceptée"
   assert.equal(await getAccountByToken(tokenA), null);
   assert.equal(await getAccountByToken(tokenB), null);
   assert.equal((await getAccountByToken(tokenC)).id, account.id);
+});
+
+test("getAccountByEmail : trouve un compte existant, null sinon", async () => {
+  setRedisClient(createFakeRedis());
+  await createAccount({ email: "p@e.mg", password: "secret1", name: "Prof" });
+  assert.equal((await getAccountByEmail("P@E.mg")).email, "p@e.mg");
+  assert.equal(await getAccountByEmail("absent@e.mg"), null);
+});
+
+test("createPasswordResetToken + consumePasswordResetToken : usage unique", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "p@e.mg", password: "secret1" });
+  const token = await createPasswordResetToken(account.id);
+  assert.equal(typeof token, "string");
+  assert.ok(token.length > 20);
+
+  const firstUse = await consumePasswordResetToken(token);
+  assert.equal(firstUse, account.id);
+
+  const secondUse = await consumePasswordResetToken(token);
+  assert.equal(secondUse, null, "un token déjà consommé ne doit plus fonctionner");
+});
+
+test("consumePasswordResetToken : token inconnu ou vide → null", async () => {
+  setRedisClient(createFakeRedis());
+  assert.equal(await consumePasswordResetToken("inconnu"), null);
+  assert.equal(await consumePasswordResetToken(""), null);
+});
+
+test("setPassword : remplace le mot de passe (compte normal et compte Google-only)", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "p@e.mg", password: "secret1" });
+  const res = await setPassword(account.id, "nouveaumdp");
+  assert.equal(res.ok, true);
+  assert.equal((await authenticate({ email: "p@e.mg", password: "nouveaumdp" })).ok, true);
+  assert.equal((await authenticate({ email: "p@e.mg", password: "secret1" })).ok, false);
+
+  const g = await getOrCreateByEmail({ email: "g@gmail.com", name: "G" });
+  const res2 = await setPassword(g.account.id, "premiermdp");
+  assert.equal(res2.ok, true);
+  assert.equal((await authenticate({ email: "g@gmail.com", password: "premiermdp" })).ok, true);
+
+  const tooShort = await setPassword(account.id, "abc");
+  assert.equal(tooShort.ok, false);
+  assert.equal(tooShort.status, 400);
 });
