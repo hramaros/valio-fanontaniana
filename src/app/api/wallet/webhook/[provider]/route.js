@@ -1,4 +1,5 @@
 import { getProvider, completeTransaction, failTransaction } from "@/lib/payments";
+import "@/lib/stripeProvider"; // enregistre le provider "stripe"
 import { json, handler } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
