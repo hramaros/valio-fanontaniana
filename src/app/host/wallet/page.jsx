@@ -48,10 +48,13 @@ function WalletInner() {
     let cancelled = false;
     (async () => {
       const before = await refresh();
+      if (cancelled) return;
       await loadHistory();
+      if (cancelled) return;
       await new Promise((r) => setTimeout(r, 2000));
       if (cancelled) return;
       const after = await refresh();
+      if (cancelled) return;
       await loadHistory();
       if (!cancelled && before && after && after.balanceAr === before.balanceAr) {
         setPendingConfirm(true);
