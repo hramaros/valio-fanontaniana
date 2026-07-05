@@ -14,6 +14,8 @@ import { credit } from "./accounts.js";
 
 const TXN_TTL_SEC = 30 * 24 * 3600; // transactions conservées 30 j
 const txnKey = (id) => `txn:${id}`;
+const TXN_HISTORY_MAX = 200; // même borne que l'historique d'examens
+const txnHistoryKey = (accountId) => `txnHistory:${accountId}`;
 
 export const TXN_PENDING = "pending";
 export const TXN_COMPLETED = "completed";
@@ -48,7 +50,7 @@ async function saveTxn(txn) {
 }
 
 /** Démarre une recharge : crée une transaction et la confie au provider. */
-export async function initiateTopup(accountId, amountAr, providerName = "stub") {
+export async function initiateTopup(accountId, amountAr, providerName = "stub", context = {}) {
   const provider = getProvider(providerName);
   if (!provider)
     return { ok: false, status: 400, error: "Fournisseur de paiement inconnu." };
@@ -66,9 +68,15 @@ export async function initiateTopup(accountId, amountAr, providerName = "stub") 
     createdAt: Date.now(),
     completedAt: null,
   };
-  const started = (await provider.initiate(txn)) || {};
+  const started = (await provider.initiate(txn, context)) || {};
   txn.providerRef = started.providerRef || null;
+  // Champs additionnels du provider (ex. taux de change appliqué) — traçabilité.
+  if (started.txnExtra) Object.assign(txn, started.txnExtra);
   await saveTxn(txn);
+  // Index d'historique des recharges du compte (plus récent en tête).
+  const redis = getRedis();
+  await redis.lpush(txnHistoryKey(accountId), txn.id);
+  await redis.ltrim(txnHistoryKey(accountId), 0, TXN_HISTORY_MAX - 1);
 
   // Provider synchrone (ex. stub) : on complète tout de suite.
   if (started.autoComplete) return completeTransaction(txn.id);
@@ -103,4 +111,13 @@ export async function failTransaction(id) {
     await saveTxn(txn);
   }
   return { ok: true, transaction: txn };
+}
+
+/** Historique des recharges d'un compte (transactions), plus récent en tête. */
+export async function listTransactions(accountId, limit = 50) {
+  const redis = getRedis();
+  const ids = await redis.lrange(txnHistoryKey(accountId), 0, limit - 1);
+  if (!ids || ids.length === 0) return [];
+  const txns = await redis.mget(...ids.map(txnKey));
+  return txns.filter(Boolean);
 }
