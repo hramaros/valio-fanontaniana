@@ -138,7 +138,6 @@ function LobbyInner() {
           priceAr={recharge.priceAr}
           balanceAr={recharge.balanceAr}
           busyRetry={busy}
-          onRecharged={(bal) => setRecharge((r) => ({ ...r, balanceAr: bal }))}
           onRetry={() => {
             setRecharge(null);
             launch();
