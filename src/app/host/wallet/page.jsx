@@ -6,7 +6,7 @@ import { apiGet, apiPost } from "@/lib/api";
 import { useAccount } from "@/lib/account-client";
 
 const PRESETS = [5000, 20000, 50000];
-const MIN_AR = 500;
+const MIN_AR = 1; // garde-fou basique ; le vrai plancher (taux Stripe/EUR en direct) vient du serveur
 
 const STATUS_LABEL = {
   completed: "Confirmée",
@@ -69,10 +69,6 @@ function WalletInner() {
 
   async function recharge() {
     setError("");
-    if (selected < MIN_AR) {
-      setError(`Montant minimum : ${MIN_AR} Ar.`);
-      return;
-    }
     setBusy(true);
     const { ok, data } = await apiPost("/api/wallet/topup", { amountAr: selected });
     setBusy(false);
