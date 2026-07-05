@@ -12,6 +12,7 @@ const NAV = [
   { href: "/host/dashboard", label: "Tableau de bord", icon: "chart" },
   { href: "/host/classes", label: "Mes classes", icon: "users" },
   { href: "/host/history", label: "Mes examens", icon: "clock" },
+  { href: "/host/wallet", label: "Portefeuille", icon: "wallet" },
 ];
 
 // Shell de l'espace formateur : header sticky, navigation latérale

@@ -70,6 +70,13 @@ const PATHS = {
       <path d="M21 12H9" />
     </>
   ),
+  wallet: (
+    <>
+      <rect x="3" y="6" width="18" height="13" rx="2" />
+      <path d="M3 10h18" />
+      <circle cx="16.5" cy="14" r="1" />
+    </>
+  ),
 };
 
 export default function Icon({ name, size = 18 }) {
