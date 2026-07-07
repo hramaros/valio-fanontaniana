@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { apiPost } from "@/lib/api";
 import Modal from "@/components/Modal";
 import Icon from "@/components/Icon";
@@ -156,11 +157,13 @@ export default function AuthModal({ onClose, onAuthed }) {
         <>
           <button
             type="button"
-            className="btn btn--ghost btn--block"
+            className="btn btn--ghost btn--block row gap-8"
+            style={{ justifyContent: "center" }}
             onClick={() => {
               window.location.href = "/api/auth/google";
             }}
           >
+            <Image src="/icons/google.png" alt="" width={18} height={18} />
             Continuer avec Google
           </button>
           <div className="divider-or">ou</div>
