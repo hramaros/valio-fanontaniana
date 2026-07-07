@@ -31,7 +31,7 @@ async function fetchLiveRate(timeoutMs) {
 export async function getArPerEurRate(options = {}) {
   const redis = getRedis();
   const cached = await redis.get(CACHE_KEY);
-  if (cached) return cached;
+  if (cached != null) return cached;
 
   try {
     const rate = await fetchLiveRate(options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
@@ -41,7 +41,7 @@ export async function getArPerEurRate(options = {}) {
   } catch (err) {
     console.error("fxRate: taux en direct indisponible, repli :", err?.message || err);
     const last = await redis.get(LAST_KEY);
-    if (last) return last;
+    if (last != null) return last;
     return Number(process.env.STRIPE_EUR_TO_AR_FALLBACK_RATE) || FALLBACK_RATE;
   }
 }

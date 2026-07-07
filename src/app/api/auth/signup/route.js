@@ -1,11 +1,15 @@
 import { createAccount, createSession } from "@/lib/accounts";
 import { sessionSetCookie } from "@/lib/authServer";
 import { notify } from "@/lib/notify";
-import { readBody, handler } from "@/lib/http";
+import { checkRateLimit, clientIp } from "@/lib/rateLimit";
+import { readBody, json, handler } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
 export const POST = handler(async (request) => {
+  if (!(await checkRateLimit("auth", clientIp(request))))
+    return json({ error: "Trop de tentatives, réessayez dans une minute." }, 429);
+
   const { email, password, name } = await readBody(request);
   const res = await createAccount({ email, password, name });
   if (!res.ok)

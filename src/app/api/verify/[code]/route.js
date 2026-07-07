@@ -1,5 +1,6 @@
 import { getExamRecordByVerifyCode } from "@/lib/history";
 import { getAccountById } from "@/lib/accounts";
+import { checkRateLimit, clientIp } from "@/lib/rateLimit";
 import { json, handler } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
@@ -7,7 +8,10 @@ export const dynamic = "force-dynamic";
 // Consultation publique des résultats d'un Examen — sans authentification :
 // le code de consultation (VF-XXXX-XXXX) fait office de clé d'accès.
 // Le payload est assaini : jamais d'accountId, de prix, ni d'ids joueurs.
-export const GET = handler(async (_request, { params }) => {
+export const GET = handler(async (request, { params }) => {
+  if (!(await checkRateLimit("verify", clientIp(request))))
+    return json({ error: "Trop de tentatives, réessayez dans une minute." }, 429);
+
   const { code } = await params;
   const record = await getExamRecordByVerifyCode(code);
   if (!record) {

@@ -40,7 +40,9 @@ function ResetPasswordInner() {
     }
     setDone(true);
     window.setTimeout(() => {
-      window.location.href = "/host";
+      // .replace (pas .href) : le bouton Retour du navigateur ne doit pas
+      // ramener sur ce formulaire dont le token vient d'être consommé.
+      window.location.replace("/host");
     }, 1200);
   }
 
@@ -107,6 +109,7 @@ function ResetPasswordInner() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
+              minLength={6}
               autoFocus
             />
           </div>
@@ -122,6 +125,7 @@ function ResetPasswordInner() {
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               autoComplete="new-password"
+              minLength={6}
             />
           </div>
           <label className="check">

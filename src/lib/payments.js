@@ -16,6 +16,13 @@ const TXN_TTL_SEC = 30 * 24 * 3600; // transactions conservées 30 j
 const txnKey = (id) => `txn:${id}`;
 const TXN_HISTORY_MAX = 200; // même borne que l'historique d'examens
 const txnHistoryKey = (accountId) => `txnHistory:${accountId}`;
+// Liste blanche des champs qu'un provider peut ajouter à la transaction
+// (ex. taux de change appliqué, pour audit). Un Object.assign sans filtre
+// laisserait un provider — bugué ou tiers/HTTP-facing plus tard (Mvola,
+// Orange…) — écraser des champs cœur (id, accountId, status…) via son
+// `txnExtra`. Étendre cette liste à mesure que de nouveaux providers ont
+// besoin de tracer d'autres champs.
+const TXN_EXTRA_ALLOWED_KEYS = ["fxRateArPerEur", "amountEurCents"];
 
 export const TXN_PENDING = "pending";
 export const TXN_COMPLETED = "completed";
@@ -71,7 +78,12 @@ export async function initiateTopup(accountId, amountAr, providerName = "stub", 
   const started = (await provider.initiate(txn, context)) || {};
   txn.providerRef = started.providerRef || null;
   // Champs additionnels du provider (ex. taux de change appliqué) — traçabilité.
-  if (started.txnExtra) Object.assign(txn, started.txnExtra);
+  // Fusion filtrée par liste blanche : voir TXN_EXTRA_ALLOWED_KEYS ci-dessus.
+  if (started.txnExtra) {
+    for (const key of TXN_EXTRA_ALLOWED_KEYS) {
+      if (key in started.txnExtra) txn[key] = started.txnExtra[key];
+    }
+  }
   await saveTxn(txn);
   // Index d'historique des recharges du compte (plus récent en tête).
   const redis = getRedis();

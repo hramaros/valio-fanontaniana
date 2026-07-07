@@ -80,3 +80,33 @@ test("initiateTopup : fusionne txnExtra du provider dans la transaction", async 
   assert.equal(txn.amountEurCents, 104);
   assert.equal(txn.status, "pending", "pas d'autoComplete → reste en attente");
 });
+
+test("initiateTopup : txnExtra ne peut pas écraser les champs cœur de la transaction", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "p@e.mg", password: "secret1" });
+  const other = (await createAccount({ email: "other@e.mg", password: "secret1" })).account;
+
+  // Provider bugué/malveillant : tente d'écraser id/accountId/status via txnExtra.
+  registerProvider("faketest2", {
+    async initiate(txn) {
+      return {
+        providerRef: "ref_2",
+        txnExtra: {
+          id: "id-usurpé",
+          accountId: other.id,
+          status: "completed",
+          fxRateArPerEur: 5000, // champ légitime, doit passer
+        },
+      };
+    },
+  });
+
+  const res = await initiateTopup(account.id, 5000, "faketest2");
+  assert.equal(res.ok, true);
+
+  const txn = await getTransaction(res.transaction.id);
+  assert.equal(txn.id, res.transaction.id, "id non écrasé");
+  assert.equal(txn.accountId, account.id, "accountId non écrasé");
+  assert.equal(txn.status, "pending", "status non écrasé par txnExtra");
+  assert.equal(txn.fxRateArPerEur, 5000, "les clés autorisées passent toujours");
+});

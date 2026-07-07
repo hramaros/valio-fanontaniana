@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { setRedisClient } from "./redis.js";
 import { createFakeRedis } from "./testFakeRedis.js";
-import { setStripeClient, stripeProvider } from "./stripeProvider.js";
+import { setStripeClient, getStripeClient, stripeProvider } from "./stripeProvider.js";
 
 test("initiate : convertit Ar→centimes EUR, crée une Checkout Session, renvoie txnExtra", async () => {
   const redis = createFakeRedis();
@@ -81,4 +81,30 @@ test("handleWebhook : autre type d'événement → ok:true sans completed", asyn
   const res = await stripeProvider.handleWebhook(fakeRequest());
   assert.equal(res.ok, true);
   assert.equal(res.completed, undefined);
+});
+
+test("handleWebhook : événement signé mais sans metadata.txnId → ok:false", async () => {
+  setStripeClient({
+    webhooks: {
+      constructEvent() {
+        return { type: "checkout.session.completed", data: { object: { metadata: {} } } };
+      },
+    },
+  });
+  const res = await stripeProvider.handleWebhook(fakeRequest());
+  assert.equal(res.ok, false);
+  assert.equal(res.transactionId, undefined);
+});
+
+test("getStripeClient : sans client injecté ni STRIPE_SECRET_KEY → lève une erreur explicite", () => {
+  const prevKey = process.env.STRIPE_SECRET_KEY;
+  delete process.env.STRIPE_SECRET_KEY;
+  setStripeClient(null);
+  try {
+    assert.throws(() => getStripeClient(), /STRIPE_SECRET_KEY/);
+  } finally {
+    if (prevKey === undefined) delete process.env.STRIPE_SECRET_KEY;
+    else process.env.STRIPE_SECRET_KEY = prevKey;
+    setStripeClient({}); // état propre pour d'éventuels tests futurs dans ce fichier
+  }
 });

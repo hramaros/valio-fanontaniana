@@ -172,3 +172,18 @@ test("setPassword : remplace le mot de passe (compte normal et compte Google-onl
   assert.equal(tooShort.ok, false);
   assert.equal(tooShort.status, 400);
 });
+
+test("setPassword : compte introuvable → 404", async () => {
+  setRedisClient(createFakeRedis());
+  const res = await setPassword("acc_inexistant", "nouveaumdp");
+  assert.equal(res.ok, false);
+  assert.equal(res.status, 404);
+});
+
+test("revokeOtherSessions : compte sans aucune session active → no-op", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "solo@e.mg", password: "secret1" });
+  const res = await revokeOtherSessions(account.id, "un-token-quelconque");
+  assert.equal(res.ok, true);
+  assert.equal(res.revoked, 0);
+});

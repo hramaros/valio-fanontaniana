@@ -77,3 +77,35 @@ test("getArPerEurRate : fetch échoue et aucun dernier taux → constante d'env"
     ),
   );
 });
+
+test("getArPerEurRate : écrit le cache avec un TTL de 6h exactement", async () => {
+  const redis = createFakeRedis();
+  const originalSet = redis.set.bind(redis);
+  let capturedEx = null;
+  redis.set = async (key, value, opts) => {
+    if (key === "fxRate:EUR:MGA") capturedEx = opts?.ex;
+    return originalSet(key, value, opts);
+  };
+  setRedisClient(redis);
+  await withFetch(
+    async () => ({ ok: true, json: async () => ({ rates: { MGA: 4900 } }) }),
+    async () => {
+      await getArPerEurRate();
+    },
+  );
+  assert.equal(capturedEx, 6 * 3600, "TTL du cache = 6h, honoré par le faux Redis (voir testFakeRedis.js)");
+});
+
+test("getArPerEurRate : un taux en cache de 0 est traité comme présent, pas comme un cache-miss", async () => {
+  const redis = createFakeRedis();
+  await redis.set("fxRate:EUR:MGA", 0);
+  setRedisClient(redis);
+  let called = false;
+  await withFetch(
+    async () => { called = true; return { ok: true, json: async () => ({}) }; },
+    async () => {
+      assert.equal(await getArPerEurRate(), 0);
+    },
+  );
+  assert.equal(called, false, "0 en cache ne doit pas déclencher un nouvel appel réseau");
+});
