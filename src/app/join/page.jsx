@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Icon from "@/components/Icon";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
@@ -109,7 +110,6 @@ function JoinInner() {
                 Étape 2 / 2{state.className ? ` · ${state.className}` : ""}
               </span>
               <h1 style={{ fontSize: "2rem" }}>Choisissez votre nom</h1>
-              <p className="muted">Sélectionnez votre nom dans la liste de la classe.</p>
               <div className="players">
                 {state.roster.map((s) => {
                   const taken = (state.participants || []).some(
@@ -139,7 +139,9 @@ function JoinInner() {
             <form className="card stack gap-16" onSubmit={register}>
               <span className="eyebrow">Étape 2 / 2</span>
               <h1 style={{ fontSize: "2rem" }}>Votre pseudo</h1>
-              <p className="muted">Il apparaîtra dans le classement.</p>
+              <p className="hint">
+                <Icon name="trophy" size={15} /> Visible au classement.
+              </p>
               <label className="label" htmlFor="pseudo">
                 Pseudo
               </label>
@@ -182,7 +184,8 @@ function JoinInner() {
         </div>
         {state?.participants && (
           <div className="panel stack gap-12">
-            <div className="tiny muted">
+            <div className="tiny muted row" style={{ justifyContent: "center", gap: 6 }}>
+              <Icon name="users" size={14} />
               {state.participants.length} participant
               {state.participants.length > 1 ? "s" : ""} dans la salle
             </div>

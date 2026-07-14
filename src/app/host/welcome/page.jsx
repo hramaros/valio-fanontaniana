@@ -1,26 +1,30 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Icon from "@/components/Icon";
 
 const STEPS = [
   {
+    icon: "zap",
     title: "Le quiz live qui donne une vraie note",
     lines: [
-      "valio lance des quiz en direct façon Kahoot — mais qui produisent une note /20 exploitable.",
-      "Deux modes : Libre (gratuit, QCM, jusqu'à 10 participants, sans compte) et Examen (pro).",
+      "Des quiz en direct qui produisent une note /20 exploitable.",
+      "Libre : gratuit, QCM, ≤ 10 participants, sans compte. Examen : pro.",
     ],
   },
   {
+    icon: "wallet",
     title: "Le mode Examen & les crédits",
     lines: [
-      "En mode Examen, vous rechargez un solde en Ariary. Lancer un examen débite 1 000 Ar (≤ 20 participants) ou 2 000 Ar (illimité), en fin de session.",
-      "L'Examen débloque la réponse libre corrigée à la main, l'export PDF, l'historique et le tableau de bord.",
+      "Un solde en Ariary : 1 000 Ar (≤ 20 participants) ou 2 000 Ar (illimité), débité en fin de session.",
+      "L'Examen débloque réponse libre, export PDF, historique et tableau de bord.",
     ],
   },
   {
+    icon: "graduationCap",
     title: "Classes & carnet de notes",
     lines: [
-      "Créez une classe avec vos élèves, lancez un examen nominatif (chacun choisit son nom), et retrouvez la note /20 de chaque élève dans le carnet de notes.",
+      "Une classe = examens nominatifs (chacun choisit son nom) et note /20 de chaque élève au carnet.",
     ],
   },
 ];
@@ -44,9 +48,14 @@ export default function WelcomePage() {
       </div>
 
       <div className="card stack gap-16">
-        <span className="eyebrow">
-          {step + 1} / {STEPS.length}
-        </span>
+        <div className="row row--between">
+          <span className="empty-state__icon" aria-hidden="true">
+            <Icon name={s.icon} size={22} />
+          </span>
+          <span className="eyebrow">
+            {step + 1} / {STEPS.length}
+          </span>
+        </div>
         <h2 style={{ fontSize: "1.6rem" }}>{s.title}</h2>
         <div className="stack gap-12">
           {s.lines.map((l, i) => (
@@ -66,13 +75,13 @@ export default function WelcomePage() {
               className="btn btn--primary btn--lg btn--block"
               onClick={() => done("/host")}
             >
-              Créer mon premier quiz
+              <Icon name="play" size={16} /> Créer mon premier quiz
             </button>
             <button
               className="btn btn--ghost btn--block"
               onClick={() => done("/host/classes")}
             >
-              Créer une classe
+              <Icon name="graduationCap" size={16} /> Créer une classe
             </button>
           </div>
         ) : (

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import Modal from "@/components/Modal";
+import Icon from "@/components/Icon";
 
 // Popup affiché quand le solde ne couvre pas le lancement de l'examen.
 // La recharge réelle se fait sur la page portefeuille (un seul point d'entrée).
@@ -9,16 +10,30 @@ export default function RechargeModal({ priceAr, balanceAr, busyRetry, onRetry, 
 
   return (
     <Modal onClose={onClose} labelledBy="recharge-title">
-      <div className="stack gap-8" style={{ textAlign: "center" }}>
+      <div className="stack gap-12" style={{ alignItems: "center", textAlign: "center" }}>
+        <span className="icon-badge icon-badge--amber" aria-hidden="true">
+          <Icon name="wallet" size={19} />
+        </span>
         <h2 id="recharge-title" style={{ fontSize: "1.4rem" }}>Solde insuffisant</h2>
-        <p className="muted">
-          Lancer cet examen coûte <strong className="money">{priceAr} Ar</strong>.
-          Votre solde est de <strong className="money">{balanceAr} Ar</strong>.
-        </p>
+      </div>
+
+      <div className="stat-grid" style={{ margin: "16px 0" }}>
+        <div className="stat" style={{ padding: 14 }}>
+          <div className="stat__num money" style={{ fontSize: "1.5rem" }}>
+            {priceAr} Ar
+          </div>
+          <div className="stat__label">Coût de l'examen</div>
+        </div>
+        <div className="stat" style={{ padding: 14 }}>
+          <div className="stat__num money" style={{ fontSize: "1.5rem" }}>
+            {balanceAr} Ar
+          </div>
+          <div className="stat__label">Votre solde</div>
+        </div>
       </div>
 
       <Link href="/host/wallet" className="btn btn--ghost btn--block">
-        Recharger mon compte
+        <Icon name="creditCard" size={16} /> Recharger mon compte
       </Link>
 
       <button

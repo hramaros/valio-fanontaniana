@@ -5,6 +5,7 @@ import Leaderboard from "@/components/Leaderboard";
 import Modal from "@/components/Modal";
 import CopyButton from "@/components/CopyButton";
 import Icon from "@/components/Icon";
+import EmptyState from "@/components/EmptyState";
 import { apiGet } from "@/lib/api";
 import { useAccount } from "@/lib/account-client";
 
@@ -45,14 +46,13 @@ export default function HostHistoryPage() {
   if (!account) {
     return (
       <div className="center-work">
-        <div className="card stack gap-16" style={{ textAlign: "center", maxWidth: 440 }}>
-          <h2>Mes examens</h2>
-          <p className="muted">
-            Connectez-vous pour consulter l'historique de vos examens.
-          </p>
-          <Link href="/host" className="btn btn--primary">
-            Créer un quiz
-          </Link>
+        <div className="card" style={{ maxWidth: 440 }}>
+          <EmptyState icon="history" title="Mes examens">
+            <p>Connectez-vous pour consulter l&apos;historique.</p>
+            <Link href="/host" className="btn btn--primary">
+              Créer un quiz
+            </Link>
+          </EmptyState>
         </div>
       </div>
     );
@@ -68,16 +68,21 @@ export default function HostHistoryPage() {
       {!records ? (
         <div className="spin" role="status" aria-label="Chargement" style={{ margin: "0 auto" }} />
       ) : records.length === 0 ? (
-        <div className="panel" style={{ textAlign: "center" }}>
-          <p className="muted">
-            Vos examens pro apparaîtront ici — classement, notes /20 et export PDF —
-            dès que vous en lancez un.
-          </p>
+        <div className="panel">
+          <EmptyState icon="history">
+            <p>
+              Vos examens apparaîtront ici — classement, notes /20 et export
+              PDF.
+            </p>
+          </EmptyState>
         </div>
       ) : (
         <div className="stack gap-8">
           {records.map((r) => (
             <div key={r.id} className="grade-row">
+              <span className="icon-badge" aria-hidden="true">
+                <Icon name="history" size={17} />
+              </span>
               <div className="grade-row__ans">
                 <div style={{ fontWeight: 700 }}>{r.title}</div>
                 <div className="muted tiny">
@@ -93,7 +98,7 @@ export default function HostHistoryPage() {
                 className="btn btn--ghost btn--compact"
                 onClick={() => open(r.id)}
               >
-                Voir
+                Voir <Icon name="arrowRight" size={14} />
               </button>
             </div>
           ))}

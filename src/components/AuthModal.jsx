@@ -73,15 +73,22 @@ export default function AuthModal({ onClose, onAuthed }) {
         </div>
 
         {forgotSent ? (
-          <p className="muted" style={{ textAlign: "center" }}>
-            Si un compte existe pour cet email, un lien de réinitialisation
-            vient d'être envoyé. Vérifiez votre boîte de réception.
-          </p>
+          <div className="empty-state">
+            <span className="empty-state__icon" aria-hidden="true">
+              <Icon name="mail" size={24} />
+            </span>
+            <span className="empty-state__title">Lien envoyé</span>
+            <p>
+              Si un compte existe pour cet email, vérifiez votre boîte de
+              réception.
+            </p>
+          </div>
         ) : (
           <form className="stack gap-12" onSubmit={submitForgot}>
-            <p className="tiny muted">
-              Indiquez votre email : si un compte existe, vous recevrez un
-              lien pour choisir un nouveau mot de passe.
+            <p className="hint">
+              <Icon name="mail" size={15} />
+              Si un compte existe, vous recevrez un lien pour choisir un
+              nouveau mot de passe.
             </p>
             <div>
               <label className="label" htmlFor="forgot-email">
@@ -150,7 +157,9 @@ export default function AuthModal({ onClose, onAuthed }) {
         <h2 id="auth-title" style={{ fontSize: "1.4rem" }}>
           {tab === "login" ? "Se connecter" : "Créer un compte formateur"}
         </h2>
-        <p className="tiny muted">Requis pour lancer un examen (mode payant).</p>
+        <p className="hint" style={{ justifyContent: "center" }}>
+          <Icon name="lock" size={14} /> Requis pour le mode Examen.
+        </p>
       </div>
 
       {googleEnabled && (

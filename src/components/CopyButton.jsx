@@ -4,7 +4,7 @@ import Icon from "@/components/Icon";
 
 // Bouton de copie dans le presse-papiers avec confirmation « Copié ! »
 // (annoncée aux lecteurs d'écran via aria-live).
-export default function CopyButton({ value, label = "Copier", className = "btn btn--ghost btn--compact" }) {
+export default function CopyButton({ value, label = "Copier", icon = "copy", className = "btn btn--ghost btn--compact" }) {
   const [copied, setCopied] = useState(false);
   const timer = useRef(null);
 
@@ -40,7 +40,7 @@ export default function CopyButton({ value, label = "Copier", className = "btn b
       aria-live="polite"
       title={`Copier : ${value}`}
     >
-      <Icon name={copied ? "check" : "copy"} size={15} />
+      <Icon name={copied ? "check" : icon} size={15} />
       {copied ? "Copié !" : label}
     </button>
   );

@@ -1,6 +1,6 @@
-// Ordre d'affichage : 2e à gauche, 1er au centre, 3e à droite.
-const MEDALS = { 1: "🥇", 2: "🥈", 3: "🥉" };
+import Icon from "@/components/Icon";
 
+// Ordre d'affichage : 2e à gauche, 1er au centre, 3e à droite.
 export default function Podium({ podium }) {
   if (!podium || podium.length === 0) return null;
   const byRank = {};
@@ -15,7 +15,9 @@ export default function Podium({ podium }) {
         const p = byRank[pos];
         return (
           <div className="podium-col" key={p.id}>
-            <div className="podium-medal">{MEDALS[pos]}</div>
+            <div className={`podium-medal podium-medal--${pos}`} aria-hidden="true">
+              <Icon name="medal" size={28} />
+            </div>
             <div className={`podium-card podium-${pos}`}>
               <div className="podium-name">{p.pseudo}</div>
               <div className="podium-score">{p.score}</div>

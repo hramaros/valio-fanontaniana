@@ -137,9 +137,10 @@ function HostResultsInner() {
         <div className="card stack gap-8" style={{ textAlign: "center" }}>
           <span className="eyebrow">Chrono terminé</span>
           <h1 style={{ fontSize: "1.9rem" }}>Validez les réponses libres</h1>
-          <p className="muted">
-            Validez ou refusez chaque réponse, puis finalisez la session pour
-            publier le classement et les notes.
+          <p className="hint" style={{ justifyContent: "center" }}>
+            <Icon name="penLine" size={15} />
+            Validez chaque réponse, puis finalisez pour publier notes et
+            classement.
           </p>
         </div>
 
@@ -160,15 +161,20 @@ function HostResultsInner() {
           >
             {finalizing ? "Finalisation…" : "Finaliser et publier le classement"}
           </ConfirmButton>
-          <p className="tiny muted" style={{ textAlign: "center" }}>
-            {pending > 0
-              ? `${pending} réponse${pending > 1 ? "s" : ""} non validée${
-                  pending > 1 ? "s" : ""
-                } — comptée${pending > 1 ? "s" : ""} comme fausse${
-                  pending > 1 ? "s" : ""
-                } si vous finalisez maintenant.`
-              : "Toutes les réponses libres sont validées."}
-          </p>
+          <div className="row" style={{ justifyContent: "center" }}>
+            {pending > 0 ? (
+              <span className="pill pill--warn">
+                <Icon name="alertTriangle" size={14} />
+                {pending} réponse{pending > 1 ? "s" : ""} non validée
+                {pending > 1 ? "s" : ""} — comptée{pending > 1 ? "s" : ""} fausse
+                {pending > 1 ? "s" : ""} à la finalisation
+              </span>
+            ) : (
+              <span className="pill pill--ok">
+                <Icon name="check" size={14} /> Toutes les réponses sont validées
+              </span>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -228,20 +234,25 @@ function HostResultsInner() {
       </div>
 
       {ended && board.verifyCode && (
-        <div className="panel stack gap-8" style={{ textAlign: "center" }}>
+        <div className="card stack gap-12" style={{ textAlign: "center", alignItems: "center" }}>
+          <span className="icon-badge" aria-hidden="true">
+            <Icon name="shieldCheck" size={19} />
+          </span>
           <span className="tiny muted">Consultation publique des résultats</span>
           <div className="code-chip" style={{ fontSize: "1.2rem" }}>
             {board.verifyCode}
           </div>
-          <p className="tiny muted" style={{ margin: 0 }}>
-            Partagez ce code (parents, établissements…) : il donne accès à la
-            fiche de l'examen sur la page « Vérifier un examen ».
+          <p className="hint" style={{ justifyContent: "center" }}>
+            <Icon name="info" size={14} />
+            Ce code ouvre la fiche officielle de l&apos;examen — partageable
+            avec parents et établissements.
           </p>
-          <div className="row gap-12" style={{ justifyContent: "center" }}>
+          <div className="row gap-12 wrap" style={{ justifyContent: "center" }}>
             <CopyButton value={board.verifyCode} label="Copier le code" />
             <CopyButton
               value={`${typeof window !== "undefined" ? window.location.origin : ""}/verifier?code=${board.verifyCode}`}
               label="Copier le lien"
+              icon="link"
             />
           </div>
         </div>
@@ -268,7 +279,7 @@ function HostResultsInner() {
             <Icon name="download" /> Télécharger le classement (PDF)
           </button>
           <Link href="/host" className="btn btn--ghost btn--block">
-            Créer un nouveau quiz
+            <Icon name="plus" size={16} /> Créer un nouveau quiz
           </Link>
         </div>
       )}

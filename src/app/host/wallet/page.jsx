@@ -2,6 +2,8 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Icon from "@/components/Icon";
+import EmptyState from "@/components/EmptyState";
 import { apiGet, apiPost } from "@/lib/api";
 import { useAccount } from "@/lib/account-client";
 
@@ -12,6 +14,16 @@ const STATUS_LABEL = {
   completed: "Confirmée",
   pending: "En attente",
   failed: "Échouée",
+};
+const STATUS_PILL = {
+  completed: "pill--ok",
+  pending: "pill--warn",
+  failed: "pill--bad",
+};
+const STATUS_ICON = {
+  completed: "check",
+  pending: "clock",
+  failed: "close",
 };
 
 function frDate(ts) {
@@ -86,10 +98,11 @@ function WalletInner() {
   if (!account) {
     return (
       <div className="center-work">
-        <div className="card stack gap-16" style={{ textAlign: "center", maxWidth: 440 }}>
-          <h2>Portefeuille</h2>
-          <p className="muted">Connectez-vous pour gérer votre solde.</p>
-          <Link href="/host" className="btn btn--primary">Créer un quiz</Link>
+        <div className="card" style={{ maxWidth: 440 }}>
+          <EmptyState icon="wallet" title="Portefeuille">
+            <p>Connectez-vous pour gérer votre solde.</p>
+            <Link href="/host" className="btn btn--primary">Créer un quiz</Link>
+          </EmptyState>
         </div>
       </div>
     );
@@ -122,12 +135,12 @@ function WalletInner() {
 
       <div className="card stack gap-16">
         <span className="eyebrow">Recharger</span>
-        <div className="row gap-8 wrap">
+        <div className="chips" role="group" aria-label="Montants proposés">
           {PRESETS.map((p) => (
             <button
               key={p}
               type="button"
-              className={`btn ${!custom && amount === p ? "btn--primary" : "btn--ghost"}`}
+              className={`chip${!custom && amount === p ? " chip--on" : ""}`}
               onClick={() => {
                 setAmount(p);
                 setCustom("");
@@ -157,12 +170,18 @@ function WalletInner() {
           onClick={recharge}
           disabled={busy || selected < MIN_AR}
         >
-          {busy
-            ? "Redirection…"
-            : `Recharger ${selected >= MIN_AR ? selected.toLocaleString("fr-FR") + " Ar" : ""}`}
+          {busy ? (
+            "Redirection…"
+          ) : (
+            <>
+              <Icon name="creditCard" size={17} />
+              {`Recharger ${selected >= MIN_AR ? selected.toLocaleString("fr-FR") + " Ar" : ""}`}
+            </>
+          )}
         </button>
-        <p className="tiny muted" style={{ textAlign: "center" }}>
-          Paiement sécurisé par carte via Stripe (facturé en euros au taux du jour).
+        <p className="hint" style={{ justifyContent: "center" }}>
+          <Icon name="lock" size={14} />
+          Paiement sécurisé via Stripe (facturé en euros au taux du jour).
         </p>
       </div>
 
@@ -171,18 +190,26 @@ function WalletInner() {
         {history === null ? (
           <div className="spin" role="status" aria-label="Chargement" style={{ margin: "0 auto" }} />
         ) : history.length === 0 ? (
-          <div className="panel" style={{ textAlign: "center" }}>
-            <p className="muted">Aucune recharge pour l'instant.</p>
+          <div className="panel">
+            <EmptyState icon="history">
+              <p>Aucune recharge pour l&apos;instant.</p>
+            </EmptyState>
           </div>
         ) : (
           <div className="stack gap-8">
             {history.map((t) => (
               <div key={t.id} className="grade-row">
+                <span className="icon-badge icon-badge--amber" aria-hidden="true">
+                  <Icon name="creditCard" size={17} />
+                </span>
                 <div className="grade-row__ans">
                   <div className="money" style={{ fontWeight: 700 }}>{t.amountAr} Ar</div>
                   <div className="muted tiny">{frDate(t.createdAt)}</div>
                 </div>
-                <span className="pill">{STATUS_LABEL[t.status] || t.status}</span>
+                <span className={`pill ${STATUS_PILL[t.status] || ""}`}>
+                  <Icon name={STATUS_ICON[t.status] || "help"} size={13} />
+                  {STATUS_LABEL[t.status] || t.status}
+                </span>
               </div>
             ))}
           </div>

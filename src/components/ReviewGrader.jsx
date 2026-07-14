@@ -12,14 +12,19 @@ export default function ReviewGrader({ review, onGrade }) {
             <span className="eyebrow">Réponse libre · {q.basePoints} pts</span>
             <h2 style={{ fontSize: "1.2rem", marginTop: 4 }}>{q.text}</h2>
             {q.reference && (
-              <p className="tiny muted" style={{ marginTop: 4 }}>
-                Réponse attendue : <strong>{q.reference}</strong>
+              <p className="hint" style={{ marginTop: 6 }}>
+                <Icon name="info" size={14} />
+                <span>
+                  Réponse attendue : <strong>{q.reference}</strong>
+                </span>
               </p>
             )}
           </div>
 
           {q.submissions.length === 0 ? (
-            <p className="muted tiny">Aucune réponse soumise.</p>
+            <p className="hint">
+              <Icon name="inbox" size={15} /> Aucune réponse soumise.
+            </p>
           ) : (
             <div className="stack gap-8">
               {q.submissions.map((s) => (

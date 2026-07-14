@@ -69,40 +69,57 @@ export default function QuestionBuilder({
     <div className="q-card">
       <div className="q-head">
         <span className="q-index">{index + 1}</span>
-        <div className="seg" role="group" aria-label="Type de réponse">
+        <div
+          className="choice-cards--row"
+          role="group"
+          aria-label="Type de réponse"
+          style={{ flex: 1 }}
+        >
           <button
             type="button"
+            className={`choice-card choice-card--sm${question.type === "single" ? " choice-card--on" : ""}`}
             aria-pressed={question.type === "single"}
             onClick={() => setType("single")}
           >
-            Choix unique
+            <span className="choice-card__icon" aria-hidden="true">
+              <Icon name="circleDot" size={16} />
+            </span>
+            <span className="choice-card__title">Choix unique</span>
           </button>
           <button
             type="button"
+            className={`choice-card choice-card--sm${question.type === "multiple" ? " choice-card--on" : ""}`}
             aria-pressed={question.type === "multiple"}
             onClick={() => setType("multiple")}
           >
-            Choix multiple
+            <span className="choice-card__icon" aria-hidden="true">
+              <Icon name="listChecks" size={16} />
+            </span>
+            <span className="choice-card__title">Choix multiple</span>
           </button>
           {mode === "examen" && (
             <button
               type="button"
+              className={`choice-card choice-card--sm${question.type === "free" ? " choice-card--on" : ""}`}
               aria-pressed={question.type === "free"}
               onClick={() => setType("free")}
             >
-              Réponse libre
+              <span className="choice-card__icon" aria-hidden="true">
+                <Icon name="penLine" size={16} />
+              </span>
+              <span className="choice-card__title">Réponse libre</span>
             </button>
           )}
         </div>
-        <div className="spacer" />
         {canRemove && (
           <button
             type="button"
-            className="btn btn--danger"
-            style={{ padding: "8px 12px" }}
+            className="btn btn--danger btn--icon"
             onClick={onRemove}
+            aria-label={`Supprimer la question ${index + 1}`}
+            title="Supprimer la question"
           >
-            Supprimer
+            <Icon name="trash" size={17} />
           </button>
         )}
       </div>
@@ -129,9 +146,9 @@ export default function QuestionBuilder({
             onChange={(e) => patch({ reference: e.target.value })}
             maxLength={240}
           />
-          <p className="tiny muted" style={{ marginTop: 6 }}>
-            Les participants saisissent leur réponse au clavier. Vous validerez
-            chaque réponse manuellement après le chrono.
+          <p className="hint" style={{ marginTop: 8 }}>
+            <Icon name="penLine" size={15} />
+            Réponse saisie au clavier — vous la validez après le chrono.
           </p>
         </div>
       ) : (
@@ -182,7 +199,7 @@ export default function QuestionBuilder({
       <div className="row gap-12 wrap">
         {question.type !== "free" && question.answers.length < 6 && (
           <button type="button" className="btn btn--ghost" onClick={addAnswer}>
-            + Réponse
+            <Icon name="plus" size={15} /> Réponse
           </button>
         )}
         <label className="check" style={{ marginLeft: "auto" }}>

@@ -56,14 +56,19 @@ function ResetPasswordInner() {
           <div className="row row--between">
             <Brand as="span" />
           </div>
-          <h1 style={{ fontSize: "1.8rem" }}>Lien invalide</h1>
-          <p className="muted">
-            Ce lien de réinitialisation est incomplet. Redemandez un lien
-            depuis la connexion (« Mot de passe oublié ? »).
-          </p>
-          <Link href="/" className="btn btn--primary">
-            Retour à l'accueil
-          </Link>
+          <div className="empty-state">
+            <span className="empty-state__icon" aria-hidden="true">
+              <Icon name="alertTriangle" size={24} />
+            </span>
+            <h1 style={{ fontSize: "1.8rem" }}>Lien invalide</h1>
+            <p>
+              Lien incomplet — redemandez-en un depuis « Mot de passe
+              oublié ? ».
+            </p>
+            <Link href="/" className="btn btn--primary">
+              Retour à l'accueil
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -77,8 +82,13 @@ function ResetPasswordInner() {
           style={{ textAlign: "center" }}
         >
           <Brand as="span" />
-          <h1 style={{ fontSize: "1.8rem" }}>Mot de passe mis à jour</h1>
-          <p className="muted">Vous êtes connecté. Redirection…</p>
+          <div className="empty-state">
+            <span className="empty-state__icon" aria-hidden="true">
+              <Icon name="check" size={24} />
+            </span>
+            <h1 style={{ fontSize: "1.8rem" }}>Mot de passe mis à jour</h1>
+            <p>Vous êtes connecté. Redirection…</p>
+          </div>
         </div>
       </div>
     );
@@ -92,7 +102,9 @@ function ResetPasswordInner() {
         </div>
 
         <div className="stack gap-8">
-          <span className="eyebrow">Réinitialisation</span>
+          <span className="eyebrow row" style={{ gap: 7 }}>
+            <Icon name="lock" size={13} /> Réinitialisation
+          </span>
           <h1 style={{ fontSize: "2rem" }}>Choisir un nouveau mot de passe</h1>
         </div>
 

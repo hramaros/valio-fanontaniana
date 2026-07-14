@@ -42,10 +42,7 @@ export default function HomePage() {
           <h1>
             Un code, un pseudo, <em>et c'est parti.</em>
           </h1>
-          <p className="muted">
-            Rejoignez le quiz en direct lancé par votre formateur. Aucune
-            inscription, juste le code de la salle.
-          </p>
+          <span className="quatuor-thread" aria-hidden="true" />
         </div>
 
         <form className="card stack gap-16" onSubmit={participate}>
@@ -80,14 +77,41 @@ export default function HomePage() {
           </button>
         </form>
 
+        <div className="how-row">
+          <div className="how-item">
+            <span className="how-item__icon">
+              <Icon name="hash" size={20} />
+            </span>
+            Le code
+          </div>
+          <span className="how-sep" aria-hidden="true">
+            <Icon name="arrowRight" size={15} />
+          </span>
+          <div className="how-item">
+            <span className="how-item__icon">
+              <Icon name="users" size={20} />
+            </span>
+            Un pseudo
+          </div>
+          <span className="how-sep" aria-hidden="true">
+            <Icon name="arrowRight" size={15} />
+          </span>
+          <div className="how-item">
+            <span className="how-item__icon">
+              <Icon name="play" size={20} />
+            </span>
+            C&apos;est parti
+          </div>
+        </div>
+
         <div className="divider-or">ou</div>
         <Link href="/host" className="btn btn--ghost btn--block">
-          Créer un quiz (formateur)
+          <Icon name="plus" size={16} /> Créer un quiz (formateur)
         </Link>
 
         <p className="tiny muted" style={{ textAlign: "center", margin: 0 }}>
           Parent ou établissement ?{" "}
-          <Link href="/verifier">Vérifier les résultats d'un examen</Link>
+          <Link href="/verifier">Vérifier les résultats d&apos;un examen</Link>
         </p>
       </div>
     </div>

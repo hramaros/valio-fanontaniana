@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AnswerTile from "@/components/AnswerTile";
 import Countdown from "@/components/Countdown";
+import Icon from "@/components/Icon";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { getPlayerSession } from "@/lib/session";
@@ -192,12 +193,13 @@ function PlayInner() {
       </div>
 
       {phase === "done" ? (
-        <div className="card stack gap-16" style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "2.4rem" }} aria-hidden="true">🎉</div>
+        <div className="card stack gap-16" style={{ textAlign: "center", alignItems: "center" }}>
+          <span className="empty-state__icon" aria-hidden="true">
+            <Icon name="sparkles" size={26} />
+          </span>
           <h1 style={{ fontSize: "2rem" }}>Quiz terminé !</h1>
-          <p className="muted">
-            Vos réponses sont enregistrées. Le classement s'affiche à la fin du
-            chrono.
+          <p className="muted" style={{ margin: 0 }}>
+            Classement à la fin du chrono.
           </p>
           <div style={{ display: "grid", placeItems: "center" }}>
             <Countdown
@@ -212,13 +214,23 @@ function PlayInner() {
         <>
           <div className="card">
             <h1 style={{ fontSize: "1.8rem" }}>{question.text}</h1>
-            <p className="tiny muted" style={{ marginTop: 8 }}>
+            <span className="pill" style={{ marginTop: 12 }}>
+              <Icon
+                name={
+                  question.type === "multiple"
+                    ? "listChecks"
+                    : question.type === "free"
+                      ? "penLine"
+                      : "circleDot"
+                }
+                size={14}
+              />
               {question.type === "multiple"
-                ? "Plusieurs réponses possibles"
+                ? "Plusieurs réponses"
                 : question.type === "free"
-                  ? "Réponse libre à saisir"
+                  ? "Réponse libre"
                   : "Une seule réponse"}
-            </p>
+            </span>
           </div>
 
           {question.type === "free" ? (
@@ -273,17 +285,20 @@ function PlayInner() {
           {feedback &&
             (feedback.pending ? (
               <div className="card card--wait" style={{ textAlign: "center" }}>
-                <h2>Réponse envoyée</h2>
-                <p className="muted">
-                  Elle sera validée par le formateur après le chrono.
-                </p>
+                <h2 className="row" style={{ justifyContent: "center", gap: 9 }}>
+                  <Icon name="timer" size={22} /> Réponse envoyée
+                </h2>
+                <p className="muted">Validée par le formateur après le chrono.</p>
               </div>
             ) : (
               <div
                 className={`card ${feedback.correct ? "card--ok" : "card--ko"}`}
                 style={{ textAlign: "center" }}
               >
-                <h2>{feedback.correct ? "Bonne réponse !" : "Raté…"}</h2>
+                <h2 className="row" style={{ justifyContent: "center", gap: 9 }}>
+                  <Icon name={feedback.correct ? "check" : "close"} size={22} />
+                  {feedback.correct ? "Bonne réponse !" : "Raté…"}
+                </h2>
                 <p className="muted">+{feedback.points} points</p>
               </div>
             ))}

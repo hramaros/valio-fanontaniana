@@ -61,7 +61,10 @@ function VerifierInner() {
 
         <div className="card stack gap-16">
           <div className="stack gap-8">
-            <span className="eyebrow">Examen vérifié · valio.fanontaniana</span>
+            <span className="eyebrow row" style={{ gap: 7 }}>
+              <Icon name="shieldCheck" size={14} /> Examen vérifié ·
+              valio.fanontaniana
+            </span>
             <h1 style={{ fontSize: "1.8rem" }}>{exam.title}</h1>
             <p className="muted" style={{ margin: 0 }}>
               {exam.className ? `Classe ${exam.className} · ` : ""}
@@ -75,20 +78,32 @@ function VerifierInner() {
             style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}
           >
             <div className="stat">
+              <span className="stat__icon" aria-hidden="true">
+                <Icon name="users" size={16} />
+              </span>
               <div className="stat__num">{exam.participantCount}</div>
               <div className="stat__label">
                 Participant{exam.participantCount > 1 ? "s" : ""}
               </div>
             </div>
             <div className="stat">
+              <span className="stat__icon" aria-hidden="true">
+                <Icon name="listChecks" size={16} />
+              </span>
               <div className="stat__num">{exam.nbQuestions}</div>
               <div className="stat__label">Questions</div>
             </div>
             <div className="stat">
+              <span className="stat__icon" aria-hidden="true">
+                <Icon name="target" size={16} />
+              </span>
               <div className="stat__num">{exam.avgNote}</div>
               <div className="stat__label">Moyenne / 20</div>
             </div>
             <div className="stat">
+              <span className="stat__icon" aria-hidden="true">
+                <Icon name="trophy" size={16} />
+              </span>
               <div className="stat__num">{exam.bestNote}</div>
               <div className="stat__label">Meilleure note / 20</div>
             </div>
@@ -120,9 +135,9 @@ function VerifierInner() {
           )}
         </div>
 
-        <p className="tiny muted" style={{ textAlign: "center" }}>
-          Résultats enregistrés par valio.fanontaniana à la clôture de
-          l'examen — ils ne peuvent plus être modifiés.
+        <p className="hint" style={{ justifyContent: "center" }}>
+          <Icon name="lock" size={14} />
+          Résultats scellés à la clôture de l&apos;examen — non modifiables.
         </p>
 
         <button
@@ -149,9 +164,10 @@ function VerifierInner() {
         <div className="stack gap-8">
           <span className="eyebrow">Consultation publique</span>
           <h1 style={{ fontSize: "2rem" }}>Vérifier les résultats d'un examen</h1>
-          <p className="muted">
-            Saisissez le code de consultation communiqué par le formateur pour
-            voir la fiche officielle de l'examen : participants, notes /20 et
+          <span className="quatuor-thread" aria-hidden="true" />
+          <p className="hint" style={{ marginTop: 4 }}>
+            <Icon name="shieldCheck" size={15} />
+            Le code de consultation ouvre la fiche officielle : notes /20 et
             classement.
           </p>
         </div>
@@ -189,8 +205,7 @@ function VerifierInner() {
         </form>
 
         <p className="tiny muted" style={{ textAlign: "center" }}>
-          Ce code est fourni par le formateur (parents, établissements,
-          cabinets de formation). <Link href="/">Retour à l'accueil</Link>
+          Code fourni par le formateur. <Link href="/">Retour à l'accueil</Link>
         </p>
       </div>
     </div>

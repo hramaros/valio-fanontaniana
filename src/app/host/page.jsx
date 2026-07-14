@@ -134,9 +134,6 @@ export default function HostPage() {
         <div className="stack gap-8">
           <span className="eyebrow">Nouveau quiz</span>
           <h1 style={{ fontSize: "2rem" }}>Configurer un quiz</h1>
-          <p className="muted">
-            Libre pour l'entraînement (gratuit), Examen pour une session notée.
-          </p>
         </div>
         {authError && (
           <div className="error" role="alert">
@@ -187,62 +184,110 @@ export default function HostPage() {
               <label className="label" htmlFor="dur">
                 Temps total du quiz (secondes)
               </label>
-              <input
-                id="dur"
-                type="number"
-                className="input"
-                min={10}
-                step={10}
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-              />
-              <p className="tiny muted" style={{ marginTop: 6 }}>
-                Un seul chrono pour tout le quiz. Chacun répond à son rythme.
+              <div className="stack gap-8">
+                <div className="chips" role="group" aria-label="Durées proposées">
+                  {[60, 120, 300].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className={`chip${Number(duration) === s ? " chip--on" : ""}`}
+                      onClick={() => setDuration(s)}
+                    >
+                      <Icon name="timer" size={14} />
+                      {s < 60 ? `${s} s` : `${s / 60} min`}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  id="dur"
+                  type="number"
+                  className="input"
+                  min={10}
+                  step={10}
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                />
+              </div>
+              <p className="hint" style={{ marginTop: 8 }}>
+                <Icon name="timer" size={14} />
+                Un seul chrono pour tout le quiz — chacun répond à son rythme.
               </p>
             </div>
             <div>
               <label className="label">Mode</label>
-              <div className="seg" role="group" aria-label="Mode du quiz">
+              <div className="choice-cards" role="group" aria-label="Mode du quiz">
                 <button
                   type="button"
+                  className={`choice-card${mode === "libre" ? " choice-card--on" : ""}`}
                   aria-pressed={mode === "libre"}
                   onClick={() => setMode("libre")}
                 >
-                  Libre (gratuit)
+                  <span className="choice-card__icon" aria-hidden="true">
+                    <Icon name="zap" size={19} />
+                  </span>
+                  <span className="choice-card__title">Libre</span>
+                  <span className="choice-card__desc">
+                    Gratuit, sans compte · ≤ 10 participants · QCM
+                  </span>
                 </button>
                 <button
                   type="button"
+                  className={`choice-card${mode === "examen" ? " choice-card--on" : ""}`}
                   aria-pressed={mode === "examen"}
                   onClick={chooseExamen}
                 >
-                  Examen
+                  <span className="choice-card__icon" aria-hidden="true">
+                    <Icon name="graduationCap" size={19} />
+                  </span>
+                  <span className="choice-card__title">Examen</span>
+                  <span className="choice-card__desc">
+                    Note /20 · réponse libre · export PDF · historique
+                  </span>
                 </button>
               </div>
-              {mode === "libre" ? (
-                <p className="tiny muted" style={{ marginTop: 6 }}>
-                  Gratuit, sans compte — jusqu'à 10 participants. QCM uniquement.
-                </p>
-              ) : (
-                <div className="stack gap-8" style={{ marginTop: 10 }}>
-                  <div className="seg" role="group" aria-label="Capacité de l'examen">
+              {mode === "examen" && (
+                <div className="stack gap-8" style={{ marginTop: 12 }}>
+                  <div
+                    className="choice-cards"
+                    role="group"
+                    aria-label="Capacité de l'examen"
+                  >
                     <button
                       type="button"
+                      className={`choice-card choice-card--sm${capacity === "small" ? " choice-card--on" : ""}`}
                       aria-pressed={capacity === "small"}
                       onClick={() => setCapacity("small")}
                     >
-                      ≤ 20 participants · 1 000 Ar
+                      <span className="choice-card__icon" aria-hidden="true">
+                        <Icon name="users" size={16} />
+                      </span>
+                      <span>
+                        <span className="choice-card__title">≤ 20 participants</span>
+                        <span className="choice-card__desc" style={{ display: "block" }}>
+                          <span className="money">1 000 Ar</span>
+                        </span>
+                      </span>
                     </button>
                     <button
                       type="button"
+                      className={`choice-card choice-card--sm${capacity === "unlimited" ? " choice-card--on" : ""}`}
                       aria-pressed={capacity === "unlimited"}
                       onClick={() => setCapacity("unlimited")}
                     >
-                      Illimité · 2 000 Ar
+                      <span className="choice-card__icon" aria-hidden="true">
+                        <Icon name="sparkles" size={16} />
+                      </span>
+                      <span>
+                        <span className="choice-card__title">Illimité</span>
+                        <span className="choice-card__desc" style={{ display: "block" }}>
+                          <span className="money">2 000 Ar</span>
+                        </span>
+                      </span>
                     </button>
                   </div>
-                  <p className="tiny muted">
-                    Débloque la réponse libre et l'export. Débité en fin de session
-                    (paiement à venir).
+                  <p className="hint">
+                    <Icon name="wallet" size={14} />
+                    Débité en fin de session (paiement à venir).
                   </p>
                   {classes.length > 0 && (
                     <div>
@@ -260,15 +305,18 @@ export default function HostPage() {
                           </option>
                         ))}
                       </select>
-                      <p className="tiny muted" style={{ marginTop: 6 }}>
-                        Avec une classe, les participants choisissent leur nom dans la
-                        liste (résultats nominatifs).
+                      <p className="hint" style={{ marginTop: 8 }}>
+                        <Icon name="users" size={14} />
+                        Chaque participant choisit son nom dans la liste —
+                        résultats nominatifs.
                       </p>
                     </div>
                   )}
                   {account && (
-                    <p className="tiny muted">
-                      Connecté : {account.email} · Solde : {account.balanceAr} Ar
+                    <p className="hint">
+                      <Icon name="check" size={14} />
+                      {account.email} · solde{" "}
+                      <span className="money">{account.balanceAr} Ar</span>
                     </p>
                   )}
                 </div>
@@ -290,13 +338,20 @@ export default function HostPage() {
             </button>
           </form>
           {showAside && (
-            <aside className="card stack gap-8">
+            <aside className="card stack gap-12">
               <span className="eyebrow">Premiers pas · mode Examen</span>
-              <ol className="muted" style={{ margin: 0, paddingLeft: 20, lineHeight: 1.7 }}>
-                <li>Construisez votre quiz (réponse libre disponible en mode Examen).</li>
-                <li>Au lancement, rechargez votre solde (actuellement 0 Ar).</li>
-                <li>Lancez, corrigez, publiez — notes et historique sauvegardés.</li>
-              </ol>
+              <p className="hint">
+                <Icon name="penLine" size={15} /> Construisez le quiz — la
+                réponse libre est incluse.
+              </p>
+              <p className="hint">
+                <Icon name="wallet" size={15} /> Rechargez votre solde au
+                lancement (actuellement 0 Ar).
+              </p>
+              <p className="hint">
+                <Icon name="graduationCap" size={15} /> Corrigez, publiez —
+                notes et historique sauvegardés.
+              </p>
               <Link
                 href="/host/welcome"
                 className="btn btn--ghost"
@@ -309,7 +364,7 @@ export default function HostPage() {
                 className="tiny"
                 style={{ color: "var(--accent-bright)" }}
               >
-                Astuce : créez une classe pour des examens nominatifs + un carnet de notes →
+                Astuce : une classe = examens nominatifs + carnet de notes →
               </Link>
             </aside>
           )}
@@ -335,9 +390,6 @@ export default function HostPage() {
           <span className="eyebrow">Configuration · {questions.length} question
             {questions.length > 1 ? "s" : ""}</span>
           <h1 style={{ fontSize: "1.8rem" }}>{title || "Quiz"}</h1>
-          <p className="muted">
-            Ajoutez vos questions et réponses, choisissez le type et les couleurs.
-          </p>
         </div>
         <div className="panel row gap-12" style={{ padding: "10px 16px" }}>
           <span className="tiny muted">Code à partager</span>
@@ -360,7 +412,7 @@ export default function HostPage() {
       </div>
 
       <button type="button" className="btn btn--ghost btn--block" onClick={addQuestion}>
-        + Ajouter une question
+        <Icon name="plus" size={16} /> Ajouter une question
       </button>
 
       {error && <div className="error" role="alert">{error}</div>}

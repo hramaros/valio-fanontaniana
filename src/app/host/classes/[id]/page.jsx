@@ -6,6 +6,8 @@ import { apiGet, apiPost, apiDelete } from "@/lib/api";
 import { useAccount } from "@/lib/account-client";
 import ConfirmButton from "@/components/ConfirmButton";
 import CopyButton from "@/components/CopyButton";
+import Icon from "@/components/Icon";
+import EmptyState from "@/components/EmptyState";
 
 export default function ClassDetailPage() {
   const { account, loading } = useAccount();
@@ -80,8 +82,12 @@ export default function ClassDetailPage() {
   return (
     <div className="stack gap-24">
       <div className="stack gap-8">
-        <Link href="/host/classes" className="tiny" style={{ color: "var(--muted)" }}>
-          ← Mes classes
+        <Link
+          href="/host/classes"
+          className="tiny row"
+          style={{ color: "var(--muted)", gap: 4, textDecoration: "none" }}
+        >
+          <Icon name="chevronLeft" size={14} /> Mes classes
         </Link>
         <h1 style={{ fontSize: "2rem" }}>{classroom.name}</h1>
       </div>
@@ -100,14 +106,18 @@ export default function ClassDetailPage() {
             onChange={(e) => setStudentName(e.target.value)}
             maxLength={60}
           />
-          <button type="submit" className="btn btn--primary">Ajouter</button>
+          <button type="submit" className="btn btn--primary">
+            <Icon name="userPlus" size={16} /> Ajouter
+          </button>
         </form>
         {classroom.students.length === 0 ? (
           <div className="panel">
-            <p className="muted tiny">
-              Ajoutez vos élèves : ils pourront choisir leur nom lors d'un examen
-              nominatif, et leurs notes alimenteront le carnet ci-dessous.
-            </p>
+            <EmptyState icon="userPlus">
+              <p>
+                Ajoutez vos élèves pour les examens nominatifs — leurs notes
+                alimenteront le carnet.
+              </p>
+            </EmptyState>
           </div>
         ) : (
           <div className="stack gap-8">
@@ -128,13 +138,17 @@ export default function ClassDetailPage() {
       </div>
 
       <div className="stack gap-12">
-        <span className="eyebrow">Carnet de notes</span>
+        <span className="eyebrow row" style={{ gap: 7 }}>
+          <Icon name="bookOpen" size={14} /> Carnet de notes
+        </span>
         {!hasExams ? (
           <div className="panel">
-            <p className="muted tiny">
-              Aucun examen pour cette classe pour l'instant. Lancez un examen en
-              choisissant cette classe : chaque élève retrouvera sa note ici.
-            </p>
+            <EmptyState icon="bookOpen">
+              <p>
+                Les notes apparaîtront ici après un examen lancé avec cette
+                classe.
+              </p>
+            </EmptyState>
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>

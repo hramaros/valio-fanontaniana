@@ -61,8 +61,10 @@ Règles :
 - **`.seg`** : contrôle segmenté (aria-pressed → fond accent).
 - **Podium** : 3 colonnes teintées or/sky/coral, médailles émoji décoratives.
 - **Modales** : `Modal.jsx` (role=dialog, Échap, focus) sur backdrop noir 60 %.
-- **Icônes** : SVG inline (`Icon.jsx`, style Lucide, trait 2px). Jamais d'émoji
-  structurel ; émojis autorisés en contenu décoratif (`aria-hidden`).
+- **Icônes** : SVG inline (`Icon.jsx`, style Lucide, trait 2px, ~37 noms).
+  Jamais d'émoji structurel ; émojis autorisés en contenu décoratif
+  (`aria-hidden`). L'icône remplace le texte explicatif partout où c'est
+  possible (hints, empty-states, choice-cards, stats).
 - **`.code-tiles` / `.code-tile`** : marquee du code de salle (lobby projeté) —
   chaque caractère sur une tuile du quatuor, texte sombre `#06140d` (≥6:1),
   `role="img"` + aria-label épelé.
@@ -74,6 +76,31 @@ Règles :
   dégradé vers `--ink-2`.
 - **`.money` / `.pill--money`** : sémantique argent — tout montant en Ariary
   prononcé s'affiche en ambre (`--c-amber`), côté formateur uniquement.
+- **`.quatuor-thread`** : fil de marque — fine barre 4 couleurs (quatuor) sous
+  le hero de la landing et le titre du vérificateur. Prolonge les `.code-tiles`
+  sans copier de glyphes Kahoot. Toujours `aria-hidden`.
+- **`.choice-card`** (+ `--on`, `--sm`, `__icon`, `__title`, `__desc`, conteneurs
+  `.choice-cards` / `.choice-cards--row`) : options sélectionnables icônées —
+  mode Libre/Examen, capacité, type de question. Boutons avec `aria-pressed`
+  dans un `role="group"` ; l'état sélectionné = bordure accent + ✓.
+- **`.empty-state`** (+ `--inline`, `__icon`, `__title`, composant
+  `EmptyState.jsx`) : état vide piloté par icône — badge teinté accent + une
+  ligne + action. Remplace les paragraphes d'explication des listes vides.
+- **`.hint` / `.hint--warn`** : ligne courte icône + texte — remplace les
+  paragraphes `tiny muted` explicatifs. L'icône porte l'affordance, le texte
+  reste minimal.
+- **`.chip` / `.chip--on` / `.chips`** : presets tactiles (montants du
+  portefeuille, durées de quiz) — sélection = fond accent, texte sombre.
+- **`.icon-badge`** (+ modificateurs `--sky/--amber/--coral/--mint`) : icône de
+  tête des lignes de liste (historique, classes, transactions).
+- **`.stat__icon`** (+ mêmes modificateurs) : icône au-dessus du chiffre des
+  tuiles `.stat`.
+- **`.pill--ok/--warn/--bad`** : statuts colorés (transactions, validation) —
+  toujours accompagnés d'une icône et d'un libellé, jamais couleur seule.
+- **`.podium-medal--1/2/3` / `.lb-rank--1/2/3`** : rangs teintés
+  or/argent(sky)/bronze(coral) — médailles du podium en icône `medal`.
+- **`.how-row` / `.how-item`** : « comment ça marche » de la landing en 3
+  icônes (code → pseudo → jouer), séparées par des flèches décoratives.
 
 ## Layout & Spacing
 

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { apiGet, apiPost, apiDelete } from "@/lib/api";
 import { useAccount } from "@/lib/account-client";
 import ConfirmButton from "@/components/ConfirmButton";
+import Icon from "@/components/Icon";
+import EmptyState from "@/components/EmptyState";
 
 export default function HostClassesPage() {
   const { account, loading } = useAccount();
@@ -41,10 +43,11 @@ export default function HostClassesPage() {
   if (!account) {
     return (
       <div className="center-work">
-        <div className="card stack gap-16" style={{ textAlign: "center", maxWidth: 440 }}>
-          <h2>Mes classes</h2>
-          <p className="muted">Connectez-vous pour gérer vos classes.</p>
-          <Link href="/host" className="btn btn--primary">Créer un quiz</Link>
+        <div className="card" style={{ maxWidth: 440 }}>
+          <EmptyState icon="graduationCap" title="Mes classes">
+            <p>Connectez-vous pour gérer vos classes.</p>
+            <Link href="/host" className="btn btn--primary">Créer un quiz</Link>
+          </EmptyState>
         </div>
       </div>
     );
@@ -67,25 +70,30 @@ export default function HostClassesPage() {
           onChange={(e) => setName(e.target.value)}
           maxLength={80}
         />
-        <button type="submit" className="btn btn--primary">Créer la classe</button>
+        <button type="submit" className="btn btn--primary">
+          <Icon name="plus" size={16} /> Créer la classe
+        </button>
       </form>
 
       {!classes ? (
         <div className="spin" role="status" aria-label="Chargement" style={{ margin: "0 auto" }} />
       ) : classes.length === 0 ? (
-        <div className="panel" style={{ textAlign: "center" }}>
-          <p className="muted">
-            Créez votre première classe pour suivre les notes de vos élèves au fil
-            des examens.
-          </p>
+        <div className="panel">
+          <EmptyState icon="graduationCap">
+            <p>Créez votre première classe pour suivre les notes de vos élèves.</p>
+          </EmptyState>
         </div>
       ) : (
         <div className="stack gap-8">
           {classes.map((c) => (
             <div key={c.id} className="grade-row">
+              <span className="icon-badge" aria-hidden="true">
+                <Icon name="graduationCap" size={18} />
+              </span>
               <div className="grade-row__ans">
                 <div style={{ fontWeight: 700 }}>{c.name}</div>
-                <div className="muted tiny">
+                <div className="muted tiny row" style={{ gap: 5 }}>
+                  <Icon name="users" size={13} />
                   {c.studentCount} élève{c.studentCount > 1 ? "s" : ""}
                 </div>
               </div>
@@ -95,7 +103,7 @@ export default function HostClassesPage() {
                   className="btn btn--ghost"
                   style={{ padding: "8px 12px" }}
                 >
-                  Gérer
+                  Gérer <Icon name="arrowRight" size={14} />
                 </Link>
                 <ConfirmButton
                   className="btn btn--danger"
@@ -103,7 +111,7 @@ export default function HostClassesPage() {
                   confirmLabel="Confirmer ?"
                   onConfirm={() => deleteCls(c.id)}
                 >
-                  Supprimer
+                  <Icon name="trash" size={15} /> Supprimer
                 </ConfirmButton>
               </div>
             </div>

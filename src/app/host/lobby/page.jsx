@@ -87,21 +87,26 @@ function LobbyInner() {
             </span>
           ))}
         </div>
-        <p className="muted">
-          Les participants apparaissent ci-dessous. Lancez quand tout le monde
-          est prêt — les inscriptions seront alors fermées.
+        <p className="hint" style={{ justifyContent: "center" }}>
+          <Icon name="info" size={15} /> Les inscriptions ferment au lancement.
         </p>
       </div>
 
       <div className="stack gap-12">
         <div className="row row--between">
-          <span className="eyebrow">
+          <span className="eyebrow row" style={{ gap: 7 }}>
+            <Icon name="users" size={14} />
             {participants.length} participant{participants.length > 1 ? "s" : ""}
           </span>
         </div>
         {participants.length === 0 ? (
-          <div className="panel" style={{ textAlign: "center" }}>
-            <p className="muted">En attente des premiers participants…</p>
+          <div className="panel">
+            <div className="empty-state">
+              <span className="empty-state__icon" aria-hidden="true">
+                <Icon name="users" size={24} />
+              </span>
+              <p>En attente des premiers participants…</p>
+            </div>
           </div>
         ) : (
           <div className="players">
@@ -125,7 +130,9 @@ function LobbyInner() {
         {busy ? (
           "Lancement…"
         ) : participants.length === 0 ? (
-          "En attente de participants"
+          <>
+            <Icon name="users" size={16} /> En attente de participants
+          </>
         ) : (
           <>
             <Icon name="play" /> Lancer le quiz

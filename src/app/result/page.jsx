@@ -43,10 +43,11 @@ function ResultInner() {
           <h1 style={{ fontSize: "2rem" }}>
             {reviewing ? "Correction en cours…" : "Encore un instant…"}
           </h1>
-          <p className="muted">
+          <p className="hint" style={{ justifyContent: "center" }}>
+            <Icon name={reviewing ? "penLine" : "timer"} size={15} />
             {reviewing
-              ? "Le formateur valide les réponses libres. Le classement s'affiche dès qu'il a finalisé la session."
-              : "En attente de la fin du chrono pour dévoiler le classement."}
+              ? "Le formateur valide les réponses libres."
+              : "Classement dévoilé à la fin du chrono."}
           </p>
         </div>
       </div>
@@ -64,38 +65,67 @@ function ResultInner() {
         <div className={`card stack gap-16${me.rank === 1 ? " card--gold" : ""}`}>
           <div style={{ textAlign: "center" }}>
             <div className="eyebrow">{me.pseudo}</div>
-            <div style={{ fontSize: "1.1rem", marginTop: 4 }}>
-              {me.rank === 1
-                ? "🏆 Vous remportez le quiz !"
-                : `Vous finissez ${me.rank}ᵉ sur ${board.leaderboard.length}`}
+            <div
+              className="row"
+              style={{ fontSize: "1.1rem", marginTop: 4, justifyContent: "center", gap: 8 }}
+            >
+              {me.rank === 1 ? (
+                <>
+                  <span style={{ color: "var(--c-amber)" }} aria-hidden="true">
+                    <Icon name="trophy" size={20} />
+                  </span>
+                  Vous remportez le quiz !
+                </>
+              ) : (
+                `Vous finissez ${me.rank}ᵉ sur ${board.leaderboard.length}`
+              )}
             </div>
           </div>
           <div className="stat-grid">
             <div className="stat">
+              <span className="stat__icon stat__icon--amber" aria-hidden="true">
+                <Icon name="zap" size={17} />
+              </span>
               <div className="stat__num" style={{ color: "var(--c-amber)" }}>
                 {me.score}
               </div>
               <div className="stat__label">Points</div>
             </div>
             <div className="stat">
+              <span className="stat__icon stat__icon--accent" aria-hidden="true">
+                <Icon name="target" size={17} />
+              </span>
               <div className="stat__num">{me.note}</div>
               <div className="stat__label">Note / 20</div>
             </div>
             <div className="stat">
+              <span className="stat__icon stat__icon--sky" aria-hidden="true">
+                <Icon name="medal" size={17} />
+              </span>
               <div className="stat__num" style={{ color: "var(--c-sky)" }}>
                 #{me.rank}
               </div>
               <div className="stat__label">Classement</div>
             </div>
+            <div className="stat">
+              <span className="stat__icon stat__icon--mint" aria-hidden="true">
+                <Icon name="check" size={17} />
+              </span>
+              <div className="stat__num">
+                {me.nbCorrect}/{board.nbQuestions}
+              </div>
+              <div className="stat__label">Bonnes réponses</div>
+            </div>
           </div>
-          <p className="tiny muted" style={{ textAlign: "center" }}>
-            {me.nbCorrect} / {board.nbQuestions} bonne
-            {me.nbCorrect > 1 ? "s" : ""} réponse{me.nbCorrect > 1 ? "s" : ""}
-          </p>
         </div>
       ) : (
-        <div className="card" style={{ textAlign: "center" }}>
-          <p className="muted">Aucun résultat trouvé pour votre session.</p>
+        <div className="card">
+          <div className="empty-state">
+            <span className="empty-state__icon" aria-hidden="true">
+              <Icon name="inbox" size={24} />
+            </span>
+            <p>Aucun résultat trouvé pour votre session.</p>
+          </div>
         </div>
       )}
 
@@ -114,7 +144,7 @@ function ResultInner() {
       )}
 
       <Link href="/" className="btn btn--ghost btn--block">
-        Retour à l'accueil
+        <Icon name="chevronLeft" size={16} /> Retour à l'accueil
       </Link>
     </div>
   );
