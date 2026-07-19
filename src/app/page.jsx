@@ -53,7 +53,7 @@ export default function HomePage() {
             <input
               id="code"
               className="input input--code"
-              placeholder="ABC123"
+              placeholder="ex. ABC123"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               maxLength={8}
@@ -77,42 +77,18 @@ export default function HomePage() {
           </button>
         </form>
 
-        <div className="how-row">
-          <div className="how-item">
-            <span className="how-item__icon">
-              <Icon name="hash" size={20} />
-            </span>
-            Le code
-          </div>
-          <span className="how-sep" aria-hidden="true">
-            <Icon name="arrowRight" size={15} />
-          </span>
-          <div className="how-item">
-            <span className="how-item__icon">
-              <Icon name="users" size={20} />
-            </span>
-            Un pseudo
-          </div>
-          <span className="how-sep" aria-hidden="true">
-            <Icon name="arrowRight" size={15} />
-          </span>
-          <div className="how-item">
-            <span className="how-item__icon">
-              <Icon name="play" size={20} />
-            </span>
-            C&apos;est parti
-          </div>
-        </div>
-
         <div className="divider-or">ou</div>
         <Link href="/host" className="btn btn--ghost btn--block">
           <Icon name="plus" size={16} /> Créer un quiz (formateur)
         </Link>
 
-        <p className="tiny muted" style={{ textAlign: "center", margin: 0 }}>
-          Parent ou établissement ?{" "}
-          <Link href="/verifier">Vérifier les résultats d&apos;un examen</Link>
-        </p>
+        <div className="stack gap-8" style={{ alignItems: "center" }}>
+          <span className="tiny muted">Parent ou établissement ?</span>
+          <Link href="/verifier" className="btn btn--ghost btn--compact">
+            <Icon name="shieldCheck" size={15} /> Vérifier les résultats
+            d&apos;un examen
+          </Link>
+        </div>
       </div>
     </div>
   );

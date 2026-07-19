@@ -99,8 +99,10 @@ Règles :
   toujours accompagnés d'une icône et d'un libellé, jamais couleur seule.
 - **`.podium-medal--1/2/3` / `.lb-rank--1/2/3`** : rangs teintés
   or/argent(sky)/bronze(coral) — médailles du podium en icône `medal`.
-- **`.how-row` / `.how-item`** : « comment ça marche » de la landing en 3
-  icônes (code → pseudo → jouer), séparées par des flèches décoratives.
+- **Landing** : le hero (« Un code, un pseudo, et c'est parti. ») est la seule
+  voix du message — pas d'illustration redondante des étapes. Le placeholder
+  du champ code s'écrit « ex. … » en casse/espacement de phrase pour ne jamais
+  ressembler à un code saisi.
 
 ## Layout & Spacing
 

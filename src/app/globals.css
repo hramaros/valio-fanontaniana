@@ -181,6 +181,14 @@ button {
   padding-left: 8px;
   padding-right: 8px;
 }
+/* Le placeholder se distingue nettement d'un code saisi : casse et
+   espacement d'une phrase d'exemple, pas d'un code (anti-confusion). */
+.input--code::placeholder {
+  text-transform: none;
+  letter-spacing: 0.04em;
+  font-size: clamp(1.05rem, 5vw, 1.3rem);
+  font-weight: 500;
+}
 /* Codes plus longs (ex. VF-XXXX-XXXX) : échelle réduite pour tenir sur 320px. */
 .input--code--long {
   font-size: clamp(1.05rem, 5.2vw, 1.4rem);
@@ -1120,44 +1128,6 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
 .lb-rank--1 { color: var(--c-amber); }
 .lb-rank--2 { color: #8fcbff; }
 .lb-rank--3 { color: #ff96a4; }
-
-/* ---------- « Comment ça marche » en 3 icônes (landing) ---------- */
-.how-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.how-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  min-width: 84px;
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-align: center;
-}
-.how-item__icon {
-  display: grid;
-  place-items: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  background: var(--ink-2);
-  border: 1px solid var(--line-strong);
-  color: var(--accent-bright);
-}
-.how-sep {
-  align-self: center;
-  color: var(--muted-2);
-  margin-bottom: 18px;
-}
-@media (max-width: 380px) {
-  .how-sep { display: none; }
-}
 
 @media (prefers-reduced-motion: reduce) {
   /* Le spinner reste animé : c'est un indicateur d'état essentiel,
