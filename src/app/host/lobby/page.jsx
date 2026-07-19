@@ -72,8 +72,8 @@ function LobbyInner() {
   }
 
   return (
-    <div className="stack gap-24">
-      <div className="card stack gap-16" style={{ textAlign: "center" }}>
+    <div className="stack gap-16">
+      <div className="card stack gap-12" style={{ textAlign: "center" }}>
         <span className="eyebrow">Salle d'attente</span>
         <h1 style={{ fontSize: "2.2rem" }}>Rejoignez avec le code</h1>
         <div
@@ -92,7 +92,7 @@ function LobbyInner() {
         </p>
       </div>
 
-      <div className="stack gap-12">
+      <div className="stack gap-8">
         <div className="row row--between">
           <span className="eyebrow row" style={{ gap: 7 }}>
             <Icon name="users" size={14} />

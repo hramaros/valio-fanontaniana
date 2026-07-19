@@ -479,6 +479,13 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
   justify-self: center;
   padding: 34px clamp(20px, 4vw, 48px) 80px;
 }
+/* Lobby et suivi de session (mode « focus », projection) sont conçus pour
+   tenir sur un seul écran — le padding généreux pensé pour les pages de
+   travail défilantes les poussait au-delà de la hauteur visible. */
+.shell--focus .shell-main {
+  padding-top: 22px;
+  padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+}
 .shell-footer {
   grid-area: footer;
   display: flex;
@@ -527,6 +534,11 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
 }
 @media (max-width: 640px) {
   .shell-guest { display: none; }
+  /* Purement décoratif (la marque est déjà dans l'en-tête) — s'enroulait
+     sur plusieurs lignes en pied de page et poussait la hauteur totale
+     au-delà du viewport sur mobile, notamment en mode « focus ». */
+  .shell-footer__tagline { display: none; }
+  .shell-footer { padding: 10px 18px calc(10px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* Espace de travail : contenu principal + panneau latéral */
@@ -555,8 +567,12 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
 .code-tile {
   display: grid;
   place-items: center;
-  width: clamp(50px, 10vw, 78px);
-  height: clamp(62px, 12vw, 94px);
+  /* Le plancher (36px) permet à un code de 6 caractères — la longueur par
+     défaut (generateCode) — de tenir sur une seule rangée dès 320px de
+     large (une fois le padding de la carte déduit), évitant le retour à
+     la ligne qui gonflait la hauteur du lobby projeté sur mobile. */
+  width: clamp(36px, 10vw, 78px);
+  height: clamp(46px, 12vw, 94px);
   border-radius: 16px;
   border: 2px solid rgba(0, 0, 0, 0.18);
   font-family: var(--font-display);
@@ -939,6 +955,11 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
 @media (max-width: 560px) {
   .answers { grid-template-columns: 1fr; }
   .stat__num { font-size: 1.7rem; }
+  /* Le padding fixe (26px) gonflait inutilement la hauteur des cartes sur
+     petit écran, contribuant au débordement des écrans « un coup d'œil »
+     (lobby projeté, landing, etc.). */
+  .card { padding: 18px; }
+  .panel { padding: 12px; }
 }
 
 /* ---------- Fil du quatuor (signature de marque) ---------- */
@@ -1067,6 +1088,10 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
   padding: 14px;
 }
 .empty-state--inline .empty-state__icon { width: 38px; height: 38px; border-radius: 11px; }
+@media (max-width: 560px) {
+  .empty-state { padding: 20px 16px; gap: 8px; }
+  .empty-state__icon { width: 44px; height: 44px; }
+}
 
 /* ---------- Chips de presets (montants, durées) ---------- */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }

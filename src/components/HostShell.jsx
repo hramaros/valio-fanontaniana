@@ -109,7 +109,9 @@ export default function HostShell({ focus = false, children }) {
       )}
 
       <footer className="shell-footer">
-        <span>valio.fanontaniana — quiz en direct, avec une vraie note /20.</span>
+        <span className="shell-footer__tagline">
+          valio.fanontaniana — quiz en direct, avec une vraie note /20.
+        </span>
         <span className="row gap-16 wrap">
           <Link href="/">Accès participant</Link>
           <Link href="/verifier">Consultation publique</Link>
