@@ -93,7 +93,15 @@ button {
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+}
+/* Le padding de .container (pensé pour des pages longues, défilantes,
+   avec dégagement sous un geste mobile) s'additionnait à celui-ci et
+   poussait ces écrans à une seule étape au-delà de la hauteur visible,
+   forçant un défilement même sur des écrans de bureau courants. */
+.center-screen .container {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .stack {

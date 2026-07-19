@@ -33,7 +33,7 @@ export default function HomePage() {
 
   return (
     <div className="center-screen">
-      <div className="container container--narrow stack gap-24">
+      <div className="container container--narrow stack gap-16">
         <div className="row row--between">
           <Brand as="span" />
         </div>
