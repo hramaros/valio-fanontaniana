@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { isTourDone, markTourDone, TOUR_START_EVENT } from "@/lib/onboarding";
@@ -145,6 +146,8 @@ function isNarrow() {
 
 export default function HostTour() {
   const driverRef = useRef(null);
+  const router = useRouter();
+  const tourParam = useSearchParams().get("tour");
 
   const start = useCallback(() => {
     if (driverRef.current?.isActive()) return;
@@ -198,12 +201,13 @@ export default function HostTour() {
   }, []);
 
   // Démarrage : automatique au premier passage, forcé par ?tour=1.
+  //
+  // On dépend du paramètre lu par le routeur, pas de window.location au
+  // montage : cliquer « Visite guidée » depuis /host est une navigation
+  // douce sur la MÊME route, qui ne remonte pas la page — un effet de
+  // montage ne la verrait jamais et la visite ne se relançait pas.
   useEffect(() => {
-    let forced = false;
-    try {
-      forced = new URLSearchParams(window.location.search).get("tour") === "1";
-    } catch {}
-
+    const forced = tourParam === "1";
     if (!forced && isTourDone()) return;
 
     // Deux frames : useAccount refait un GET /api/auth/me à chaque montage
@@ -213,24 +217,19 @@ export default function HostTour() {
     let inner = 0;
     const outer = requestAnimationFrame(() => {
       inner = requestAnimationFrame(() => {
-        // Le nettoyage de l'URL n'a lieu qu'ici, une fois la visite réellement
-        // lancée. Le faire plus tôt cassait la relance : StrictMode invoque
-        // l'effet deux fois, et le second passage ne voyait plus ?tour=1 —
-        // donc rien ne démarrait pour qui avait déjà vu la visite.
-        // Même pattern que l'effet authError de host/page.jsx.
-        if (forced) {
-          try {
-            window.history.replaceState({}, "", window.location.pathname);
-          } catch {}
-        }
         start();
+        // Nettoyage après démarrage, et via le routeur plutôt que
+        // history.replaceState : l'état interne de Next reste synchrone,
+        // sinon un second clic sur le même lien ne serait pas vu comme un
+        // changement de paramètre et ne relancerait rien.
+        if (forced) router.replace("/host", { scroll: false });
       });
     });
     return () => {
       cancelAnimationFrame(outer);
       cancelAnimationFrame(inner);
     };
-  }, [start]);
+  }, [tourParam, start, router]);
 
   // Relance depuis l'aside « Premiers pas » (déjà sur /host : pas de
   // navigation ni de remount).
