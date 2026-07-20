@@ -103,6 +103,25 @@ Règles :
   voix du message — pas d'illustration redondante des étapes. Le placeholder
   du champ code s'écrit « ex. … » en casse/espacement de phrase pour ne jamais
   ressembler à un code saisi.
+- **Visite guidée** (`HostTour.jsx`, `.driver-popover.valio-tour`) : overlay de
+  bulles ancrées sur les vrais éléments de l'écran de création, pas une page à
+  lire. Seule dépendance UI du projet — `driver.js` (MIT, zéro dépendance,
+  ~8 Ko gzip) : exception assumée au principe « pas de dépendance décorative »
+  (PRODUCT.md #5), tenable parce qu'elle est chargée à la demande
+  (`dynamic(ssr:false)`) dans un chunk isolé, **absent des écrans participants**. Se lance seule au premier passage sur `/host` (**invités compris** — le
+  parcours Libre entier se fait sans compte), état versionné en `localStorage`
+  (`src/lib/onboarding.js` ; incrémenter `TOUR_VERSION` la rejoue pour tous).
+  Relance par le lien nav/footer (`/host?tour=1`) ou l'évènement
+  `valio:tour:start` ; `/host/welcome` est conservée en simple redirection.
+  Lecture guidée : les clics sont bloqués pendant la visite, ce qui fige le
+  nombre d'étapes et empêche `AuthModal` de s'ouvrir sous l'overlay. Sous
+  1024px, l'étape « nav » passe en bulle centrée — la nav y est un scroller
+  tronqué qui n'apprend rien.
+  **Thème** : chaque règle doit porter le double sélecteur
+  `.driver-popover.valio-tour`, car `driver.css` est chargé après `globals.css`
+  et gagnerait à spécificité égale — un sélecteur sans le suffixe est ignoré en
+  silence. La police passe par `--driver-popover-font-family` (l'API de la lib)
+  et non par une surcharge, `all: unset` cassant l'héritage.
 
 ## Layout & Spacing
 
@@ -112,8 +131,7 @@ Règles :
   n'importe quelle page) / nav latérale 248px (icône + libellé, état actif
   teinté accent, barre horizontale sous 1024px) / espace de travail (max
   1160px, gouttières `clamp`) / footer slim. Lobby et suivi de session passent
-  en mode `--focus` (nav masquée pour la projection). La visite guidée est une
-  page normale du shell — **jamais de redirection forcée**.
+  en mode `--focus` (nav masquée pour la projection).
 - `.work-grid` : contenu principal + panneau latéral 330px (1 colonne < 900px).
 - Côté participants : layouts focalisés plein écran conservés (zéro friction,
   une action par écran) — le shell est un pattern formateur.

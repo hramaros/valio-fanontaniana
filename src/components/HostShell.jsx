@@ -69,7 +69,7 @@ export default function HostShell({ focus = false, children }) {
       </header>
 
       {!focus && (
-        <nav className="shell-nav" aria-label="Navigation formateur">
+        <nav className="shell-nav" aria-label="Navigation formateur" data-tour="nav">
           <div className="shell-nav__inner">
             {NAV.map((item) => {
               const active = item.exact
@@ -80,16 +80,16 @@ export default function HostShell({ focus = false, children }) {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
+                  data-tour={`nav-${item.href.replace(/^\//, "").replace(/\//g, "-")}`}
                 >
                   <Icon name={item.icon} size={17} /> {item.label}
                 </Link>
               );
             })}
             <div className="shell-nav__sep" aria-hidden="true" />
-            <Link
-              href="/host/welcome"
-              aria-current={pathname === "/host/welcome" ? "page" : undefined}
-            >
+            {/* La visite n'est plus une page mais un overlay joué sur /host :
+                pas d'aria-current, il n'y a plus de page correspondante. */}
+            <Link href="/host?tour=1">
               <Icon name="help" size={17} /> Visite guidée
             </Link>
           </div>
@@ -115,7 +115,7 @@ export default function HostShell({ focus = false, children }) {
         <span className="row gap-16 wrap">
           <Link href="/">Accès participant</Link>
           <Link href="/verifier">Consultation publique</Link>
-          <Link href="/host/welcome">Aide &amp; visite guidée</Link>
+          <Link href="/host?tour=1">Aide &amp; visite guidée</Link>
         </span>
       </footer>
     </div>

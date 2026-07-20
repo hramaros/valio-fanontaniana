@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import QuestionBuilder from "@/components/QuestionBuilder";
 import { apiGet, apiPost } from "@/lib/api";
@@ -10,6 +11,11 @@ import { saveHostSession } from "@/lib/session";
 import { useAccount } from "@/lib/account-client";
 import AuthModal from "@/components/AuthModal";
 import Icon from "@/components/Icon";
+import { TOUR_START_EVENT } from "@/lib/onboarding";
+
+// Chargé à la demande et jamais rendu côté serveur (localStorage/document lus
+// au montage) : driver.js et son CSS restent hors du bundle des participants.
+const HostTour = dynamic(() => import("@/components/HostTour"), { ssr: false });
 
 function newQuestion() {
   return {
@@ -131,6 +137,7 @@ export default function HostPage() {
   if (step === "identity") {
     return (
       <div className="stack gap-24">
+        <HostTour />
         <div className="stack gap-8">
           <span className="eyebrow">Nouveau quiz</span>
           <h1 style={{ fontSize: "2rem" }}>Configurer un quiz</h1>
@@ -145,7 +152,7 @@ export default function HostPage() {
           style={showAside ? undefined : { maxWidth: 760 }}
         >
           <form className="card stack gap-16" onSubmit={createRoom}>
-            <div>
+            <div data-tour="host-name">
               <label className="label" htmlFor="host">Votre nom</label>
               <input
                 id="host"
@@ -157,7 +164,7 @@ export default function HostPage() {
                 autoFocus
               />
             </div>
-            <div>
+            <div data-tour="title">
               <label className="label" htmlFor="title">Titre du quiz</label>
               <input
                 id="title"
@@ -180,7 +187,7 @@ export default function HostPage() {
             >
               Configuration de la session
             </div>
-            <div>
+            <div data-tour="duration">
               <label className="label" htmlFor="dur">
                 Temps total du quiz (secondes)
               </label>
@@ -215,12 +222,18 @@ export default function HostPage() {
             </div>
             <div>
               <label className="label">Mode</label>
-              <div className="choice-cards" role="group" aria-label="Mode du quiz">
+              <div
+                className="choice-cards"
+                role="group"
+                aria-label="Mode du quiz"
+                data-tour="mode"
+              >
                 <button
                   type="button"
                   className={`choice-card${mode === "libre" ? " choice-card--on" : ""}`}
                   aria-pressed={mode === "libre"}
                   onClick={() => setMode("libre")}
+                  data-tour="mode-libre"
                 >
                   <span className="choice-card__icon" aria-hidden="true">
                     <Icon name="zap" size={19} />
@@ -235,6 +248,7 @@ export default function HostPage() {
                   className={`choice-card${mode === "examen" ? " choice-card--on" : ""}`}
                   aria-pressed={mode === "examen"}
                   onClick={chooseExamen}
+                  data-tour="mode-examen"
                 >
                   <span className="choice-card__icon" aria-hidden="true">
                     <Icon name="graduationCap" size={19} />
@@ -251,6 +265,7 @@ export default function HostPage() {
                     className="choice-cards"
                     role="group"
                     aria-label="Capacité de l'examen"
+                    data-tour="capacity"
                   >
                     <button
                       type="button"
@@ -290,7 +305,7 @@ export default function HostPage() {
                     Débité en fin de session (paiement à venir).
                   </p>
                   {classes.length > 0 && (
-                    <div>
+                    <div data-tour="class-select">
                       <label className="label" htmlFor="cls">Classe (optionnel)</label>
                       <select
                         id="cls"
@@ -327,6 +342,7 @@ export default function HostPage() {
               type="submit"
               className="btn btn--primary btn--lg btn--block"
               disabled={busy}
+              data-tour="submit"
             >
               {busy ? (
                 "…"
@@ -338,7 +354,7 @@ export default function HostPage() {
             </button>
           </form>
           {showAside && (
-            <aside className="card stack gap-12">
+            <aside className="card stack gap-12" data-tour="aside">
               <span className="eyebrow">Premiers pas · mode Examen</span>
               <p className="hint">
                 <Icon name="penLine" size={15} /> Construisez le quiz — la
@@ -352,13 +368,18 @@ export default function HostPage() {
                 <Icon name="graduationCap" size={15} /> Corrigez, publiez —
                 notes et historique sauvegardés.
               </p>
-              <Link
-                href="/host/welcome"
+              {/* On est déjà sur /host : on relance la visite sur place plutôt
+                  que de naviguer vers ?tour=1, ce qui remonterait la page. */}
+              <button
+                type="button"
                 className="btn btn--ghost"
                 style={{ alignSelf: "flex-start" }}
+                onClick={() =>
+                  window.dispatchEvent(new CustomEvent(TOUR_START_EVENT))
+                }
               >
                 <Icon name="play" size={14} /> Visite guidée (30 s)
-              </Link>
+              </button>
               <Link
                 href="/host/classes"
                 className="tiny"

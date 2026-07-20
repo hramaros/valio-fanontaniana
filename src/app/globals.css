@@ -836,23 +836,124 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
   .modal { animation: none; }
 }
 
-/* ---------- Onboarding (visite guidée) ---------- */
-.onb-dots {
-  display: flex;
+/* ---------- Onboarding (visite guidée driver.js) ----------
+   driver.css est chargé APRÈS globals.css (il part dans le chunk de la route
+   /host). À spécificité égale, c'est donc driver qui gagne : chaque règle
+   ci-dessous porte le double `.driver-popover.valio-tour` (0-2-0 contre
+   0-1-0), posé via l'option `popoverClass`. Un sélecteur qui oublierait ce
+   suffixe serait ignoré en silence, sans erreur de build. */
+
+.driver-popover.valio-tour {
+  /* La police passe par la custom property exposée par la lib plutôt que par
+     une surcharge : `all: unset` sur .driver-popover casserait l'héritage. */
+  --driver-popover-font-family: var(--font-body);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 18px;
+  min-width: 250px;
+  max-width: 320px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), var(--shadow-lift);
+}
+
+.driver-popover.valio-tour .driver-popover-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--text);
+  /* Laisse la place à la croix de fermeture (44px). */
+  padding-right: 40px;
+}
+.driver-popover.valio-tour .driver-popover-description {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin-top: 8px;
+}
+
+/* L'arrow ne garde qu'un bord visible par côté (les 3 autres sont
+   transparents) : recolorer `border-color` en bloc donnerait un losange. */
+.driver-popover.valio-tour .driver-popover-arrow-side-left { border-left-color: var(--surface); }
+.driver-popover.valio-tour .driver-popover-arrow-side-right { border-right-color: var(--surface); }
+.driver-popover.valio-tour .driver-popover-arrow-side-top { border-top-color: var(--surface); }
+.driver-popover.valio-tour .driver-popover-arrow-side-bottom { border-bottom-color: var(--surface); }
+
+.driver-popover.valio-tour .driver-popover-close-btn {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  font-size: 20px;
+  color: var(--muted);
+}
+.driver-popover.valio-tour .driver-popover-close-btn:hover,
+.driver-popover.valio-tour .driver-popover-close-btn:focus-visible {
+  color: var(--text);
+}
+
+.driver-popover.valio-tour .driver-popover-footer {
+  margin-top: 16px;
+  gap: 10px;
+}
+.driver-popover.valio-tour .driver-popover-progress-text {
+  color: var(--muted-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.driver-popover.valio-tour .driver-popover-navigation-btns {
   gap: 8px;
+}
+
+/* driver.css applique `all: unset` sur .driver-popover-footer-btn (portée par
+   les boutons Retour/Suivant/Terminer) : le look .btn est reconstruit ici. */
+.driver-popover.valio-tour .driver-popover-footer-btn {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-shadow: none;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
 }
-.onb-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--line-strong);
-  transition: background 0.2s;
+.driver-popover.valio-tour .driver-popover-footer-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
-.onb-dot--on {
+.driver-popover.valio-tour .driver-popover-footer-btn:focus-visible {
+  outline: 3px solid var(--accent-bright);
+  outline-offset: 2px;
+}
+.driver-popover.valio-tour .driver-popover-next-btn,
+.driver-popover.valio-tour .driver-popover-done-btn {
   background: var(--accent);
-  width: 22px;
-  border-radius: 4px;
+  border-color: var(--accent);
+  /* Couple accent/texte sombre déjà validé AA (cf. ::selection). */
+  color: #06140d;
+}
+.driver-popover.valio-tour .driver-popover-next-btn:hover,
+.driver-popover.valio-tour .driver-popover-done-btn:hover {
+  background: var(--accent-bright);
+  border-color: var(--accent-bright);
+}
+.driver-popover.valio-tour .driver-popover-btn-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Halo de l'élément mis en avant (classe sans style propre dans driver.css).
+   Le rayon suit `stageRadius: 12` passé à driver. */
+.driver-active-element {
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 3px rgba(49, 211, 92, 0.55);
 }
 
 /* ---------- Carnet de notes ---------- */
