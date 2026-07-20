@@ -129,7 +129,7 @@ export default function HostShell({ focus = false, children }) {
                 className="btn btn--primary btn--compact"
                 onClick={() => setShowAuth(true)}
               >
-                Se connecter
+                Connexion
               </button>
             </>
           )}

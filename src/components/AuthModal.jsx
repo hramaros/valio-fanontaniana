@@ -155,7 +155,7 @@ export default function AuthModal({ onClose, onAuthed }) {
 
       <div className="stack gap-8" style={{ textAlign: "center" }}>
         <h2 id="auth-title" style={{ fontSize: "1.4rem" }}>
-          {tab === "login" ? "Se connecter" : "Créer un compte formateur"}
+          {tab === "login" ? "Connexion" : "Créer un compte formateur"}
         </h2>
         <p className="hint" style={{ justifyContent: "center" }}>
           <Icon name="lock" size={14} /> Requis pour le mode Examen.

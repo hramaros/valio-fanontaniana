@@ -1002,7 +1002,7 @@ export default function AuthModal({ onClose, onAuthed }) {
 
       <div className="stack gap-8" style={{ textAlign: "center" }}>
         <h2 id="auth-title" style={{ fontSize: "1.4rem" }}>
-          {tab === "login" ? "Se connecter" : "Créer un compte formateur"}
+          {tab === "login" ? "Connexion" : "Créer un compte formateur"}
         </h2>
         <p className="tiny muted">Requis pour lancer un examen (mode payant).</p>
       </div>

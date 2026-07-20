@@ -23,7 +23,7 @@
 1. **history.js** (TDD) : `saveExamRecord(record)`, `listExamRecords(accountId, limit)` (résumés), `getExamRecord(accountId, id)` (avec contrôle d'appartenance). Fake Redis avec listes (lpush/lrange/ltrim).
 2. **Hook settle** dans `getLeaderboard` : si `hostAccountId`, construire le record (title, code, mode, capacity, priceAr, charged, nbQuestions, participantCount, endedAt, leaderboard, podium) et `saveExamRecord`. Test : après clôture d'un Examen avec compte, `listExamRecords` renvoie 1 entrée ; `getExamRecord` rend le détail.
 3. **Routes** : `GET /api/host/history` (auth → liste) ; `GET /api/host/history/[id]` (auth + ownership → record).
-4. **UI** `/host/history` : `useAccount`; si non connecté → invite à se connecter ; sinon liste (date, titre, participants, coût) ; sélection → détail (Leaderboard) + « Télécharger PDF » (réutilise `downloadHostResultsPdf`). Lien depuis `/host`.
+4. **UI** `/host/history` : `useAccount`; si non connecté → invite à connexion ; sinon liste (date, titre, participants, coût) ; sélection → détail (Leaderboard) + « Télécharger PDF » (réutilise `downloadHostResultsPdf`). Lien depuis `/host`.
 
 ## Verification
 - `node --test "src/**/*.test.js"` vert (history + rooms snapshot).

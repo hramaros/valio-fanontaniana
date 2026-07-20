@@ -127,7 +127,7 @@ Règles :
 
 - **Shell formateur** (`HostShell` + `src/app/host/layout.jsx`) : toutes les
   pages `/host/*` vivent dans une grille header (sticky, compte + solde ambre +
-  déconnexion ; en mode invité, « Se connecter » ouvre `AuthModal` depuis
+  déconnexion ; en mode invité, « Connexion » ouvre `AuthModal` depuis
   n'importe quelle page) / nav latérale 248px (icône + libellé, état actif
   teinté accent, barre horizontale sous 1024px) / espace de travail (max
   1160px, gouttières `clamp`) / footer slim. Lobby et suivi de session passent
