@@ -927,16 +927,31 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
 }
 
 .driver-popover.valio-tour .driver-popover-footer {
-  margin-top: 16px;
+  margin-top: 12px;
   gap: 10px;
-}
-.driver-popover.valio-tour .driver-popover-progress-text {
-  color: var(--muted-2);
-  font-size: 0.75rem;
-  font-weight: 600;
 }
 .driver-popover.valio-tour .driver-popover-navigation-btns {
   gap: 8px;
+}
+
+/* Barre de progression (remplace le texte « X sur Y »), injectée par
+   onPopoverRender dans HostTour.jsx juste avant le footer. Même recette que
+   .qtrack/.qtrack__fill (progression des questions côté participant) :
+   remplissage en transform-only, jamais en width. */
+.driver-popover.valio-tour .tour-progress {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  margin: 14px 0 0;
+}
+.driver-popover.valio-tour .tour-progress__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+  transform-origin: left;
+  transition: transform 0.25s ease-out;
 }
 
 /* driver.css applique `all: unset` sur .driver-popover-footer-btn (portée par

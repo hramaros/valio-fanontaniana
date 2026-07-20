@@ -50,33 +50,16 @@ const SCRIPT = [
     },
   },
   {
+    // Les deux cartes affichent déjà leur résumé à l'écran (« Gratuit,
+    // sans compte… » / « Note /20, réponse libre… ») — une bulle par
+    // carte ne ferait que le relire. Une seule étape sur le conteneur.
     element: '[data-tour="mode"]',
     popover: {
       title: "Libre ou Examen",
       description:
-        "Le seul vrai choix à faire. Libre pour tester, Examen pour noter.",
+        "Libre : gratuit, pour tester tout de suite. Examen : noté, avec export PDF et historique — dès 1 000 Ar, débités en fin de session.",
       side: "right",
       align: "center",
-    },
-  },
-  {
-    element: '[data-tour="mode-libre"]',
-    popover: {
-      title: "Libre — gratuit",
-      description:
-        "QCM, jusqu'à 10 participants, sans compte. Idéal pour essayer tout de suite.",
-      side: "bottom",
-      align: "start",
-    },
-  },
-  {
-    element: '[data-tour="mode-examen"]',
-    popover: {
-      title: "Examen — 1 000 Ar",
-      description:
-        "Note sur 20, réponse libre, export PDF, historique. 1 000 Ar jusqu'à 20 participants, 2 000 Ar illimité. Débité en fin de session.",
-      side: "bottom",
-      align: "end",
     },
   },
   {
@@ -122,8 +105,11 @@ const SCRIPT = [
   {
     popover: {
       title: "À vous de jouer",
-      description: "Commencez par votre nom, puis créez la salle.",
-      doneBtnText: "Terminer",
+      // Écho au step 1 (« créer votre premier quiz ») : boucle la
+      // promesse d'ouverture, sans emoji ni animation ajoutée.
+      description:
+        "Vous savez l'essentiel. Ajoutez votre nom, créez la salle, et lancez votre premier quiz.",
+      doneBtnText: "C'est parti",
     },
   },
 ];
@@ -153,11 +139,19 @@ function setMenu(open) {
 export default function HostTour() {
   const driverRef = useRef(null);
   const refreshTimerRef = useRef(0);
+  // Ratio de remplissage de l'étape précédente. Contrairement à
+  // .qtrack__fill (nœud React persistant), le DOM du popover driver.js est
+  // détruit et recréé à chaque étape : sans ce mémo, la barre n'aurait
+  // aucun état de départ dont partir et sauterait directement au ratio
+  // final, sans transition visible.
+  const prevRatioRef = useRef(0);
   const router = useRouter();
   const tourParam = useSearchParams().get("tour");
 
   const start = useCallback(() => {
     if (driverRef.current?.isActive()) return;
+
+    prevRatioRef.current = 0;
 
     // Filtré ici (et non au rendu) : le DOM est garanti présent. Sans ça,
     // driver.js pose une bulle détachée au centre de l'écran sur une cible
@@ -197,6 +191,10 @@ export default function HostTour() {
       // mais la transition de scène et le scroll sont pilotés en JS.
       animate: !reduce,
       smoothScroll: !reduce,
+      // Défaut driver.js : 400ms, au-dessus de la fourchette 150-300ms
+      // recommandée pour une micro-interaction (elle reste sans effet si
+      // `animate` est déjà coupé par `reduce`).
+      duration: 280,
       overlayColor: "#0f1a14",
       overlayOpacity: 0.72,
       stagePadding: 6,
@@ -206,11 +204,48 @@ export default function HostTour() {
       // de route désynchroniserait le jeu d'étapes filtré.
       disableActiveInteraction: true,
       skipMissingElement: true,
-      showProgress: true,
-      progressText: "{{current}} sur {{total}}",
+      // Le texte natif « X sur Y » est remplacé par une vraie barre
+      // (onPopoverRender ci-dessous) — showProgress:false supprime le nœud
+      // texte à la source plutôt que de le masquer en CSS.
+      showProgress: false,
       nextBtnText: "Suivant",
       prevBtnText: "Retour",
       doneBtnText: "Terminer",
+      // Le popover driver.js n'a pas d'aria-live natif et déplace le focus
+      // vers un bouton (pas le titre) à chaque étape : sans l'attribut posé
+      // ici, le changement de progression ne serait jamais annoncé.
+      onPopoverRender: (popoverDom, { state, config }) => {
+        const total = config.steps?.length || 1;
+        const current = (state.activeIndex ?? 0) + 1;
+        const ratio = total > 1 ? current / total : 1;
+
+        const track = document.createElement("div");
+        track.className = "tour-progress";
+        track.setAttribute("role", "progressbar");
+        track.setAttribute("aria-valuemin", "0");
+        track.setAttribute("aria-valuemax", String(total));
+        track.setAttribute("aria-valuenow", String(current));
+        track.setAttribute("aria-label", `Étape ${current} sur ${total}`);
+        track.setAttribute("aria-live", "polite");
+
+        const fill = document.createElement("div");
+        fill.className = "tour-progress__fill";
+        fill.style.transform = `scaleX(${prevRatioRef.current})`;
+        track.appendChild(fill);
+        // Avant le footer, jamais en tout premier enfant : la croix de
+        // fermeture est en position absolue au coin du popover, un
+        // `prepend` la ferait visuellement chevaucher la barre.
+        popoverDom.wrapper.insertBefore(track, popoverDom.footer);
+
+        if (reduce) {
+          fill.style.transform = `scaleX(${ratio})`;
+        } else {
+          requestAnimationFrame(() => {
+            fill.style.transform = `scaleX(${ratio})`;
+          });
+        }
+        prevRatioRef.current = ratio;
+      },
       // onDestroyed et non onDoneClick : quitter par Échap ou la croix doit
       // aussi compter, sinon la visite se relance à chaque passage sur /host.
       onDestroyed: () => {

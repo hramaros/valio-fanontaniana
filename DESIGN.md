@@ -105,7 +105,8 @@ Règles :
   ressembler à un code saisi.
 - **Visite guidée** (`HostTour.jsx`, `.driver-popover.valio-tour`) : overlay de
   bulles ancrées sur les vrais éléments de l'écran de création, pas une page à
-  lire. Seule dépendance UI du projet — `driver.js` (MIT, zéro dépendance,
+  lire. 7 à 9 étapes (invité mode Libre → connecté mode Examen avec classe).
+  Seule dépendance UI du projet — `driver.js` (MIT, zéro dépendance,
   ~8 Ko gzip) : exception assumée au principe « pas de dépendance décorative »
   (PRODUCT.md #5), tenable parce qu'elle est chargée à la demande
   (`dynamic(ssr:false)`) dans un chunk isolé, **absent des écrans participants**. Se lance seule au premier passage sur `/host` (**invités compris** — le
@@ -115,8 +116,18 @@ Règles :
   `valio:tour:start` ; `/host/welcome` est conservée en simple redirection.
   Lecture guidée : les clics sont bloqués pendant la visite, ce qui fige le
   nombre d'étapes et empêche `AuthModal` de s'ouvrir sous l'overlay. Sous
-  1024px, l'étape « nav » passe en bulle centrée — la nav y est un scroller
-  tronqué qui n'apprend rien.
+  1024px, la nav vit dans un drawer (voir Layout ci-dessous) ; l'étape « nav »
+  l'ouvre le temps de la montrer, la referme en sortant.
+  **Progression** : `.tour-progress`/`.tour-progress__fill` — même recette
+  que `.qtrack` (remplissage en `transform: scaleX`, jamais `width`), injectée
+  par `onPopoverRender` juste avant le footer du popover (jamais en premier
+  enfant : la croix de fermeture est en position absolue au même coin).
+  Comme le DOM du popover est détruit/recréé à chaque étape (contrairement à
+  `.qtrack__fill`, un nœud React persistant), le ratio précédent est mémorisé
+  dans une ref pour que la transition parte du bon point plutôt que de sauter
+  directement au ratio final. `role="progressbar"` + `aria-label` +
+  `aria-live="polite"` : le popover driver.js n'a pas d'`aria-live` natif et
+  déplace le focus vers un bouton (pas le titre) à chaque étape.
   **Thème** : chaque règle doit porter le double sélecteur
   `.driver-popover.valio-tour`, car `driver.css` est chargé après `globals.css`
   et gagnerait à spécificité égale — un sélecteur sans le suffixe est ignoré en
@@ -129,9 +140,13 @@ Règles :
   pages `/host/*` vivent dans une grille header (sticky, compte + solde ambre +
   déconnexion ; en mode invité, « Connexion » ouvre `AuthModal` depuis
   n'importe quelle page) / nav latérale 248px (icône + libellé, état actif
-  teinté accent, barre horizontale sous 1024px) / espace de travail (max
-  1160px, gouttières `clamp`) / footer slim. Lobby et suivi de session passent
-  en mode `--focus` (nav masquée pour la projection).
+  teinté accent) / espace de travail (max 1160px, gouttières `clamp`) /
+  footer slim. Lobby et suivi de session passent en mode `--focus` (nav
+  masquée pour la projection). Sous 1024px, la nav devient un drawer :
+  hamburger dans le header, panneau glissant depuis la gauche démarrant sous
+  le header (celui-ci reste visible et cliquable), voile, fermeture par la
+  croix/le voile/Échap/un clic sur un lien/un changement de route, scroll de
+  la page verrouillé, focus déplacé dans le panneau puis rendu au bouton.
 - `.work-grid` : contenu principal + panneau latéral 330px (1 colonne < 900px).
 - Côté participants : layouts focalisés plein écran conservés (zéro friction,
   une action par écran) — le shell est un pattern formateur.

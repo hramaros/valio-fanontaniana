@@ -20,7 +20,9 @@ export const MENU_SET_EVENT = "valio:menu:set";
 
 // On stocke la version, pas un booléen : incrémenter fait rejouer la visite
 // à tout le monde quand les étapes changent.
-export const TOUR_VERSION = 1;
+// v2 : barre de progression (remplace le texte « X sur Y »), fusion des
+// 3 étapes du mode en une seule, clôture reformulée.
+export const TOUR_VERSION = 2;
 
 export function getTourState() {
   if (typeof window === "undefined") return null;
