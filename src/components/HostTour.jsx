@@ -3,7 +3,12 @@ import { useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
-import { isTourDone, markTourDone, TOUR_START_EVENT } from "@/lib/onboarding";
+import {
+  isTourDone,
+  markTourDone,
+  MENU_SET_EVENT,
+  TOUR_START_EVENT,
+} from "@/lib/onboarding";
 
 // Visite guidée de l'espace formateur : des bulles ancrées sur les vrais
 // éléments de l'écran de création. Se déclenche seule au premier passage
@@ -131,11 +136,8 @@ function prefersReducedMotion() {
   }
 }
 
-// Sous 1024px la nav n'est plus une colonne latérale mais une bande à
-// défilement horizontal qui ne montre que 2 entrées sur 5 : pointer un
-// scroller tronqué n'apprend rien, et driver place mal sa bulle sur un
-// élément dont le scrollWidth dépasse largement la fenêtre. L'étape passe
-// donc en bulle centrée sur mobile.
+// Sous 1024px la nav vit dans un drawer refermé : l'étape « nav » l'ouvre le
+// temps de la montrer, puis le referme.
 function isNarrow() {
   try {
     return window.matchMedia("(max-width: 1023px)").matches;
@@ -144,8 +146,13 @@ function isNarrow() {
   }
 }
 
+function setMenu(open) {
+  window.dispatchEvent(new CustomEvent(MENU_SET_EVENT, { detail: { open } }));
+}
+
 export default function HostTour() {
   const driverRef = useRef(null);
+  const refreshTimerRef = useRef(0);
   const router = useRouter();
   const tourParam = useSearchParams().get("tour");
 
@@ -159,10 +166,26 @@ export default function HostTour() {
     const steps = SCRIPT.filter(
       (s) => !s.element || document.querySelector(s.element),
     ).map((s) => {
-      if (s.element !== NAV_SELECTOR) return s;
-      // Sur mobile : même message, mais détaché de la nav (cf. isNarrow).
-      const { element, ...centered } = s;
-      return narrow ? centered : s;
+      if (s.element !== NAV_SELECTOR || !narrow) return s;
+      // Mobile : la nav est dans un drawer fermé. On l'ouvre le temps de
+      // l'étape, on repositionne la bulle une fois le panneau arrivé (il
+      // glisse en 220ms, driver mesure trop tôt sans ça), et on referme en
+      // sortant — quel que soit le sens de sortie.
+      return {
+        ...s,
+        popover: { ...s.popover, side: "bottom", align: "start" },
+        onHighlightStarted: () => {
+          setMenu(true);
+          window.clearTimeout(refreshTimerRef.current);
+          refreshTimerRef.current = window.setTimeout(() => {
+            driverRef.current?.refresh();
+          }, 260);
+        },
+        onDeselected: () => {
+          window.clearTimeout(refreshTimerRef.current);
+          setMenu(false);
+        },
+      };
     });
     if (steps.length === 0) return;
 
@@ -193,6 +216,10 @@ export default function HostTour() {
       onDestroyed: () => {
         markTourDone();
         driverRef.current = null;
+        // Quitter pendant l'étape « nav » ne déclenche pas onDeselected :
+        // sans ça, le drawer resterait ouvert après la fin de la visite.
+        window.clearTimeout(refreshTimerRef.current);
+        if (narrow) setMenu(false);
       },
     });
 
@@ -241,6 +268,7 @@ export default function HostTour() {
   // Sans ça, quitter /host en pleine visite laisse l'overlay SVG orphelin.
   useEffect(
     () => () => {
+      window.clearTimeout(refreshTimerRef.current);
       if (driverRef.current?.isActive()) driverRef.current.destroy();
     },
     [],

@@ -29,6 +29,9 @@
 
   --font-display: "Bricolage Grotesque", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
+
+  /* Hauteur du header du shell formateur — le drawer mobile s'aligne dessus. */
+  --shell-header-h: 64px;
 }
 
 * {
@@ -502,32 +505,62 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
 .shell-footer a:hover { color: var(--text); text-decoration: underline; }
 .shell-footer a:focus-visible { outline: 3px solid var(--accent-bright); outline-offset: 2px; }
 
+/* Le hamburger n'existe que sous 1024px : au-delà, la nav est une colonne
+   permanente et un bouton d'ouverture n'aurait aucun sens. */
+.shell-menu-btn { display: none; }
+
 @media (max-width: 1023px) {
   .shell {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       "header"
-      "nav"
       "main"
       "footer";
   }
+  .shell-menu-btn { display: inline-flex; flex: none; }
+
+  /* Drawer : la nav sort du flux et glisse depuis la gauche. Elle remplace
+     l'ancienne bande à défilement horizontal, qui ne montrait que 2 entrées
+     sur 5 et masquait le reste derrière un scroll latéral peu découvrable. */
+  /* Panneau et voile démarrent SOUS le header : celui-ci reste visible et
+     cliquable, le hamburger devient la croix de fermeture. Sans ça, le
+     drawer recouvrait le header et ne laissait aucune affordance de sortie
+     visible (il fallait deviner le voile ou Échap). */
   .shell-nav {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-    padding: 10px 14px;
-    overflow-x: auto;
-    /* Estompe le bord droit pour signaler que la nav défile horizontalement. */
-    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
-    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    position: fixed;
+    top: var(--shell-header-h);
+    bottom: 0;
+    left: 0;
+    z-index: 41;
+    width: min(284px, 82vw);
+    border-right: 1px solid var(--line-strong);
+    background: var(--ink-2);
+    box-shadow: 24px 0 48px -24px rgba(0, 0, 0, 0.8);
+    padding: 14px 12px calc(14px + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    transform: translateX(-100%);
+    /* visibility retire aussi les liens de l'ordre de tabulation quand le
+       panneau est fermé — un simple translate les y laisserait.
+       Le délai n'existe qu'à la FERMETURE (pour laisser voir le glissement) :
+       à l'ouverture elle bascule immédiatement, sinon focus() serait sans
+       effet à la frame suivante, l'élément étant encore invisible. */
+    visibility: hidden;
+    transition: transform 0.22s ease, visibility 0s linear 0.22s;
   }
-  .shell-nav__inner {
-    position: static;
-    flex-direction: row;
-    gap: 6px;
-    padding-right: 20px;
+  .shell-nav--open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.22s ease, visibility 0s;
   }
-  .shell-nav a { white-space: nowrap; min-height: 42px; padding: 9px 13px; }
-  .shell-nav__sep { display: none; }
+  .shell-nav__inner { position: static; }
+  .shell-nav-backdrop {
+    position: fixed;
+    inset: var(--shell-header-h) 0 0 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.55);
+  }
+
   .shell-main { padding: 24px 18px 64px; }
   .shell-tag { display: none; }
   .shell-account__id { max-width: 40vw; }

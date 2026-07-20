@@ -12,6 +12,12 @@ const TOUR_KEY = "valio:tour:host";
 // annulerait son chargement paresseux.
 export const TOUR_START_EVENT = "valio:tour:start";
 
+// Pilotage du drawer mobile par la visite (étape « nav ») : le composant de
+// la visite et le shell sont frères, ils communiquent par évènement plutôt
+// que par un état remonté pour ce seul besoin.
+// detail: { open: boolean }
+export const MENU_SET_EVENT = "valio:menu:set";
+
 // On stocke la version, pas un booléen : incrémenter fait rejouer la visite
 // à tout le monde quand les étapes changent.
 export const TOUR_VERSION = 1;
