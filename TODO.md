@@ -117,6 +117,18 @@ séquencer selon la croissance réelle.
 
 ### Phase 2 — Faire évoluer le modèle de données Redis (rester Redis-only)
 
+- [x] **Index globaux datés** (`src/lib/indexes.js`) : `accounts:all`,
+      `exams:all`, `txns:all`, `plays:all`, `accounts:lastSeen` — Sorted Sets
+      scorés par timestamp. Rien n'était énumérable globalement auparavant
+      (toutes les clés étaient scopées par compte), ce qui rendait tout
+      pilotage impossible. `plays:all` trace en outre les parties en mode
+      **Libre** et les hôtes non connectés, jusqu'ici invisibles.
+- [x] **TTL de 30 j retiré des transactions** (`payments.js`) : il détruisait
+      silencieusement l'historique de recette au-delà d'un mois. Ce qui a
+      expiré avant le correctif est perdu.
+- [ ] Script de rattrapage (`SCAN`) pour peupler les index depuis les données
+      antérieures : rétroactif pour les comptes (`createdAt`) et les examens
+      (`endedAt`) ; impossible pour les paiements déjà expirés.
 - [ ] Remplacer les listes `examHistory:{accountId}` / `classExams:{classId}`
       (plafonnées à 200, entrées au-delà silencieusement inaccessibles) par
       des Sorted Sets (`ZADD`, score = timestamp) pour une vraie pagination

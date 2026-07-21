@@ -20,6 +20,7 @@ import { saveExamRecord } from "./history.js";
 import { examAggregate } from "./analytics.js";
 import { getClass } from "./classrooms.js";
 import { withLock } from "./lock.js";
+import { indexPlay, touchLastSeen } from "./indexes.js";
 
 // Durée de vie d'une salle dans Redis (auto-suppression = côté « éphémère »).
 const ROOM_TTL_SEC = 2 * 60 * 60; // 2h
@@ -214,7 +215,23 @@ export async function startGame(code) {
   meta.status = "running";
   meta.startedAt = now();
   meta.durationMs = meta.quiz.totalDurationSec * 1000;
+  meta.playId = generateId("play");
   await saveMeta(meta);
+
+  // Trace durable de la partie — APRÈS la sauvegarde, pour qu'elle ne puisse
+  // rien empêcher. C'est le seul endroit où le mode Libre et les hôtes non
+  // connectés laissent une trace : les salles expirent en 2 h et seuls les
+  // examens payants sont archivés. `indexPlay` avale ses propres erreurs.
+  await indexPlay({
+    id: meta.playId,
+    code: meta.code,
+    mode: meta.quiz.mode,
+    capacity: meta.quiz.capacity,
+    hostAccountId: meta.hostAccountId,
+    startedAt: meta.startedAt,
+  });
+  await touchLastSeen(meta.hostAccountId, meta.startedAt);
+
   return { ok: true, startedAt: meta.startedAt, durationMs: meta.durationMs };
 }
 

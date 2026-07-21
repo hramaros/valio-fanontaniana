@@ -1,5 +1,6 @@
 import { getRedis } from "./redis.js";
 import { generateVerifyCode, normalizeVerifyCode } from "./code.js";
+import { indexExam } from "./indexes.js";
 
 // Historique durable des examens pro, rattaché au compte formateur (sans TTL).
 const HISTORY_MAX = 200;
@@ -55,6 +56,10 @@ export async function saveExamRecord(record) {
     await redis.lpush(classListKey(record.classId), record.id);
     await redis.ltrim(classListKey(record.classId), 0, HISTORY_MAX - 1);
   }
+  // Index global daté (pilotage). À noter : les listes par compte et par
+  // classe sont tronquées à HISTORY_MAX, celle-ci ne l'est pas — c'est
+  // justement elle qui garde la mémoire longue de l'activité.
+  await indexExam(record.id, record.endedAt);
   return record.id;
 }
 

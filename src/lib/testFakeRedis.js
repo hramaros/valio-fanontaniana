@@ -10,8 +10,31 @@ export function createFakeRedis() {
   const expiresAt = new Map(); // key -> timestamp ms, absent = pas de TTL
   const sets = new Map();
   const lists = new Map();
+  const zsets = new Map(); // key -> Map(member -> score)
   const clone = (v) => (v == null ? v : JSON.parse(JSON.stringify(v)));
   const end = (arr, stop) => (stop < 0 ? arr.length + stop + 1 : stop + 1);
+
+  // Bornes de ZRANGE BYSCORE. On accepte les nombres et ±inf ; toute autre
+  // forme (intervalles exclusifs « (5 », lexicographiques…) lève plutôt que
+  // de renvoyer un résultat faux en silence — un double de test qui ment est
+  // pire que pas de double du tout.
+  function scoreBound(v, fallback) {
+    if (typeof v === "number") return v;
+    const s = String(v);
+    if (s === "-inf") return -Infinity;
+    if (s === "+inf" || s === "inf") return Infinity;
+    const n = Number(s);
+    if (Number.isFinite(n)) return n;
+    if (v == null) return fallback;
+    throw new Error(`testFakeRedis: borne de score non gérée « ${s} »`);
+  }
+  // Tri par score croissant, puis par membre — ordre total déterministe, comme
+  // Redis qui départage les scores égaux lexicographiquement.
+  function sortedEntries(key) {
+    return [...(zsets.get(key) || new Map()).entries()].sort(
+      (a, b) => a[1] - b[1] || String(a[0]).localeCompare(String(b[0])),
+    );
+  }
 
   function isExpired(key) {
     const exp = expiresAt.get(key);
@@ -102,6 +125,62 @@ export function createFakeRedis() {
       const filtered = arr.filter((v) => v !== value);
       lists.set(key, filtered);
       return arr.length - filtered.length;
+    },
+
+    // — Sorted sets : index globaux datés (src/lib/indexes.js) —
+    // Signature Upstash : zadd(key, {score, member}, ...pairs).
+    async zadd(key, ...args) {
+      const z = zsets.get(key) || new Map();
+      let added = 0;
+      // Le 1er argument peut être un objet d'options (nx, xx…) ; on ne les
+      // implémente pas, mais on ne doit pas le confondre avec une paire.
+      for (const pair of args) {
+        if (!pair || typeof pair !== "object" || !("member" in pair)) continue;
+        if (!z.has(pair.member)) added++;
+        z.set(pair.member, Number(pair.score));
+      }
+      zsets.set(key, z);
+      return added;
+    },
+    async zrange(key, min, max, opts) {
+      let entries = sortedEntries(key);
+      if (opts?.byScore) {
+        const lo = scoreBound(min, -Infinity);
+        const hi = scoreBound(max, Infinity);
+        entries = entries.filter(([, s]) => s >= lo && s <= hi);
+        if (opts.rev) entries.reverse();
+      } else {
+        // Indices de rang : `rev` s'applique AVANT le découpage, comme Redis.
+        if (opts?.rev) entries.reverse();
+        entries = entries.slice(Number(min), end(entries, Number(max)));
+      }
+      if (opts?.offset != null || opts?.count != null) {
+        const off = Number(opts.offset) || 0;
+        const cnt = Number(opts.count);
+        entries = entries.slice(off, cnt >= 0 ? off + cnt : undefined);
+      }
+      return opts?.withScores
+        ? entries.flatMap(([m, s]) => [clone(m), s])
+        : entries.map(([m]) => clone(m));
+    },
+    async zcard(key) {
+      return (zsets.get(key) || new Map()).size;
+    },
+    async zcount(key, min, max) {
+      const lo = scoreBound(min, -Infinity);
+      const hi = scoreBound(max, Infinity);
+      return sortedEntries(key).filter(([, s]) => s >= lo && s <= hi).length;
+    },
+    async zscore(key, member) {
+      const z = zsets.get(key);
+      return z && z.has(member) ? z.get(member) : null;
+    },
+    async zrem(key, ...members) {
+      const z = zsets.get(key);
+      if (!z) return 0;
+      let removed = 0;
+      for (const m of members.flat()) if (z.delete(m)) removed++;
+      return removed;
     },
   };
 }

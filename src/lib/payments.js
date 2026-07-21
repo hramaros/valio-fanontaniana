@@ -1,6 +1,7 @@
 import { getRedis } from "./redis.js";
 import { generateId } from "./code.js";
 import { credit } from "./accounts.js";
+import { indexTxn } from "./indexes.js";
 
 // Abstraction de paiement PROVIDER-AGNOSTIQUE.
 // Une recharge = une transaction (pending → completed/failed). Le crédit du
@@ -12,7 +13,10 @@ import { credit } from "./accounts.js";
 //   3. exposer le webhook sur /api/wallet/webhook/mvola (déjà en place).
 // Rien d'autre ne change : la couche solde/examen reste identique.
 
-const TXN_TTL_SEC = 30 * 24 * 3600; // transactions conservées 30 j
+// Les transactions sont conservées SANS TTL : ce sont des écritures
+// comptables. Elles ont porté un TTL de 30 j pendant un temps, ce qui
+// détruisait silencieusement l'historique de recette au-delà d'un mois —
+// tout ce qui a expiré avant ce correctif est définitivement perdu.
 const txnKey = (id) => `txn:${id}`;
 const TXN_HISTORY_MAX = 200; // même borne que l'historique d'examens
 const txnHistoryKey = (accountId) => `txnHistory:${accountId}`;
@@ -53,7 +57,7 @@ export async function getTransaction(id) {
 }
 
 async function saveTxn(txn) {
-  await getRedis().set(txnKey(txn.id), txn, { ex: TXN_TTL_SEC });
+  await getRedis().set(txnKey(txn.id), txn);
 }
 
 /** Démarre une recharge : crée une transaction et la confie au provider. */
@@ -89,6 +93,9 @@ export async function initiateTopup(accountId, amountAr, providerName = "stub", 
   const redis = getRedis();
   await redis.lpush(txnHistoryKey(accountId), txn.id);
   await redis.ltrim(txnHistoryKey(accountId), 0, TXN_HISTORY_MAX - 1);
+  // Index global daté, une seule fois à la création : le score est
+  // `createdAt`, il ne bouge plus quand la transaction change de statut.
+  await indexTxn(txn.id, txn.createdAt);
 
   // Provider synchrone (ex. stub) : on complète tout de suite.
   if (started.autoComplete) return completeTransaction(txn.id);

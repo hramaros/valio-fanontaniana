@@ -1,6 +1,7 @@
 import { getRedis } from "./redis.js";
 import { generateId } from "./code.js";
 import { withLock } from "./lock.js";
+import { indexAccount, touchLastSeen } from "./indexes.js";
 import { randomBytes, scryptSync, timingSafeEqual, createHash } from "node:crypto";
 
 // Comptes formateur durables (sans TTL). Sessions par token (TTL 30 j).
@@ -54,6 +55,7 @@ export async function createAccount({ email, password, name }) {
   };
   await redis.set(accountKey(id), account);
   await redis.set(emailKey(e), id);
+  await indexAccount(id, account.createdAt);
   return { ok: true, account: publicAccount(account) };
 }
 
@@ -85,6 +87,7 @@ export async function getOrCreateByEmail({ email, name, provider = "google" }) {
   };
   await redis.set(accountKey(id), account);
   await redis.set(emailKey(e), id);
+  await indexAccount(id, account.createdAt);
   return { ok: true, account: publicAccount(account), created: true };
 }
 
@@ -116,6 +119,9 @@ export async function createSession(accountId) {
   await redis.set(sessionKey(token), accountId, { ex: SESSION_TTL_SEC });
   await redis.sadd(sessionsByAccountKey(accountId), token);
   await redis.expire(sessionsByAccountKey(accountId), SESSION_TTL_SEC);
+  // Dernière activité : à la connexion, pas à chaque requête authentifiée
+  // (ce serait une écriture Redis par affichage de page).
+  await touchLastSeen(accountId);
   return token;
 }
 
