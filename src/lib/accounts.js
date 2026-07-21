@@ -14,6 +14,23 @@ const sessionsByAccountKey = (accountId) => `sessionsByAccount:${accountId}`;
 
 const normEmail = (e) => String(e || "").trim().toLowerCase();
 
+// Rôles. Le parc existant n'a pas ce champ : plutôt qu'une migration, on
+// normalise à la lecture. La règle est volontairement stricte — SEUL le
+// littéral "admin" donne le rôle admin, tout le reste (absent, null, casse
+// différente, valeur inconnue) retombe sur formateur. Une erreur de donnée
+// ne peut donc jamais élever les privilèges, seulement les retirer.
+export const ROLE_TRAINER = "trainer";
+export const ROLE_ADMIN = "admin";
+
+export function normalizeRole(role) {
+  return role === ROLE_ADMIN ? ROLE_ADMIN : ROLE_TRAINER;
+}
+
+/** Prédicat d'autorisation — l'unique source de vérité côté serveur. */
+export function isAdmin(account) {
+  return !!account && normalizeRole(account.role) === ROLE_ADMIN;
+}
+
 function hashPassword(pw) {
   const salt = randomBytes(16);
   const hash = scryptSync(String(pw), salt, 64);
@@ -27,10 +44,23 @@ function verifyPassword(pw, stored) {
   return hash.length === expected.length && timingSafeEqual(hash, expected);
 }
 
-/** Vue publique d'un compte (jamais le hash). */
+/**
+ * Vue publique d'un compte (jamais le hash).
+ *
+ * `role` est exposé pour que l'interface sache s'il faut afficher l'entrée
+ * « Admin » sans requête supplémentaire. ⚠️ C'est une AFFORDANCE d'affichage,
+ * jamais une sécurité : le client peut mentir. Toute route admin doit
+ * refuser côté serveur via `isAdmin` / `adminFromRequest`.
+ */
 function publicAccount(a) {
   if (!a) return null;
-  return { id: a.id, email: a.email, name: a.name, balanceAr: a.balanceAr };
+  return {
+    id: a.id,
+    email: a.email,
+    name: a.name,
+    balanceAr: a.balanceAr,
+    role: normalizeRole(a.role),
+  };
 }
 
 export async function createAccount({ email, password, name }) {
@@ -50,6 +80,7 @@ export async function createAccount({ email, password, name }) {
     name: String(name || "").trim().slice(0, 60) || e.split("@")[0],
     passwordHash: hashPassword(password),
     provider: "password",
+    role: ROLE_TRAINER,
     balanceAr: 0,
     createdAt: Date.now(),
   };
@@ -82,6 +113,7 @@ export async function getOrCreateByEmail({ email, name, provider = "google" }) {
     name: String(name || "").trim().slice(0, 60) || e.split("@")[0],
     passwordHash: null,
     provider,
+    role: ROLE_TRAINER,
     balanceAr: 0,
     createdAt: Date.now(),
   };
@@ -199,6 +231,31 @@ export async function debit(accountId, amountAr) {
     return { ok: true, balanceAr: account.balanceAr };
   });
   if (!locked) return { ok: false, error: "Compte occupé, réessayez." };
+  return result;
+}
+
+/**
+ * Change le rôle d'un compte. Sous verrou pour la même raison que
+ * credit/debit : le document est réécrit en entier, une écriture concurrente
+ * (un crédit de solde, typiquement) serait sinon perdue.
+ *
+ * Un rôle inconnu est REFUSÉ plutôt que normalisé en silence : écrire une
+ * valeur fantaisiste laisserait croire à une promotion qui n'a pas eu lieu,
+ * puisque la lecture la retomberait sur « formateur ».
+ */
+export async function setRole(accountId, role) {
+  if (role !== ROLE_ADMIN && role !== ROLE_TRAINER)
+    return { ok: false, status: 400, error: `Rôle inconnu : « ${role} ».` };
+
+  const { locked, result } = await withLock(`lock:account:${accountId}`, async () => {
+    const redis = getRedis();
+    const account = await redis.get(accountKey(accountId));
+    if (!account) return { ok: false, status: 404, error: "Compte introuvable." };
+    account.role = role;
+    await redis.set(accountKey(accountId), account);
+    return { ok: true, account: publicAccount(account) };
+  });
+  if (!locked) return { ok: false, status: 503, error: "Compte occupé, réessayez." };
   return result;
 }
 

@@ -1,4 +1,4 @@
-import { getAccountByToken } from "./accounts.js";
+import { getAccountByToken, isAdmin } from "./accounts.js";
 
 // Cookie de session du formateur (côté serveur).
 const COOKIE = "valio_session";
@@ -11,6 +11,16 @@ export function sessionTokenFromRequest(request) {
 
 export async function accountFromRequest(request) {
   return getAccountByToken(sessionTokenFromRequest(request));
+}
+
+/**
+ * Compte admin, ou `null`. C'est LA barrière de l'espace de pilotage : le
+ * `role` renvoyé au navigateur ne sert qu'à l'affichage, chaque route
+ * `/api/admin/*` doit repasser par ici et répondre 403 sinon.
+ */
+export async function adminFromRequest(request) {
+  const account = await accountFromRequest(request);
+  return isAdmin(account) ? account : null;
 }
 
 export function sessionSetCookie(token) {

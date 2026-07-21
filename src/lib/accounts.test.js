@@ -18,7 +18,13 @@ import {
   createPasswordResetToken,
   consumePasswordResetToken,
   setPassword,
+  setRole,
+  isAdmin,
+  normalizeRole,
+  ROLE_ADMIN,
+  ROLE_TRAINER,
 } from "./accounts.js";
+import { getRedis } from "./redis.js";
 
 test("createAccount : crée (email normalisé, solde 0) puis refuse le doublon", async () => {
   setRedisClient(createFakeRedis());
@@ -186,4 +192,83 @@ test("revokeOtherSessions : compte sans aucune session active → no-op", async 
   const res = await revokeOtherSessions(account.id, "un-token-quelconque");
   assert.equal(res.ok, true);
   assert.equal(res.revoked, 0);
+});
+
+// — Rôles (espace de pilotage) —
+
+test("un compte est créé formateur, jamais admin", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "a@e.mg", password: "secret1" });
+  assert.equal(account.role, ROLE_TRAINER);
+  assert.equal(isAdmin(account), false);
+
+  const google = await getOrCreateByEmail({ email: "g@e.mg", name: "G" });
+  assert.equal(google.account.role, ROLE_TRAINER, "y compris via Google");
+});
+
+test("normalizeRole retombe sur formateur pour tout ce qui n'est pas « admin »", () => {
+  // Fail-closed : une donnée abîmée ne peut jamais élever les privilèges.
+  assert.equal(normalizeRole(ROLE_ADMIN), ROLE_ADMIN);
+  for (const valeur of [undefined, null, "", "Admin", "ADMIN", "root", 1, true, {}]) {
+    assert.equal(normalizeRole(valeur), ROLE_TRAINER, `« ${String(valeur)} » → formateur`);
+  }
+});
+
+test("un compte existant sans champ role est traité en formateur (aucune migration)", async () => {
+  setRedisClient(createFakeRedis());
+  // Compte tel qu'il existe en base avant l'introduction des rôles.
+  await getRedis().set("account:acc_ancien", {
+    id: "acc_ancien",
+    email: "ancien@e.mg",
+    name: "Ancien",
+    balanceAr: 0,
+  });
+
+  const compte = await getAccountById("acc_ancien");
+  assert.equal(compte.role, ROLE_TRAINER);
+  assert.equal(isAdmin(compte), false);
+});
+
+test("setRole promeut puis rétrograde", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "chef@e.mg", password: "secret1" });
+
+  const promu = await setRole(account.id, ROLE_ADMIN);
+  assert.equal(promu.ok, true);
+  assert.equal(promu.account.role, ROLE_ADMIN);
+  assert.equal(isAdmin(await getAccountById(account.id)), true, "persisté");
+
+  await setRole(account.id, ROLE_TRAINER);
+  assert.equal(isAdmin(await getAccountById(account.id)), false);
+});
+
+test("setRole refuse un rôle inconnu plutôt que de l'écrire", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "x@e.mg", password: "secret1" });
+
+  const res = await setRole(account.id, "superadmin");
+  assert.equal(res.ok, false);
+  assert.equal(res.status, 400);
+  assert.equal(
+    (await getAccountById(account.id)).role,
+    ROLE_TRAINER,
+    "le compte n'a pas bougé",
+  );
+});
+
+test("setRole : compte introuvable → 404", async () => {
+  setRedisClient(createFakeRedis());
+  const res = await setRole("acc_inexistant", ROLE_ADMIN);
+  assert.equal(res.ok, false);
+  assert.equal(res.status, 404);
+});
+
+test("promouvoir ne touche pas au solde (écriture sous verrou)", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "solde@e.mg", password: "secret1" });
+  await topupTest(account.id, 5000);
+
+  await setRole(account.id, ROLE_ADMIN);
+
+  assert.equal((await getAccountById(account.id)).balanceAr, 5000);
 });
