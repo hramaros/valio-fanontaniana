@@ -36,6 +36,14 @@ export function createFakeRedis() {
     );
   }
 
+  // Motif glob de SCAN (`account:*`) → expression régulière ancrée. Seuls `*`
+  // et `?` sont interprétés ; tout le reste est échappé, sinon un `:` ou un
+  // `.` dans une clé se comporterait comme un métacaractère.
+  function globToRegExp(pattern) {
+    const escaped = String(pattern).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`^${escaped.replace(/\\\*/g, ".*").replace(/\\\?/g, ".")}$`);
+  }
+
   function isExpired(key) {
     const exp = expiresAt.get(key);
     if (exp == null) return false;
@@ -131,13 +139,26 @@ export function createFakeRedis() {
     // Signature Upstash : zadd(key, {score, member}, ...pairs).
     async zadd(key, ...args) {
       const z = zsets.get(key) || new Map();
+      // Le 1er argument peut être un objet d'options (gt, lt, nx, xx) — il se
+      // distingue d'une paire par l'absence de `member`.
+      const opts =
+        args[0] && typeof args[0] === "object" && !("member" in args[0])
+          ? args[0]
+          : null;
       let added = 0;
-      // Le 1er argument peut être un objet d'options (nx, xx…) ; on ne les
-      // implémente pas, mais on ne doit pas le confondre avec une paire.
       for (const pair of args) {
         if (!pair || typeof pair !== "object" || !("member" in pair)) continue;
-        if (!z.has(pair.member)) added++;
-        z.set(pair.member, Number(pair.score));
+        const score = Number(pair.score);
+        const exists = z.has(pair.member);
+        const current = exists ? z.get(pair.member) : null;
+        // GT/LT : ne mettent à jour que dans le sens demandé, mais n'empêchent
+        // pas l'ajout d'un membre absent (sémantique Redis).
+        if (opts?.gt && exists && score <= current) continue;
+        if (opts?.lt && exists && score >= current) continue;
+        if (opts?.nx && exists) continue;
+        if (opts?.xx && !exists) continue;
+        if (!exists) added++;
+        z.set(pair.member, score);
       }
       zsets.set(key, z);
       return added;
@@ -181,6 +202,23 @@ export function createFakeRedis() {
       let removed = 0;
       for (const m of members.flat()) if (z.delete(m)) removed++;
       return removed;
+    },
+
+    /**
+     * SCAN — utilisé uniquement par le script de rattrapage des index, jamais
+     * dans une requête web. Le curseur est ici un simple décalage sur les
+     * clés triées : suffisant pour des tests déterministes, là où le vrai
+     * Redis ne garantit qu'un parcours complet (avec doublons possibles).
+     * Ne parcourt que les clés « valeur » (store), pas les listes/sets/zsets.
+     */
+    async scan(cursor, opts) {
+      const re = opts?.match ? globToRegExp(opts.match) : null;
+      const count = Number(opts?.count) || 10;
+      const keys = [...store.keys()].filter((k) => !isExpired(k)).sort();
+      const start = Number(cursor) || 0;
+      const slice = keys.slice(start, start + count);
+      const next = start + count >= keys.length ? "0" : String(start + count);
+      return [next, re ? slice.filter((k) => re.test(k)) : slice];
     },
   };
 }

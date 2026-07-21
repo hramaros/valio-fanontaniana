@@ -126,9 +126,13 @@ séquencer selon la croissance réelle.
 - [x] **TTL de 30 j retiré des transactions** (`payments.js`) : il détruisait
       silencieusement l'historique de recette au-delà d'un mois. Ce qui a
       expiré avant le correctif est perdu.
-- [ ] Script de rattrapage (`SCAN`) pour peupler les index depuis les données
-      antérieures : rétroactif pour les comptes (`createdAt`) et les examens
-      (`endedAt`) ; impossible pour les paiements déjà expirés.
+- [x] **Script de rattrapage** (`scripts/backfill-indexes.mjs`, logique dans
+      `src/lib/backfill.js`) : reconstruit les index depuis l'existant via
+      `SCAN`. Simulation par défaut, `--write` pour appliquer, idempotent.
+      Rétroactif pour les comptes (`createdAt`) et les examens (`endedAt`) ;
+      impossible pour les paiements déjà détruits par l'ancien TTL.
+      **À exécuter une fois en production** — sans quoi les index ne
+      contiennent que l'activité postérieure à leur mise en service.
 - [ ] Remplacer les listes `examHistory:{accountId}` / `classExams:{classId}`
       (plafonnées à 200, entrées au-delà silencieusement inaccessibles) par
       des Sorted Sets (`ZADD`, score = timestamp) pour une vraie pagination
