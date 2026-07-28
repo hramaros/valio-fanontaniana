@@ -13,6 +13,7 @@ const BUCKETS = {
   auth: { limit: 10, windowSec: 60 }, // login / signup
   verify: { limit: 20, windowSec: 60 }, // consultation publique d'un examen
   passwordReset: { limit: 5, windowSec: 3600 }, // demande de reset de mot de passe
+  admin: { limit: 60, windowSec: 60 }, // pilotage : généreux (un dashboard rafraîchit)
 };
 
 /**
