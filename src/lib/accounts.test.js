@@ -272,3 +272,83 @@ test("promouvoir ne touche pas au solde (écriture sous verrou)", async () => {
 
   assert.equal((await getAccountById(account.id)).balanceAr, 5000);
 });
+
+// — Admin par défaut via ADMIN_EMAILS (amorçage Vercel) —
+
+async function withAdminEmails(value, fn) {
+  const prev = process.env.ADMIN_EMAILS;
+  process.env.ADMIN_EMAILS = value;
+  try {
+    await fn();
+  } finally {
+    if (prev === undefined) delete process.env.ADMIN_EMAILS;
+    else process.env.ADMIN_EMAILS = prev;
+  }
+}
+
+test("un email configuré est admin dès l'inscription — sans script", async () => {
+  setRedisClient(createFakeRedis());
+  await withAdminEmails("Chef@Valio.mg", async () => {
+    const { account } = await createAccount({ email: "chef@valio.mg", password: "secret1" });
+    assert.equal(account.role, ROLE_ADMIN, "admin d'emblée");
+
+    // Un autre compte reste formateur.
+    const autre = await createAccount({ email: "prof@valio.mg", password: "secret1" });
+    assert.equal(autre.account.role, ROLE_TRAINER);
+  });
+});
+
+test("un compte existant est promu à sa connexion après ajout à la liste", async () => {
+  setRedisClient(createFakeRedis());
+  // Créé AVANT d'être configuré admin → formateur.
+  const { account } = await createAccount({ email: "futur@valio.mg", password: "secret1" });
+  assert.equal(account.role, ROLE_TRAINER);
+
+  await withAdminEmails("futur@valio.mg", async () => {
+    const res = await authenticate({ email: "futur@valio.mg", password: "secret1" });
+    assert.equal(res.ok, true);
+    assert.equal(res.account.role, ROLE_ADMIN, "promu à la connexion");
+    // Persisté : une lecture ultérieure le voit admin.
+    assert.equal((await getAccountById(account.id)).role, ROLE_ADMIN);
+  });
+});
+
+test("la connexion Google promeut aussi un email configuré", async () => {
+  setRedisClient(createFakeRedis());
+  await withAdminEmails("g@valio.mg", async () => {
+    const neuf = await getOrCreateByEmail({ email: "g@valio.mg", name: "G" });
+    assert.equal(neuf.account.role, ROLE_ADMIN, "dès la première connexion Google");
+
+    // Compte Google préexistant hors liste, puis ajouté : promu au retour.
+    await getOrCreateByEmail({ email: "h@valio.mg", name: "H" });
+    process.env.ADMIN_EMAILS = "g@valio.mg,h@valio.mg";
+    const retour = await getOrCreateByEmail({ email: "h@valio.mg", name: "H" });
+    assert.equal(retour.account.role, ROLE_ADMIN);
+    assert.equal(retour.created, false);
+  });
+});
+
+test("sans ADMIN_EMAILS, aucune promotion (fail-closed)", async () => {
+  setRedisClient(createFakeRedis());
+  await withAdminEmails("", async () => {
+    const { account } = await createAccount({ email: "chef@valio.mg", password: "secret1" });
+    assert.equal(account.role, ROLE_TRAINER);
+    const res = await authenticate({ email: "chef@valio.mg", password: "secret1" });
+    assert.equal(res.account.role, ROLE_TRAINER, "une session valide ne promeut pas");
+  });
+});
+
+test("retirer un email de la liste ne rétrograde pas (promote-only)", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "chef@valio.mg", password: "secret1" });
+  await withAdminEmails("chef@valio.mg", async () => {
+    await authenticate({ email: "chef@valio.mg", password: "secret1" });
+  });
+  assert.equal((await getAccountById(account.id)).role, ROLE_ADMIN, "promu");
+
+  // Email retiré : le rôle reste admin (rétrogradation manuelle uniquement).
+  await withAdminEmails("", async () => {
+    const res = await authenticate({ email: "chef@valio.mg", password: "secret1" });
+    assert.equal(res.account.role, ROLE_ADMIN);
+  });
+});

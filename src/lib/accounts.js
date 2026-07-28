@@ -2,6 +2,7 @@ import { getRedis } from "./redis.js";
 import { generateId } from "./code.js";
 import { withLock } from "./lock.js";
 import { indexAccount, touchLastSeen } from "./indexes.js";
+import { isConfiguredAdmin } from "./adminEmails.js";
 import { randomBytes, scryptSync, timingSafeEqual, createHash } from "node:crypto";
 
 // Comptes formateur durables (sans TTL). Sessions par token (TTL 30 j).
@@ -29,6 +30,22 @@ export function normalizeRole(role) {
 /** Prédicat d'autorisation — l'unique source de vérité côté serveur. */
 export function isAdmin(account) {
   return !!account && normalizeRole(account.role) === ROLE_ADMIN;
+}
+
+/**
+ * Promeut le compte en admin s'il figure dans ADMIN_EMAILS et ne l'est pas
+ * déjà, puis renvoie sa vue publique. C'est l'amorçage « admin par défaut »
+ * pour Vercel : appelé aux points d'entrée d'authentification, il rend admin,
+ * dès la connexion, quiconque a été configuré. Ne rétrograde jamais.
+ * `raw` = document compte brut (avec le hash) ; setRole persiste le rôle.
+ */
+async function withConfiguredAdmin(raw) {
+  if (!raw) return null;
+  if (normalizeRole(raw.role) !== ROLE_ADMIN && isConfiguredAdmin(raw.email)) {
+    const res = await setRole(raw.id, ROLE_ADMIN);
+    if (res.ok) return res.account; // déjà une vue publique
+  }
+  return publicAccount(raw);
 }
 
 function hashPassword(pw) {
@@ -80,7 +97,9 @@ export async function createAccount({ email, password, name }) {
     name: String(name || "").trim().slice(0, 60) || e.split("@")[0],
     passwordHash: hashPassword(password),
     provider: "password",
-    role: ROLE_TRAINER,
+    // Admin d'emblée si l'email est configuré (voir ADMIN_EMAILS) : un premier
+    // admin peut ainsi naître d'une simple inscription, sans script.
+    role: isConfiguredAdmin(e) ? ROLE_ADMIN : ROLE_TRAINER,
     balanceAr: 0,
     createdAt: Date.now(),
   };
@@ -103,7 +122,7 @@ export async function getOrCreateByEmail({ email, name, provider = "google" }) {
   const existingId = await redis.get(emailKey(e));
   if (existingId) {
     const acc = await redis.get(accountKey(existingId));
-    if (acc) return { ok: true, account: publicAccount(acc), created: false };
+    if (acc) return { ok: true, account: await withConfiguredAdmin(acc), created: false };
   }
 
   const id = generateId("acc");
@@ -113,7 +132,7 @@ export async function getOrCreateByEmail({ email, name, provider = "google" }) {
     name: String(name || "").trim().slice(0, 60) || e.split("@")[0],
     passwordHash: null,
     provider,
-    role: ROLE_TRAINER,
+    role: isConfiguredAdmin(e) ? ROLE_ADMIN : ROLE_TRAINER,
     balanceAr: 0,
     createdAt: Date.now(),
   };
@@ -130,7 +149,9 @@ export async function authenticate({ email, password }) {
   const account = await redis.get(accountKey(id));
   if (!account || !verifyPassword(password, account.passwordHash))
     return { ok: false, status: 401, error: "Identifiants invalides." };
-  return { ok: true, account: publicAccount(account) };
+  // Promeut si configuré : c'est ici qu'un compte existant devient admin à
+  // sa prochaine connexion après l'ajout de son email à ADMIN_EMAILS.
+  return { ok: true, account: await withConfiguredAdmin(account) };
 }
 
 export async function getAccountById(id) {
