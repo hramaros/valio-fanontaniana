@@ -237,6 +237,27 @@ const PATHS = {
       <path d="M4 18h16" />
     </>
   ),
+  gauge: (
+    <>
+      <path d="M12 14 15.5 9" />
+      <circle cx="12" cy="14" r="1.3" />
+      <path d="M4 18a9 9 0 1 1 16 0" />
+    </>
+  ),
+  trendingUp: (
+    <>
+      <path d="M3 16.5 9.5 10l3.5 3.5L21 5.5" />
+      <path d="M15.5 5.5H21v5.5" />
+    </>
+  ),
+  banknote: (
+    <>
+      <rect x="2.5" y="6" width="19" height="12" rx="2" />
+      <circle cx="12" cy="12" r="2.4" />
+      <path d="M6 9.5h.01" />
+      <path d="M18 14.5h.01" />
+    </>
+  ),
   hash: (
     <>
       <path d="M4.5 9h15" />

@@ -177,6 +177,17 @@ export default function HostShell({ focus = false, children }) {
             <Link href="/host?tour=1" onClick={closeMenu}>
               <Icon name="help" size={17} /> Visite guidée
             </Link>
+            {/* Accès au pilotage, visible seulement pour les admins. Simple
+                affordance : la vraie barrière est le 403 de /api/admin/*. */}
+            {account?.role === "admin" && (
+              <Link
+                href="/admin"
+                onClick={closeMenu}
+                aria-current={pathname.startsWith("/admin") ? "page" : undefined}
+              >
+                <Icon name="gauge" size={17} /> Pilotage
+              </Link>
+            )}
           </div>
         </nav>
       )}

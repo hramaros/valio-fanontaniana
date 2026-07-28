@@ -1311,6 +1311,120 @@ button.pill:focus-visible { outline: 3px solid var(--accent-bright); outline-off
 .lb-rank--2 { color: #8fcbff; }
 .lb-rank--3 { color: #ff96a4; }
 
+/* ---------- Pilotage (espace admin) ----------
+   Registre sobre (PRODUCT.md : côté back-office, la couleur en touches
+   fonctionnelles). Les deux teintes de revenu sont des pas plus foncés des
+   hues sky/amber, choisis pour la surface sombre des cartes et VALIDÉS au
+   contraste et à la lisibilité daltonienne (skill dataviz). */
+:root {
+  --chart-cash-in: #2f7ab8;   /* encaissé (bleu) */
+  --chart-cash-used: #b8830f; /* consommé (or) */
+  --chart-grid: rgba(255, 255, 255, 0.07);
+  --chart-axis: var(--muted-2);
+}
+
+.admin-tag {
+  border-color: rgba(49, 211, 92, 0.3);
+  color: var(--accent-bright);
+}
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 720px) {
+  .admin-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Carte de graphique : en-tête (titre + valeur), corps SVG, légende. */
+.chart-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.chart {
+  position: relative;
+  width: 100%;
+}
+.chart svg { display: block; width: 100%; height: auto; }
+.chart-axis { fill: var(--chart-axis); font-size: 10px; }
+/* Couleurs fixes via classes : var(--token) ne se résout pas dans un attribut
+   SVG, seulement en CSS. Les couleurs de série passent, elles, par `style`. */
+.chart-grid-line { stroke: var(--chart-grid); }
+.chart-crosshair { stroke: var(--line-strong); stroke-dasharray: 3 3; }
+.chart-dot { stroke: var(--surface); stroke-width: 1.5px; }
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.chart-legend i { width: 12px; height: 3px; border-radius: 2px; flex: none; }
+/* Infobulle du survol : positionnée en JS, au-dessus du tracé. */
+.chart-tip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  background: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+  z-index: 2;
+}
+.chart-tip__day { color: var(--muted-2); font-size: 0.72rem; margin-bottom: 3px; }
+.chart-tip__row { display: flex; align-items: center; gap: 6px; }
+.chart-tip__row i { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+.chart-empty {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  color: var(--muted-2);
+  font-size: 0.85rem;
+}
+
+/* Barre de proportion : segments contigus, séparés d'un filet de surface
+   (2px), identité portée par les libellés inline — jamais la couleur seule. */
+.proportion {
+  display: flex;
+  height: 34px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--ink-2);
+  gap: 2px;
+}
+.proportion__seg {
+  display: grid;
+  place-items: center;
+  min-width: 2px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #06140d;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: flex-basis 0.3s ease;
+}
+.proportion__seg--muted { background: var(--surface-2); color: var(--text); }
+.proportion-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.proportion-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.proportion-legend i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
 @media (prefers-reduced-motion: reduce) {
   /* Le spinner reste animé : c'est un indicateur d'état essentiel,
      pas un mouvement décoratif. */

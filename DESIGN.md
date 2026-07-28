@@ -154,6 +154,25 @@ Règles :
   sobre (aucun élément game-show — ni podium, ni points, note /20 uniquement).
   Saisie du code `VF-XXXX-XXXX` puis fiche : en-tête examen, `stat-grid`,
   classement en `.lb` avec la note en chiffre fort. Deep-link `?code=`.
+- **Espace de pilotage** (`/admin`, `AdminShell`) : tour de contrôle BI,
+  réservé aux comptes `role: "admin"`. Shell distinct de `HostShell` (autre
+  métier) mais mêmes tokens ; registre **sobre** (PRODUCT.md : côté
+  back-office, la couleur en touches fonctionnelles). Garde côté rendu
+  cosmétique (« Accès réservé » sinon) ; la vraie barrière est le 403 de
+  `/api/admin/*`. Lien « Pilotage » ajouté à la nav formateur, visible
+  seulement si `role === "admin"`.
+  **Graphiques** (`charts.jsx`, SVG écrits à la main, zéro dépendance) :
+  `TimeSeriesChart` (1 série = aire ; 2 séries = deux lignes sur un MÊME axe,
+  jamais de double axe — encaissé et consommé sont tous deux en Ariary) avec
+  survol crosshair + infobulle ; `ProportionBar` (segments contigus séparés
+  d'un filet de 2px, identité portée par les libellés inline, jamais la
+  couleur seule). Couleurs de revenu `--chart-cash-in` (#2f7ab8) /
+  `--chart-cash-used` (#b8830f) : pas plus foncés des hues sky/amber pour la
+  surface sombre, **validés** au contraste et à la lisibilité daltonienne
+  (skill dataviz). Rappel technique : `var(--token)` ne se résout pas dans un
+  ATTRIBUT SVG — couleurs de série via `style`, couleurs fixes via classes
+  (`.chart-grid-line`, `.chart-crosshair`, `.chart-dot`). Chaque indicateur
+  dérivé porte sa définition en clair (`.hint` + icône `info`).
 - **`CopyButton`** : pattern de copie (icône `copy` → `check` + « Copié ! »
   2 s, `aria-live="polite"`) — utilisé pour le code de consultation (fin
   d'examen, historique, carnet de notes).
