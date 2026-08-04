@@ -1,7 +1,11 @@
 # Product Marketing Context — valio.fanontaniana
 
-*Dernière mise à jour : 2026-06-30*
+*Dernière mise à jour : 2026-07-29*
 *Statut : V1 auto-rédigée à partir du code. Les `[À CONFIRMER]` attendent ta validation.*
+
+**Documents liés :** [`evaluation-marche.md`](./evaluation-marche.md) (grille Personal MBA,
+62/100) · [`sondage-validation-besoin.md`](./sondage-validation-besoin.md) (instrument de
+validation terrain).
 
 ## Product Overview
 **One-liner :** Le quiz en direct façon Kahoot — mais qui produit une **vraie note /20** et accepte les **réponses libres** corrigées par le formateur.
@@ -40,7 +44,14 @@
 |---------|-------------|-----------|------------------|
 | Formateur / enseignant (User + Champion) | Engagement de la classe, gain de temps de correction, note fiable | Outils ludiques sans note exploitable / outils d'éval pas engageants | Une seule session = jeu **+** note /20 **+** PDF |
 | Responsable pédagogique (Decision Maker) | Adoption simple, cohérence des évaluations | Déployer un outil sans friction ni formation | Aucune inscription, prise en main immédiate |
-| Direction / RH (Financial Buyer) | Coût, ROI, image moderne | Budget outils numériques limité | Prix accessible, infra légère, `[À CONFIRMER offre établissement]` |
+| Direction / RH (Financial Buyer) | Coût, ROI, image moderne | Budget outils numériques limité | Prix accessible, infra légère, **offre établissement — hypothèse prioritaire, cf. ci-dessous** |
+
+**Hypothèse « offre établissement » (priorité n°1 côté revenu).** Un responsable pédagogique
+paie un accès pour N enseignants : ticket 10 à 50× supérieur au PAYG unitaire, et déplacement
+du curseur du B2C micro vers le B2B2C. C'est le levier le plus rapide pour desserrer le
+**plafond de prix** — la note la plus basse de [`evaluation-marche.md`](./evaluation-marche.md)
+(3/10) — et il redresse simultanément la taille de marché utile et le potentiel d'upsell.
+Statut : **non validée**, instrumentée par la **Q22** du sondage.
 
 ## Problems & Pain Points
 **Core problem :** Les quiz live existants **engagent mais ne notent pas** vraiment (pas de /20, QCM uniquement) ; les outils d'évaluation classiques **notent mais n'engagent pas** ; et beaucoup sont chers ou pensés pour un contexte anglophone/US.
@@ -116,7 +127,33 @@
 | Évaluer l'ouvert, pas que le QCM | Réponses libres validées manuellement |
 | Zéro friction | Code + pseudo, aucune inscription |
 
+**Hypothèse de repositionnement « médicament » (à valider).** Le positionnement actuel
+(« quiz ludique **et** noté ») décrit une **vitamine** : la douleur est réelle mais différable,
+d'où la note d'urgence la plus basse de l'évaluation de marché (4/10). Piste testée par le
+sondage : ancrer la promesse sur un **moment brûlant et daté** —
+
+> « Votre examen noté, prêt en PDF à la fin de l'heure — sans une soirée de correction. »
+
+L'urgence ne se décrète pas, elle se fabrique en s'attachant à un pic de charge.
+**Q8** du sondage identifie ce pic (période de contrôles / fin de trimestre / continu) ; **Q10**
+en collecte les verbatims. Ce cadrage ne remplace pas le positionnement ci-dessus tant qu'il
+n'est pas confirmé — il s'y ajoute comme angle de messaging à tester.
+
+## How to Reach Them
+`[À COLLECTER — Q11 du sondage]` Aucun canal validé à ce jour ; ne pas inventer de plan
+d'acquisition avant les réponses. Hypothèse structurelle en attendant : chaque session expose
+des dizaines de participants au parcours « code + pseudo », soit une **boucle virale
+intégrée** (le moteur historique de Kahoot) — à confirmer par la Q11 (canal de découverte) et
+la Q21 (propension à recommander).
+
 ## Goals
 **Business goal :** Acquérir une base de formateurs actifs sur le gratuit, puis les convertir au **pro PAYG** (1ʳᵉ recharge de crédits).
 **Conversion action :** Macro : **recharger des crédits et lancer un 1ᵉʳ examen pro**. Activation amont : créer et lancer un quiz gratuit. Action participant : rejoindre une salle.
 **Current metrics :** `[À COMPLÉTER — produit récent]`
+**Préalable bloquant à la monétisation :** aucun rail de paiement local n'est actif — Stripe
+n'accepte pas Madagascar comme pays d'immatriculation marchand (`TODO.md:27`) et le mobile
+money malgache est hors scope (`TODO.md:168`). Tant que ce point est ouvert, la conversion
+macro ci-dessus est **inexécutable**. L'effort est toutefois contenu : `src/lib/payments.js:47`
+expose déjà un registre de providers (`registerProvider`, interface
+`{ initiate(txn), handleWebhook(request) }`). La **Q20** du sondage dit quel rail activer en
+priorité (MVola / Orange Money / Airtel Money / carte).
