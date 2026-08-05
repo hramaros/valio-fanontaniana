@@ -13,6 +13,8 @@ import {
   normalizeCapacity,
   maxParticipants,
   examPriceAr,
+  MODE_LIBRE,
+  LIBRE_MAX,
 } from "./exam.js";
 import { getAccountById, debit } from "./accounts.js";
 import { canAfford } from "./wallet.js";
@@ -187,6 +189,42 @@ export async function setQuiz(code, quiz) {
       meta.quiz.roster = cls.students;
     }
   }
+  await saveMeta(meta);
+  return { ok: true };
+}
+
+/**
+ * Repli en mode Libre quand le solde ne permet pas de lancer l'examen : le
+ * formateur sauve son cours au lieu de renvoyer sa classe. Gratuit, donc sans
+ * débit — mais le mode Libre a ses limites, d'où les deux garde-fous.
+ */
+export async function switchToLibre(code) {
+  const meta = await getMeta(code);
+  if (!meta) return { ok: false, status: 404, error: "Salle introuvable." };
+  if (!meta.quiz) return { ok: false, status: 400, error: "Aucun quiz configuré." };
+  if (deriveStatus(meta) !== "lobby")
+    return { ok: false, status: 400, error: "La partie a déjà démarré." };
+  if (meta.quiz.mode === MODE_LIBRE) return { ok: true, alreadyLibre: true };
+
+  // Le mode Libre ne sait pas corriger de réponse libre : basculer casserait
+  // le quiz. Mieux vaut refuser explicitement que dégrader en silence.
+  if (quizHasFree(meta.quiz))
+    return {
+      ok: false,
+      status: 409,
+      error: "Ce quiz contient des réponses libres, réservées au mode Examen.",
+    };
+
+  // Le mode Libre plafonne la salle : refuser si la classe dépasse déjà.
+  const count = (await listPlayers(code)).length;
+  if (count > LIBRE_MAX)
+    return {
+      ok: false,
+      status: 409,
+      error: `Le mode Libre est limité à ${LIBRE_MAX} participants (${count} déjà inscrits).`,
+    };
+
+  meta.quiz.mode = MODE_LIBRE;
   await saveMeta(meta);
   return { ok: true };
 }

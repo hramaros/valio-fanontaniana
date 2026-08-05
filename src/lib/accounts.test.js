@@ -24,9 +24,10 @@ import {
   ROLE_ADMIN,
   ROLE_TRAINER,
 } from "./accounts.js";
+import { WELCOME_CREDIT_AR } from "./exam.js";
 import { getRedis } from "./redis.js";
 
-test("createAccount : crée (email normalisé, solde 0) puis refuse le doublon", async () => {
+test("createAccount : crée (email normalisé, examen offert) puis refuse le doublon", async () => {
   setRedisClient(createFakeRedis());
   const r1 = await createAccount({
     email: "Prof@Ecole.mg",
@@ -35,7 +36,7 @@ test("createAccount : crée (email normalisé, solde 0) puis refuse le doublon",
   });
   assert.equal(r1.ok, true);
   assert.equal(r1.account.email, "prof@ecole.mg");
-  assert.equal(r1.account.balanceAr, 0);
+  assert.equal(r1.account.balanceAr, WELCOME_CREDIT_AR);
   assert.equal(r1.account.passwordHash, undefined); // jamais exposé
 
   const r2 = await createAccount({ email: "prof@ecole.mg", password: "autre1" });
@@ -71,7 +72,7 @@ test("getOrCreateByEmail : crée un compte Google puis le réutilise (pas de dou
   const r1 = await getOrCreateByEmail({ email: "Prof@Gmail.com", name: "Prof G" });
   assert.equal(r1.ok, true);
   assert.equal(r1.account.email, "prof@gmail.com");
-  assert.equal(r1.account.balanceAr, 0);
+  assert.equal(r1.account.balanceAr, WELCOME_CREDIT_AR, "même examen offert qu'en email+mdp");
   assert.equal(r1.created, true, "premier appel = création");
 
   const r2 = await getOrCreateByEmail({ email: "prof@gmail.com", name: "Autre" });
@@ -89,15 +90,17 @@ test("getOrCreateByEmail : relie un compte email+mdp existant (même email)", as
 test("topup et debit", async () => {
   setRedisClient(createFakeRedis());
   const { account } = await createAccount({ email: "p@e.mg", password: "secret1" });
-  assert.equal((await topupTest(account.id, 5000)).balanceAr, 5000);
+  // Le compte naît avec un examen offert : les soldes attendus en partent.
+  const start = WELCOME_CREDIT_AR;
+  assert.equal((await topupTest(account.id, 5000)).balanceAr, start + 5000);
 
   const d = await debit(account.id, 1000);
   assert.equal(d.ok, true);
-  assert.equal(d.balanceAr, 4000);
+  assert.equal(d.balanceAr, start + 4000);
 
   const bad = await debit(account.id, 999999);
   assert.equal(bad.ok, false);
-  assert.equal((await getAccountById(account.id)).balanceAr, 4000);
+  assert.equal((await getAccountById(account.id)).balanceAr, start + 4000);
 });
 
 test("credit/debit concurrents sur le même compte : pas de mise à jour perdue", async () => {
@@ -115,7 +118,7 @@ test("credit/debit concurrents sur le même compte : pas de mise à jour perdue"
 
   assert.ok(results.every((r) => r.ok));
   const final = await getAccountById(account.id);
-  assert.equal(final.balanceAr, 1000 + 20 * 100 - 10 * 50);
+  assert.equal(final.balanceAr, WELCOME_CREDIT_AR + 1000 + 20 * 100 - 10 * 50);
 });
 
 test("revokeOtherSessions : révoque les autres sessions, garde celle exceptée", async () => {
@@ -270,7 +273,10 @@ test("promouvoir ne touche pas au solde (écriture sous verrou)", async () => {
 
   await setRole(account.id, ROLE_ADMIN);
 
-  assert.equal((await getAccountById(account.id)).balanceAr, 5000);
+  assert.equal(
+    (await getAccountById(account.id)).balanceAr,
+    WELCOME_CREDIT_AR + 5000,
+  );
 });
 
 // — Admin par défaut via ADMIN_EMAILS (amorçage Vercel) —

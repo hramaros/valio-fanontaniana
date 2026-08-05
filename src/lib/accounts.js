@@ -3,6 +3,7 @@ import { generateId } from "./code.js";
 import { withLock } from "./lock.js";
 import { indexAccount, touchLastSeen } from "./indexes.js";
 import { isConfiguredAdmin } from "./adminEmails.js";
+import { WELCOME_CREDIT_AR } from "./exam.js";
 import { randomBytes, scryptSync, timingSafeEqual, createHash } from "node:crypto";
 
 // Comptes formateur durables (sans TTL). Sessions par token (TTL 30 j).
@@ -100,7 +101,10 @@ export async function createAccount({ email, password, name }) {
     // Admin d'emblée si l'email est configuré (voir ADMIN_EMAILS) : un premier
     // admin peut ainsi naître d'une simple inscription, sans script.
     role: isConfiguredAdmin(e) ? ROLE_ADMIN : ROLE_TRAINER,
-    balanceAr: 0,
+    // Un examen offert : voir WELCOME_CREDIT_AR. Aucune protection anti-abus
+    // pour l'instant (le coût d'un compte jetable est de 1 000 Ar d'infra
+    // quasi gratuite) — à revoir si des inscriptions en masse apparaissent.
+    balanceAr: WELCOME_CREDIT_AR,
     createdAt: Date.now(),
   };
   await redis.set(accountKey(id), account);
@@ -133,7 +137,7 @@ export async function getOrCreateByEmail({ email, name, provider = "google" }) {
     passwordHash: null,
     provider,
     role: isConfiguredAdmin(e) ? ROLE_ADMIN : ROLE_TRAINER,
-    balanceAr: 0,
+    balanceAr: WELCOME_CREDIT_AR, // même examen offert qu'en inscription email
     createdAt: Date.now(),
   };
   await redis.set(accountKey(id), account);

@@ -7,14 +7,19 @@ import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
 import RechargeModal from "@/components/RechargeModal";
 import Icon from "@/components/Icon";
+import { examPriceAr } from "@/lib/exam";
+import { canAfford } from "@/lib/wallet";
+import { useAccount } from "@/lib/account-client";
 
 function LobbyInner() {
   const router = useRouter();
+  const { account } = useAccount();
   const params = useSearchParams();
   const code = normalizeCode(params.get("code") || "");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [recharge, setRecharge] = useState(null); // { priceAr, balanceAr } | null
+  const [libreError, setLibreError] = useState("");
 
   // Ne renvoie que des données valides : un payload d'erreur (salle expirée,
   // Redis indisponible…) ne doit jamais entrer dans l'état.
@@ -54,7 +59,30 @@ function LobbyInner() {
     router.push(`/host/results?code=${code}`);
   }
 
+  // Repli : bascule la salle en mode Libre (gratuit) puis lance, pour que le
+  // cours ait lieu malgré un solde insuffisant. Le serveur refuse la bascule
+  // si le quiz contient des réponses libres ou si la salle est trop pleine.
+  async function switchLibre() {
+    setLibreError("");
+    setBusy(true);
+    const { ok, data } = await apiPost(`/api/host/${code}/libre`);
+    setBusy(false);
+    if (!ok) {
+      setLibreError(data?.error || "Bascule impossible.");
+      return;
+    }
+    setRecharge(null);
+    launch();
+  }
+
   const participants = state?.participants || [];
+
+  // Manque à combler pour lancer l'examen (0 si le solde suffit, ou en Libre).
+  const lobbyPriceAr = examPriceAr(state?.mode, state?.capacity);
+  const shortfallAr =
+    account && lobbyPriceAr > 0 && !canAfford(account.balanceAr, lobbyPriceAr)
+      ? lobbyPriceAr - (Number(account.balanceAr) || 0)
+      : 0;
 
   if (state?.notFound) {
     return (
@@ -73,6 +101,22 @@ function LobbyInner() {
 
   return (
     <div className="stack gap-16">
+      {/* Pré-contrôle : prévenir tant que la classe n'a pas encore rejoint,
+          plutôt que de bloquer au lancement avec les élèves devant l'écran. */}
+      {shortfallAr > 0 && (
+        <div className="error" role="alert">
+          <div>
+            Il vous manque <span className="money">{shortfallAr} Ar</span> pour
+            lancer cet examen. Rechargez avant de démarrer le cours.
+          </div>
+          <div className="stack gap-8" style={{ marginTop: 10 }}>
+            <Link href="/host/wallet" className="btn btn--primary btn--compact">
+              <Icon name="creditCard" size={15} /> Recharger maintenant
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="card stack gap-12" style={{ textAlign: "center" }}>
         <span className="eyebrow">Salle d'attente</span>
         <h1 style={{ fontSize: "2.2rem" }}>Rejoignez avec le code</h1>
@@ -145,10 +189,12 @@ function LobbyInner() {
           priceAr={recharge.priceAr}
           balanceAr={recharge.balanceAr}
           busyRetry={busy}
+          libreError={libreError}
           onRetry={() => {
             setRecharge(null);
             launch();
           }}
+          onSwitchLibre={switchLibre}
           onClose={() => setRecharge(null)}
         />
       )}

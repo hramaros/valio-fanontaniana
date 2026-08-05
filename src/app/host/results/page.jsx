@@ -12,6 +12,9 @@ import Icon from "@/components/Icon";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
+import { useAccount } from "@/lib/account-client";
+import { canAfford } from "@/lib/wallet";
+import { PRICE_SMALL_AR } from "@/lib/exam";
 
 // Chargé à la demande (jsPDF est lourd) : on n'alourdit pas le bundle de la page.
 async function exportPdf(board) {
@@ -22,6 +25,7 @@ async function exportPdf(board) {
 function HostResultsInner() {
   const params = useSearchParams();
   const code = normalizeCode(params.get("code") || "");
+  const { account } = useAccount();
 
   // Les fetchers ne renvoient que des données valides : un payload d'erreur
   // (salle expirée, Redis indisponible…) ne doit jamais entrer dans l'état.
@@ -281,6 +285,21 @@ function HostResultsInner() {
           <Link href="/host" className="btn btn--ghost btn--block">
             <Icon name="plus" size={16} /> Créer un nouveau quiz
           </Link>
+
+          {/* Le bon moment pour parler d'argent : les notes sont obtenues, le
+              cours est fini, personne n'attend. Jamais dans le lobby. */}
+          {account && !canAfford(account.balanceAr, PRICE_SMALL_AR) && (
+            <div className="panel stack gap-8" style={{ textAlign: "center" }}>
+              <span className="tiny muted">
+                Votre solde ne couvre plus un examen
+                {" "}(<span className="money">{account.balanceAr} Ar</span>).
+              </span>
+              <Link href="/host/wallet" className="btn btn--ghost btn--compact">
+                <Icon name="creditCard" size={15} /> Recharger avant le prochain
+                cours
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </div>

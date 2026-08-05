@@ -12,6 +12,8 @@ import { useAccount } from "@/lib/account-client";
 import AuthModal from "@/components/AuthModal";
 import Icon from "@/components/Icon";
 import { TOUR_START_EVENT } from "@/lib/onboarding";
+import { examPriceAr } from "@/lib/exam";
+import { canAfford } from "@/lib/wallet";
 
 // Chargé à la demande et jamais rendu côté serveur (localStorage/document lus
 // au montage) : driver.js et son CSS restent hors du bundle des participants.
@@ -131,6 +133,10 @@ export default function HostPage() {
     }
     router.push(`/host/lobby?code=${code}`);
   }
+
+  // Prix de l'examen tel qu'il est configuré à l'écran : sert au pré-contrôle
+  // de solde, pour que le formateur sache AVANT le cours s'il pourra lancer.
+  const plannedPriceAr = examPriceAr(mode, capacity);
 
   const showAside = account && account.balanceAr === 0;
 
@@ -327,13 +333,39 @@ export default function HostPage() {
                       </p>
                     </div>
                   )}
-                  {account && (
-                    <p className="hint">
-                      <Icon name="check" size={14} />
-                      {account.email} · solde{" "}
-                      <span className="money">{account.balanceAr} Ar</span>
-                    </p>
-                  )}
+                  {account &&
+                    (canAfford(account.balanceAr, plannedPriceAr) ? (
+                      <p className="hint">
+                        <Icon name="check" size={14} />
+                        {account.email} · solde{" "}
+                        <span className="money">{account.balanceAr} Ar</span>
+                      </p>
+                    ) : (
+                      // Prévenir MAINTENANT, au calme : sans cela le blocage
+                      // tombe au lancement, devant la classe (voir lobby).
+                      <div className="error" role="alert">
+                        <div>
+                          Il vous manque{" "}
+                          <span className="money">
+                            {plannedPriceAr - (account.balanceAr || 0)} Ar
+                          </span>{" "}
+                          pour cet examen (solde :{" "}
+                          <span className="money">{account.balanceAr} Ar</span>).
+                        </div>
+                        <div className="stack gap-8" style={{ marginTop: 10 }}>
+                          <Link href="/host/wallet" className="btn btn--primary btn--compact">
+                            <Icon name="creditCard" size={15} /> Recharger maintenant
+                          </Link>
+                          <button
+                            type="button"
+                            className="btn btn--ghost btn--compact"
+                            onClick={() => setMode("libre")}
+                          >
+                            Passer en mode Libre (gratuit)
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                 </div>
               )}
             </div>

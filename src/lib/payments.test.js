@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { setRedisClient } from "./redis.js";
 import { createFakeRedis } from "./testFakeRedis.js";
 import { createAccount, getAccountById } from "./accounts.js";
+import { WELCOME_CREDIT_AR } from "./exam.js";
 import {
   initiateTopup,
   completeTransaction,
@@ -11,14 +12,17 @@ import {
   listTransactions,
 } from "./payments.js";
 
+// Un compte neuf naît avec un examen offert : les soldes attendus en partent.
+const expected = (topup) => WELCOME_CREDIT_AR + topup;
+
 test("initiateTopup (stub) : crédite immédiatement et marque completed", async () => {
   setRedisClient(createFakeRedis());
   const { account } = await createAccount({ email: "p@e.mg", password: "secret1" });
   const res = await initiateTopup(account.id, 5000, "stub");
   assert.equal(res.ok, true);
   assert.equal(res.transaction.status, "completed");
-  assert.equal(res.balanceAr, 5000);
-  assert.equal((await getAccountById(account.id)).balanceAr, 5000);
+  assert.equal(res.balanceAr, expected(5000));
+  assert.equal((await getAccountById(account.id)).balanceAr, expected(5000));
 });
 
 test("completeTransaction est idempotent (pas de double crédit)", async () => {
@@ -27,7 +31,7 @@ test("completeTransaction est idempotent (pas de double crédit)", async () => {
   const res = await initiateTopup(account.id, 5000, "stub");
   const again = await completeTransaction(res.transaction.id);
   assert.equal(again.alreadyCompleted, true);
-  assert.equal((await getAccountById(account.id)).balanceAr, 5000);
+  assert.equal((await getAccountById(account.id)).balanceAr, expected(5000));
 });
 
 test("provider inconnu ou montant invalide refusés", async () => {

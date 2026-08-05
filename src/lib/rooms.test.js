@@ -18,8 +18,10 @@ import {
   finalizeSession,
   getReviewData,
   endSession,
+  switchToLibre,
 } from "./rooms.js";
-import { createAccount, topupTest, getAccountById } from "./accounts.js";
+import { createAccount, topupTest, getAccountById, debit } from "./accounts.js";
+import { WELCOME_CREDIT_AR, LIBRE_MAX } from "./exam.js";
 import { listExamRecords, getExamRecord } from "./history.js";
 import { createClass, addStudent } from "./classrooms.js";
 
@@ -431,6 +433,10 @@ test("Examen + compte : lancement bloqué sans solde, ok après recharge, débit
   });
   await registerPlayer(meta.code, "Alice");
 
+  // Un compte neuf naît avec un examen offert : on l'épuise pour retrouver le
+  // cas « solde à zéro », qui est ce que ce test couvre.
+  await debit(account.id, WELCOME_CREDIT_AR);
+
   // Solde 0 → lancement refusé (402)
   const blocked = await startGame(meta.code);
   assert.equal(blocked.ok, false);
@@ -521,8 +527,11 @@ test("Examen + compte : clôture pollée simultanément par host+participants ne
   );
   assert.ok(boards.every((b) => b.settled?.charged === true));
 
-  // Un seul débit de 1000 Ar (pas dix) : 5000 - 1000 = 4000.
-  assert.equal((await getAccountById(account.id)).balanceAr, 4000);
+  // Un seul débit de 1000 Ar (pas dix), en partant de l'examen offert + 5000.
+  assert.equal(
+    (await getAccountById(account.id)).balanceAr,
+    WELCOME_CREDIT_AR + 5000 - 1000,
+  );
 
   // Un seul enregistrement d'historique (pas dix doublons).
   const list = await listExamRecords(account.id);
@@ -587,4 +596,83 @@ test("Examen nominatif : roster figé, inscription par élève, résultats nomin
   const list = await listExamRecords(account.id);
   assert.equal(list[0].title, "Contrôle");
   assert.equal(list[0].className, "6ème A");
+});
+
+/* ------------------------------------------------------------------ */
+/* Repli en mode Libre (solde insuffisant devant la classe)            */
+/* ------------------------------------------------------------------ */
+
+async function examRoomWith(questions, hostAccountId) {
+  const meta = await createRoom("Prof", hostAccountId);
+  await setQuiz(meta.code, {
+    title: "Exam",
+    mode: "examen",
+    capacity: "small",
+    totalDurationSec: 600,
+    questions,
+  });
+  return meta;
+}
+
+const qcm = [
+  {
+    text: "2+2 ?",
+    type: "single",
+    basePoints: 1000,
+    answers: [
+      { text: "4", color: "#fff", correct: true },
+      { text: "5", color: "#fff", correct: false },
+    ],
+  },
+];
+
+test("switchToLibre : bascule un examen QCM et supprime le débit", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "p@e.mg", password: "secret1" });
+  await debit(account.id, WELCOME_CREDIT_AR); // solde à zéro
+  const meta = await examRoomWith(qcm, account.id);
+  await registerPlayer(meta.code, "Alice");
+
+  assert.equal((await startGame(meta.code)).status, 402, "bloqué sans solde");
+
+  assert.equal((await switchToLibre(meta.code)).ok, true);
+  assert.equal((await startGame(meta.code)).ok, true, "le cours peut avoir lieu");
+});
+
+test("switchToLibre : refuse si le quiz contient une réponse libre", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "p@e.mg", password: "secret1" });
+  const meta = await examRoomWith(
+    [{ text: "Expliquez", type: "free", basePoints: 1000, answers: [] }],
+    account.id,
+  );
+
+  const res = await switchToLibre(meta.code);
+  assert.equal(res.ok, false);
+  assert.equal(res.status, 409);
+});
+
+test("switchToLibre : refuse au-delà du plafond du mode Libre", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "p@e.mg", password: "secret1" });
+  const meta = await examRoomWith(qcm, account.id);
+  for (let i = 0; i <= LIBRE_MAX; i++) await registerPlayer(meta.code, `Élève ${i}`);
+
+  const res = await switchToLibre(meta.code);
+  assert.equal(res.ok, false);
+  assert.equal(res.status, 409);
+});
+
+test("switchToLibre : idempotent sur une salle déjà en Libre", async () => {
+  setRedisClient(createFakeRedis());
+  const meta = await createRoom("Prof", null);
+  await setQuiz(meta.code, {
+    title: "Quiz",
+    mode: "libre",
+    totalDurationSec: 600,
+    questions: qcm,
+  });
+  const res = await switchToLibre(meta.code);
+  assert.equal(res.ok, true);
+  assert.equal(res.alreadyLibre, true);
 });
