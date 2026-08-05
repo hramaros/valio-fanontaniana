@@ -64,7 +64,7 @@ paie un accès pour N enseignants : ticket 10 à 50× supérieur au PAYG unitair
 du curseur du B2C micro vers le B2B2C. C'est le levier le plus rapide pour desserrer le
 **plafond de prix** — la note la plus basse de [`evaluation-marche.md`](./evaluation-marche.md)
 (3/10) — et il redresse simultanément la taille de marché utile et le potentiel d'upsell.
-Statut : **non validée**, instrumentée par la **Q22** du sondage.
+Statut : **non validée**, instrumentée par la **Q33** du sondage (« qui devrait payer ? »).
 
 ## Problems & Pain Points
 **Core problem :** Les quiz live existants **engagent mais ne notent pas** vraiment (pas de /20, QCM uniquement) ; les outils d'évaluation classiques **notent mais n'engagent pas** ; et beaucoup sont chers ou pensés pour un contexte anglophone/US.
@@ -148,16 +148,16 @@ sondage : ancrer la promesse sur un **moment brûlant et daté** —
 > « Votre examen noté, prêt en PDF à la fin de l'heure — sans une soirée de correction. »
 
 L'urgence ne se décrète pas, elle se fabrique en s'attachant à un pic de charge.
-**Q8** du sondage identifie ce pic (période de contrôles / fin de trimestre / continu) ; **Q10**
+**Q6** du sondage identifie ce pic (période de contrôles / fin de trimestre / continu) ; **Q8 et Q11**
 en collecte les verbatims. Ce cadrage ne remplace pas le positionnement ci-dessus tant qu'il
 n'est pas confirmé — il s'y ajoute comme angle de messaging à tester.
 
 ## How to Reach Them
-`[À COLLECTER — Q11 du sondage]` Aucun canal validé à ce jour ; ne pas inventer de plan
+`[À COLLECTER — Q36 du sondage]` Aucun canal validé à ce jour ; ne pas inventer de plan
 d'acquisition avant les réponses. Hypothèse structurelle en attendant : chaque session expose
 des dizaines de participants au parcours « code + pseudo », soit une **boucle virale
-intégrée** (le moteur historique de Kahoot) — à confirmer par la Q11 (canal de découverte) et
-la Q21 (propension à recommander).
+intégrée** (le moteur historique de Kahoot) — à confirmer par la Q36 (canal de découverte) et
+la Q26 (en parleriez-vous à un collègue ?).
 
 ## Goals
 **Business goal :** Acquérir une base de formateurs actifs sur le gratuit, puis les convertir au **pro PAYG** (1ʳᵉ recharge de crédits).
@@ -168,5 +168,5 @@ n'accepte pas Madagascar comme pays d'immatriculation marchand (`TODO.md:27`) et
 money malgache est hors scope (`TODO.md:168`). Tant que ce point est ouvert, la conversion
 macro ci-dessus est **inexécutable**. L'effort est toutefois contenu : `src/lib/payments.js:47`
 expose déjà un registre de providers (`registerProvider`, interface
-`{ initiate(txn), handleWebhook(request) }`). La **Q20** du sondage dit quel rail activer en
+`{ initiate(txn), handleWebhook(request) }`). La **Q34** du sondage dit quel rail activer en
 priorité (MVola / Orange Money / Airtel Money / carte).

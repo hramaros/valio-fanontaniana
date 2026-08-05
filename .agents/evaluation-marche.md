@@ -121,7 +121,7 @@ Cesser de vendre « quiz ludique + note » (vitamine) et vendre :
 
 C'est un médicament, ancré sur un **déclencheur daté** (période de contrôles / d'examens).
 L'urgence ne se décrète pas, elle se fabrique en s'attachant à un moment où le besoin est
-aigu. → À injecter dans le hero de la landing et à confirmer par **Q8 et Q10** du sondage.
+aigu. → À injecter dans le hero de la landing et à confirmer par **Q6, Q8 et Q11** du sondage.
 
 ### B · Contourner le plafond de PRIX (3 → 5-6) sans trahir l'accessibilité
 
@@ -130,7 +130,7 @@ Le PAYG à l'unité plafonne l'ARPU. Deux leviers **additifs**, pas substitutifs
 - **Offre établissement / pack multi-formateurs** — un responsable pédagogique paie pour N
   enseignants : ticket 10 à 50× supérieur, et déplacement du curseur du B2C micro vers le
   B2B2C. C'est la voie la plus rapide pour redresser **les critères 2, 3 et 9 d'un coup**.
-  Déjà pressenti dans le brief (`[À CONFIRMER offre établissement]`) → instrumenté par **Q22**.
+  Déjà pressenti dans le brief (`[À CONFIRMER offre établissement]`) → instrumenté par **Q33**.
 - **Packs de crédits prépayés** avec léger avantage volume → augmente la valeur par
   transaction et lisse l'acquisition. **Livré le 2026-08-05** : paliers libellés en examens
   (5 · 20 +2 offerts · 50 +8 offerts), bonus réellement crédité.
@@ -144,7 +144,7 @@ Madagascar est un **beachhead pour valider, pas un plafond**. Le brief évoque d
 à l'Afrique francophone, et la douve « mobile money » (critère 10) se réplique justement pays
 par pays — Orange Money couvre largement l'Afrique de l'Ouest.
 Séquence : prouver rétention + volonté de payer à Madagascar (via le sondage), **puis**
-dupliquer. → **Q2** du sondage segmente déjà Madagascar vs autre pays francophone.
+dupliquer. → **Q3** du sondage segmente déjà Madagascar vs autre pays francophone.
 
 ### D · Débloquer le PAIEMENT — préalable non négociable
 
@@ -158,7 +158,7 @@ Bonne nouvelle sur l'effort : `src/lib/payments.js:47` expose déjà un **regist
 et `TODO.md:168` confirme que l'abstraction « permettra [Mvola/Orange/Airtel] sans changement
 de la couche solde/examen ». Brancher un agrégateur mobile money est donc une **extension
 contenue, pas une réécriture**.
-→ **Q19** du sondage dit quel rail activer en priorité.
+→ **Q34** du sondage dit quel rail activer en priorité.
 
 ### E · Renforcer la RÉSISTANCE (5 → 7) — créer du retour sans trahir l'éphémère
 
@@ -178,14 +178,14 @@ Chaque critère faible est instrumenté par au moins une question de
 
 | Critère évalué | Questions du sondage |
 |---|---|
-| **Urgence** (1) | Q7 temps de correction · **Q8 pic de charge** · Q10 verbatim frustration · Q13 adéquation |
-| **Taille du marché** (2) | Q2 géographie · Q3 taille de session · Q4 fréquence |
-| **Prix possible** (3) | Q17 intention d'achat · Q18-Q19 corridor de prix · **Q22 offre établissement** |
-| **Coût d'acquisition** (4) | Q11 canal de découverte · Q21 recommandation |
-| **Originalité** (6) | Q5 outils actuels · Q14 fonctionnalités utiles · Q15 avantage perçu |
-| **Vente additionnelle** (9) | Q3 taille de session (palier illimité) · Q22 |
-| **Résistance** (10) | Q4 récurrence · Q16 freins |
-| **Paiement** (D) | **Q20 rail de paiement** |
+| **Urgence** (1) | Q9 temps de correction · **Q6 pic de charge** · Q11 verbatim frustration · Q14 corvée à supprimer |
+| **Taille du marché** (2) | Q3 géographie · Q4 taille de session · Q5 fréquence |
+| **Prix possible** (3) | Q28 dépense actuelle · Q29 prix spontané · Q30 réaction au prix · **Q33 qui paie** |
+| **Coût d'acquisition** (4) | Q36 canal de découverte · Q26 bouche-à-oreille |
+| **Originalité** (6) | Q12 outils actuels · Q16 capacités attendues · Q18-Q20 réaction au concept |
+| **Vente additionnelle** (9) | Q4 taille de session (palier illimité) · Q32 structure d'offre |
+| **Résistance** (10) | Q5 récurrence · Q17 et Q25 freins · Q21 seuil de confiance |
+| **Paiement** (D) | **Q34 rail de paiement** |
 
 **Après dépouillement** : re-scorer cette grille avec les données réelles, remonter les
 conclusions dans [`product-marketing.md`](./product-marketing.md), et arbitrer les priorités

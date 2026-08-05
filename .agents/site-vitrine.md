@@ -36,9 +36,9 @@ doit vendre un *médicament*, ancré sur un moment de douleur daté :
 L'accroche produit actuelle (« Le quiz en direct façon Kahoot, mais qui produit une vraie note
 /20 ») reste valable en **sous-titre explicatif**, pas en promesse principale.
 
-**Statut : hypothèse non validée.** La Q8 du
+**Statut : hypothèse non validée.** La Q6 du
 [sondage](./sondage-validation-besoin.md) identifie le pic de charge réel (période de
-contrôles / fin de trimestre / continu) et la Q10 en collecte les mots exacts. Ajuster
+contrôles / fin de trimestre / continu) et les Q8/Q11 en collectent les mots exacts. Ajuster
 l'accroche dès les premières réponses, en réutilisant **leur vocabulaire**, pas le nôtre.
 
 ### Ton et vocabulaire
@@ -116,7 +116,7 @@ gratuit pour toujours.
 > Les montants sont pilotés côté app par `src/lib/exam.js` (`PRICE_SMALL_AR`,
 > `PRICE_UNLIMITED_AR`, `LIBRE_MAX`, `EXAMEN_SMALL_MAX`). **Garder les deux sources
 > synchronisées** — un prix affiché faux sur la vitrine est un bug de confiance.
-> Le corridor de prix réel sera connu via les Q18/Q19 du sondage.
+> Le prix réellement acceptable sera connu via les Q29/Q30 du sondage.
 
 ### 3. Comment ça marche (`/comment-ca-marche`)
 
@@ -130,7 +130,7 @@ Page destinée au responsable pédagogique / RH : équiper N enseignants, cohér
 évaluations, budget maîtrisé. C'est le levier le plus puissant sur le **plafond de prix**
 (3/10 dans l'évaluation).
 
-> **Ne pas construire cette page — ni la fonctionnalité — avant que la Q22 du sondage ne
+> **Ne pas construire cette page — ni la fonctionnalité — avant que la Q33 du sondage ne
 > confirme l'appétit.** Côté app, aucune notion d'organisation n'existe aujourd'hui
 > (`src/lib/accounts.js` n'a ni équipe, ni rôle partagé, ni solde commun) : c'est un vrai
 > chantier de modèle de données. En attendant, un simple formulaire « Vous êtes un
@@ -153,7 +153,7 @@ La consultation publique par code `VF-XXXX-XXXX` vit **dans l'app**
 
 ### 7. Blog / ressources — plus tard
 
-Pas prioritaire tant que l'acquisition n'est pas validée (Q11 du sondage dit où se trouvent
+Pas prioritaire tant que l'acquisition n'est pas validée (Q36 du sondage dit où se trouvent
 réellement les formateurs). S'il est lancé un jour, viser les recherches de terrain :
 « corriger un contrôle plus vite », « alternative gratuite à Kahoot », « quiz avec note /20 ».
 
@@ -231,13 +231,13 @@ Le lien participant → vitrine (`utm_source=app&utm_content=result`) mesure sp�
 - [ ] Captures d'écran à jour (lobby, podium, écran de correction, carnet de notes).
 - [ ] Pages légales publiées.
 - [ ] UTM vérifiés de bout en bout.
-- [ ] Accroche ajustée aux verbatims des Q8/Q10 du sondage.
+- [ ] Accroche ajustée aux verbatims des Q8/Q11, et calendrier calé sur la Q6.
 
 ## Ce qu'on ne met pas sur la vitrine
 
 - Aucune fonctionnalité de l'app (pas de saisie de code, pas de connexion, pas de `/verifier`).
 - Aucun chiffre de preuve inventé (« +1 000 formateurs ») : il n'y a **aucun utilisateur réel à
-  ce jour**. Les témoignages viendront des pilotes recrutés par la Q24 du sondage.
+  ce jour**. Les témoignages viendront des pilotes recrutés par la Q40 du sondage.
 - Aucune promesse de fonctionnalité non livrée (offre établissement, suivi longitudinal).
 
 ---
