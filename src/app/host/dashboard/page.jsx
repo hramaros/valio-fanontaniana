@@ -15,12 +15,17 @@ function frDate(ts) {
 export default function HostDashboardPage() {
   const { account, loading } = useAccount();
   const [data, setData] = useState(null);
+  const [classes, setClasses] = useState(null);
 
   useEffect(() => {
     if (!account) return;
     (async () => {
       const { ok, data } = await apiGet("/api/host/analytics");
       if (ok) setData(data);
+    })();
+    (async () => {
+      const { ok, data } = await apiGet("/api/host/classes");
+      if (ok) setClasses(data.classes || []);
     })();
   }, [account]);
 
@@ -118,6 +123,50 @@ export default function HostDashboardPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* Le carnet de notes est l'actif qui s'accumule d'un examen à l'autre :
+          c'est lui qui donne une raison de revenir, pas les statistiques. */}
+      {classes && (
+        <div className="stack gap-12">
+          <span className="eyebrow">Vos classes</span>
+          {classes.length === 0 ? (
+            <div className="panel">
+              <EmptyState icon="users" title="Aucune classe">
+                <p>
+                  Créez une classe pour suivre vos élèves nominativement : leurs
+                  notes s&apos;accumulent dans un carnet à chaque examen.
+                </p>
+                <Link href="/host/classes" className="btn btn--primary">
+                  Créer une classe
+                </Link>
+              </EmptyState>
+            </div>
+          ) : (
+            <>
+              <div className="stack gap-8">
+                {classes.slice(0, 3).map((c) => (
+                  <Link key={c.id} href={`/host/classes/${c.id}`} className="grade-row">
+                    <span className="icon-badge" aria-hidden="true">
+                      <Icon name="users" size={17} />
+                    </span>
+                    <div className="grade-row__ans">
+                      <div style={{ fontWeight: 700 }}>{c.name}</div>
+                      <div className="muted tiny">
+                        {c.studentCount} élève{c.studentCount > 1 ? "s" : ""} ·
+                        carnet de notes
+                      </div>
+                    </div>
+                    <Icon name="arrowRight" size={15} />
+                  </Link>
+                ))}
+              </div>
+              <Link href="/host/classes" className="btn btn--ghost btn--block">
+                Voir toutes mes classes <Icon name="arrowRight" size={15} />
+              </Link>
+            </>
+          )}
+        </div>
       )}
     </div>
   );

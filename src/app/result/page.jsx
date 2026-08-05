@@ -8,6 +8,7 @@ import { apiGet } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
 import { getPlayerSession } from "@/lib/session";
+import { marketingUrl } from "@/lib/marketing";
 
 // Chargé à la demande (jsPDF est lourd) : on n'alourdit pas le bundle de la page.
 async function exportPdf(board, me) {
@@ -146,6 +147,20 @@ function ResultInner() {
       <Link href="/" className="btn btn--ghost btn--block">
         <Icon name="chevronLeft" size={16} /> Retour à l'accueil
       </Link>
+
+      {/* Boucle virale : chaque quiz expose des dizaines de participants, dont
+          des formateurs. La persuasion se fait sur la vitrine, pas ici. */}
+      <div className="stack gap-8" style={{ alignItems: "center" }}>
+        <span className="tiny muted">Vous êtes formateur ou enseignant ?</span>
+        <a
+          href={marketingUrl("result")}
+          className="btn btn--ghost btn--compact"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Icon name="plus" size={15} /> Créez votre quiz noté, gratuitement
+        </a>
+      </div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import Brand from "@/components/Brand";
 import Icon from "@/components/Icon";
 import { apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
+import { marketingUrl } from "@/lib/marketing";
 
 export default function HomePage() {
   const router = useRouter();
@@ -89,6 +90,18 @@ export default function HomePage() {
             d&apos;un examen
           </Link>
         </div>
+
+        {/* L'app reste zéro friction : la découverte du produit se fait sur la
+            vitrine (voir .agents/site-vitrine.md), pas sur cet écran. */}
+        <a
+          href={marketingUrl("home")}
+          className="tiny muted"
+          style={{ textAlign: "center" }}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Découvrir valio
+        </a>
       </div>
     </div>
   );
