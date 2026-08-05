@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { setRedisClient } from "./redis.js";
 import { createFakeRedis } from "./testFakeRedis.js";
 import { createAccount, getAccountById } from "./accounts.js";
-import { WELCOME_CREDIT_AR } from "./exam.js";
+import { WELCOME_CREDIT_AR, PRICE_SMALL_AR } from "./exam.js";
+import { creditedAr } from "./wallet.js";
 import {
   initiateTopup,
   completeTransaction,
@@ -113,4 +114,29 @@ test("initiateTopup : txnExtra ne peut pas écraser les champs cœur de la trans
   assert.equal(txn.accountId, account.id, "accountId non écrasé");
   assert.equal(txn.status, "pending", "status non écrasé par txnExtra");
   assert.equal(txn.fxRateArPerEur, 5000, "les clés autorisées passent toujours");
+});
+
+test("initiateTopup : le bonus de volume est crédité en plus du montant payé", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "p@e.mg", password: "secret1" });
+  const res = await initiateTopup(account.id, 20000, "stub");
+
+  // Facturé : 20 000 Ar. Crédité : 20 000 + 2 examens offerts.
+  assert.equal(res.transaction.amountAr, 20000);
+  assert.equal(res.transaction.bonusAr, 2 * PRICE_SMALL_AR);
+  assert.equal(
+    (await getAccountById(account.id)).balanceAr,
+    WELCOME_CREDIT_AR + creditedAr(20000),
+  );
+});
+
+test("initiateTopup : sous le premier palier, aucun bonus", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "p@e.mg", password: "secret1" });
+  const res = await initiateTopup(account.id, 3000, "stub");
+  assert.equal(res.transaction.bonusAr, 0);
+  assert.equal(
+    (await getAccountById(account.id)).balanceAr,
+    WELCOME_CREDIT_AR + 3000,
+  );
 });

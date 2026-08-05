@@ -77,7 +77,7 @@ Séquence recommandée, de haut en bas :
    export PDF et code de vérification publique.
 5. **Fonctionne dans vos conditions réelles** — connexions modestes, smartphones bas de gamme,
    projection au vidéoprojecteur. Argument très fort localement, à ne pas enterrer.
-6. **Tarifs en résumé** — le tableau Libre / Examen (voir page dédiée) + « pas d'abonnement ».
+6. **Tarifs en résumé** — le tableau Entraînement / Examen (voir page dédiée) + « pas d'abonnement ».
 7. **FAQ** — reprend les objections documentées dans `product-marketing.md`
    (voir la section *Objections* : outil payant, connexion instable, triche sur les réponses
    libres, pas de compte = pas de suivi).
@@ -87,16 +87,31 @@ Séquence recommandée, de haut en bas :
 
 Deux colonnes, sans abonnement, prix affichés **en Ariary d'abord** (USD en secondaire) :
 
-| | **Libre** | **Examen** |
+| | **Entraînement** | **Examen** |
 |---|---|---|
 | Prix | **Gratuit à vie** | **1 000 Ar** / examen (≤ 20 participants) · **2 000 Ar** illimité |
 | Compte | Aucun | Requis |
-| Questions | QCM | QCM **+ réponses libres corrigées** |
+| Questions | QCM uniquement | QCM **+ réponses libres corrigées** |
 | Participants | ≤ 10 | ≤ 20 ou illimité |
 | Résultats | À l'écran | **Export PDF**, historique, classes, carnet de notes |
 
-Insister sur : **on ne paie qu'à l'usage, en fin de session**, et le mode Libre reste gratuit
-pour toujours. Expliquer le porte-monnaie (recharge de crédits) sans en faire un obstacle.
+> Le mode gratuit s'appelle **Entraînement**, pas « Libre » : « mode Libre » se confondait avec
+> les « réponses libres », qui sont justement la fonction réservée à l'Examen. (La valeur
+> stockée côté code reste `MODE_LIBRE = "libre"`.)
+
+Trois éléments à porter avec le prix, dans cet ordre :
+
+1. **La garantie** — « Débité uniquement si l'examen va au bout ; une session interrompue n'est
+   jamais facturée. » Ce n'est pas un argument ajouté : `rooms.js` ne règle la session que
+   lorsqu'elle atteint le statut `ended`. C'est la réponse directe à l'objection « et si ça
+   plante en pleine classe ? » — l'anxiété n°1 documentée dans `product-marketing.md`.
+2. **Le premier examen offert** à l'inscription (`WELCOME_CREDIT_AR`) : on essaie sans payer.
+3. **Des packs d'examens, pas des Ariary** — la recharge est présentée en nombre d'examens
+   (5 · 20 +2 offerts · 50 +8 offerts). Le bonus est réellement crédité, jamais une « valeur »
+   affichée à côté du prix.
+
+Insister sur : **pas d'abonnement**, on ne paie qu'à l'usage, et le mode Entraînement reste
+gratuit pour toujours.
 
 > Les montants sont pilotés côté app par `src/lib/exam.js` (`PRICE_SMALL_AR`,
 > `PRICE_UNLIMITED_AR`, `LIBRE_MAX`, `EXAMEN_SMALL_MAX`). **Garder les deux sources
@@ -195,7 +210,7 @@ Entonnoir à instrumenter de bout en bout, dans l'ordre de l'entonnoir AARRR :
 |---|---|---|
 | Visite vitrine | vitrine | sessions, source |
 | Clic CTA « Créer un quiz » | vitrine → app | taux de clic |
-| Premier quiz lancé (Libre) | app | **activation** |
+| Premier quiz lancé (Entraînement) | app | **activation** |
 | Création de compte | app | |
 | Premier examen payant | app | **conversion macro** |
 | Recharge de crédits | app | revenu |
@@ -210,7 +225,7 @@ Le lien participant → vitrine (`utm_source=app&utm_content=result`) mesure sp�
 
 - [ ] Le **rail de paiement** fonctionne (EIN → compte Mercury → Stripe ; mobile money malgache
       ensuite). **Tant que ce point est ouvert, ne pas afficher de promesse d'achat immédiat** :
-      la vitrine peut vendre le mode Libre et collecter des inscriptions, pas encaisser.
+      la vitrine peut vendre le mode Entraînement et collecter des inscriptions, pas encaisser.
       Voir `TODO.md` et `src/lib/payments.js`.
 - [ ] Les prix affichés correspondent à `src/lib/exam.js`.
 - [ ] Captures d'écran à jour (lobby, podium, écran de correction, carnet de notes).

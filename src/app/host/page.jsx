@@ -244,9 +244,12 @@ export default function HostPage() {
                   <span className="choice-card__icon" aria-hidden="true">
                     <Icon name="zap" size={19} />
                   </span>
-                  <span className="choice-card__title">Libre</span>
+                  {/* Libellé « Entraînement » : « Libre » se confondait avec
+                      les « réponses libres », qui sont réservées à l'Examen.
+                      La valeur stockée reste MODE_LIBRE = "libre". */}
+                  <span className="choice-card__title">Entraînement</span>
                   <span className="choice-card__desc">
-                    Gratuit, sans compte · ≤ 10 participants · QCM
+                    Gratuit, sans compte · ≤ 10 participants · QCM uniquement
                   </span>
                 </button>
                 <button
@@ -306,9 +309,12 @@ export default function HostPage() {
                       </span>
                     </button>
                   </div>
+                  {/* La garantie n'est pas un argument commercial ajouté : le
+                      débit n'a lieu qu'à la clôture (voir rooms.js, settle). */}
                   <p className="hint">
-                    <Icon name="wallet" size={14} />
-                    Débité en fin de session (paiement à venir).
+                    <Icon name="shieldCheck" size={14} />
+                    Débité uniquement si l&apos;examen va au bout — session
+                    interrompue, rien à payer.
                   </p>
                   {classes.length > 0 && (
                     <div data-tour="class-select">
@@ -361,7 +367,7 @@ export default function HostPage() {
                             className="btn btn--ghost btn--compact"
                             onClick={() => setMode("libre")}
                           >
-                            Passer en mode Libre (gratuit)
+                            Passer en mode Entraînement (gratuit)
                           </button>
                         </div>
                       </div>

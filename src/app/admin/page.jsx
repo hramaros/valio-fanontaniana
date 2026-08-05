@@ -159,7 +159,7 @@ export default function AdminDashboard() {
               </div>
               <ProportionBar
                 segments={[
-                  { label: "Libre (gratuit)", value: u.funnel.libre, muted: true },
+                  { label: "Entraînement (gratuit)", value: u.funnel.libre, muted: true },
                   { label: "Examen (payant)", value: u.funnel.examen, color: "var(--accent)" },
                 ]}
               />

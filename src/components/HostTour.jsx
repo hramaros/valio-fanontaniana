@@ -55,9 +55,9 @@ const SCRIPT = [
     // carte ne ferait que le relire. Une seule étape sur le conteneur.
     element: '[data-tour="mode"]',
     popover: {
-      title: "Libre ou Examen",
+      title: "Entraînement ou Examen",
       description:
-        "Libre : gratuit, pour tester tout de suite. Examen : noté, avec export PDF et historique — dès 1 000 Ar, débités en fin de session.",
+        "Entraînement : gratuit, QCM, pour tester tout de suite. Examen : noté, avec réponses libres, export PDF et historique — dès 1 000 Ar, débités uniquement si l'examen va au bout.",
       side: "right",
       align: "center",
     },

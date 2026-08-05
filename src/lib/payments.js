@@ -2,6 +2,7 @@ import { getRedis } from "./redis.js";
 import { generateId } from "./code.js";
 import { credit } from "./accounts.js";
 import { indexTxn } from "./indexes.js";
+import { topupBonusAr } from "./wallet.js";
 
 // Abstraction de paiement PROVIDER-AGNOSTIQUE.
 // Une recharge = une transaction (pending → completed/failed). Le crédit du
@@ -72,7 +73,11 @@ export async function initiateTopup(accountId, amountAr, providerName = "stub", 
   const txn = {
     id: generateId("txn"),
     accountId,
+    // `amountAr` est ce qui est FACTURÉ (le provider s'en sert pour le montant
+    // à encaisser) ; `bonusAr` est offert en plus et n'est crédité qu'à la
+    // complétion. Séparer les deux évite de facturer le bonus par accident.
     amountAr: amount,
+    bonusAr: topupBonusAr(amount),
     provider: providerName,
     providerRef: null,
     status: TXN_PENDING,
@@ -115,7 +120,9 @@ export async function completeTransaction(id) {
   if (txn.status === TXN_COMPLETED)
     return { ok: true, transaction: txn, alreadyCompleted: true };
 
-  const res = await credit(txn.accountId, txn.amountAr);
+  // Crédit = payé + bonus de volume. `|| 0` : les transactions créées avant
+  // l'introduction du bonus n'ont pas le champ.
+  const res = await credit(txn.accountId, txn.amountAr + (txn.bonusAr || 0));
   txn.status = TXN_COMPLETED;
   txn.completedAt = Date.now();
   await saveTxn(txn);

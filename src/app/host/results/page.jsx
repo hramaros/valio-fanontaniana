@@ -269,7 +269,8 @@ function HostResultsInner() {
             {board.priceAr} Ar
           </div>
           <span className="tiny muted">
-            Débit en fin de session — paiement à venir (non débité)
+            Débité parce que l&apos;examen est allé au bout — une session
+            interrompue n&apos;est jamais facturée.
           </span>
         </div>
       )}

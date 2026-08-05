@@ -50,6 +50,11 @@ export default function RechargeModal({
         </div>
       </div>
 
+      <p className="hint" style={{ justifyContent: "center" }}>
+        <Icon name="shieldCheck" size={14} />
+        Débité uniquement si l&apos;examen va au bout.
+      </p>
+
       {libreError && <div className="error" role="alert">{libreError}</div>}
 
       {enough ? (
@@ -73,7 +78,7 @@ export default function RechargeModal({
               onClick={onSwitchLibre}
               disabled={busyRetry}
             >
-              <Icon name="play" size={15} /> Lancer en mode Libre (gratuit)
+              <Icon name="play" size={15} /> Lancer en mode Entraînement (gratuit)
             </button>
           )}
         </>

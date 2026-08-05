@@ -6,8 +6,13 @@ import Icon from "@/components/Icon";
 import EmptyState from "@/components/EmptyState";
 import { apiGet, apiPost } from "@/lib/api";
 import { useAccount } from "@/lib/account-client";
+import {
+  TOPUP_PACKS,
+  topupBonusAr,
+  creditedAr,
+  examsAffordable,
+} from "@/lib/wallet";
 
-const PRESETS = [5000, 20000, 50000];
 const MIN_AR = 1; // garde-fou basique ; le vrai plancher (taux Stripe/EUR en direct) vient du serveur
 
 const STATUS_LABEL = {
@@ -78,6 +83,7 @@ function WalletInner() {
   }, [checkout, refresh]);
 
   const selected = custom ? Math.round(Number(custom) || 0) : amount;
+  const bonusExams = examsAffordable(topupBonusAr(selected));
 
   async function recharge() {
     setError("");
@@ -115,6 +121,10 @@ function WalletInner() {
         <h1 style={{ fontSize: "2rem" }}>
           Solde : <span className="money">{account.balanceAr} Ar</span>
         </h1>
+        <span className="muted tiny">
+          {examsAffordable(account.balanceAr)} examen
+          {examsAffordable(account.balanceAr) > 1 ? "s" : ""} (≤ 20 participants)
+        </span>
       </div>
 
       {checkout === "success" && (
@@ -135,18 +145,34 @@ function WalletInner() {
 
       <div className="card stack gap-16">
         <span className="eyebrow">Recharger</span>
-        <div className="chips" role="group" aria-label="Montants proposés">
-          {PRESETS.map((p) => (
+        {/* On vend des EXAMENS, pas des Ariary : le formateur ne doit pas avoir
+            à diviser pour savoir ce qu'il achète. Le bonus est réellement
+            crédité en plus (voir topupBonusAr / creditedAr). */}
+        <div className="choice-cards" role="group" aria-label="Packs d'examens">
+          {TOPUP_PACKS.map((p) => (
             <button
-              key={p}
+              key={p.amountAr}
               type="button"
-              className={`chip${!custom && amount === p ? " chip--on" : ""}`}
+              className={`choice-card choice-card--sm${
+                !custom && amount === p.amountAr ? " choice-card--on" : ""
+              }`}
+              aria-pressed={!custom && amount === p.amountAr}
               onClick={() => {
-                setAmount(p);
+                setAmount(p.amountAr);
                 setCustom("");
               }}
             >
-              {p.toLocaleString("fr-FR")} Ar
+              <span>
+                <span className="choice-card__title">
+                  {p.exams + p.bonusExams} examens
+                </span>
+                <span className="choice-card__desc" style={{ display: "block" }}>
+                  <span className="money">
+                    {p.amountAr.toLocaleString("fr-FR")} Ar
+                  </span>
+                  {p.bonusExams > 0 && ` · ${p.bonusExams} offerts`}
+                </span>
+              </span>
             </button>
           ))}
         </div>
@@ -175,10 +201,21 @@ function WalletInner() {
           ) : (
             <>
               <Icon name="creditCard" size={17} />
-              {`Recharger ${selected >= MIN_AR ? selected.toLocaleString("fr-FR") + " Ar" : ""}`}
+              {`Payer ${selected >= MIN_AR ? selected.toLocaleString("fr-FR") + " Ar" : ""}`}
             </>
           )}
         </button>
+        {selected >= MIN_AR && topupBonusAr(selected) > 0 && (
+          <p className="hint" style={{ justifyContent: "center" }}>
+            <Icon name="sparkles" size={14} />
+            Crédité :{" "}
+            <span className="money">
+              {creditedAr(selected).toLocaleString("fr-FR")} Ar
+            </span>{" "}
+            — dont {bonusExams} examen{bonusExams > 1 ? "s" : ""} offert
+            {bonusExams > 1 ? "s" : ""}
+          </p>
+        )}
         <p className="hint" style={{ justifyContent: "center" }}>
           <Icon name="lock" size={14} />
           Paiement sécurisé via Stripe (facturé en euros au taux du jour).
