@@ -16,7 +16,20 @@ validation terrain).
 - **Gratuit, sans compte** : quiz QCM (choix simple/multiple) en live, score + note /20 + classement à l'écran, **éphémère** (sans export ni persistance), **limité à 10 participants par salle**.
 - **Pro, sur compte + crédits** : réponse libre, export PDF, persistance, logs d'examens, salles de classe, dashboard analytique.
 - **Mode au choix à la création** : **Libre** (gratuit, sans compte, **≤ 10 participants**) ou **Examen** (pro). Le mode Examen débloque la réponse libre, fixe la **capacité** via un toggle (≤ 20 / illimité), et son **solde est débité en fin de session** (fin du chrono ou bouton « Terminer l'examen »). Le mode Libre ne consomme rien.
-- **PAYG** : recharge d'un **porte-monnaie en Ariary** (**top-up min 5 $ ≈ 22 500 Ar**).
+- **PAYG** : recharge d'un **porte-monnaie en Ariary**. Le plancher de recharge est
+  **dynamique** : `max(500 Ar, 0,50 € convertis au taux du jour)` — soit **≈ 2 400 Ar** au taux
+  de repli (4 800 Ar/€), recalculé à chaque demande (`api/wallet/topup/route.js`, `fxRate.js`).
+  Il vient de la **commission plancher de Stripe (~0,50 €)**, pas d'une règle commerciale.
+  *(Corrigé le 2026-08-05 : la valeur « min 5 $ ≈ 22 500 Ar » précédemment inscrite ici était
+  fausse d'un facteur 10 et n'a jamais existé dans le code.)*
+- **Packs de recharge** exprimés en examens, pas en Ariary : **5** · **20 (+2 offerts)** ·
+  **50 (+8 offerts)**. Le bonus de volume est réellement crédité (`bonusAr` distinct du montant
+  facturé, voir `payments.js` / `wallet.js`).
+- **Premier examen offert à l'inscription** (`WELCOME_CREDIT_AR` = 1 examen) : le formateur
+  vit la valeur complète avant qu'on lui parle d'argent.
+- **Garantie** : le débit n'a lieu que si la session atteint le statut `ended` — **une session
+  interrompue n'est jamais facturée** (`rooms.js`). Réponse directe à l'objection « et si ça
+  plante en pleine classe ? ».
 - **Prix par examen pro (selon la taille)** : **1 000 Ar (~0,22 $)** jusqu'à **20 participants** ; **2 000 Ar (~0,45 $)** pour un **nombre illimité** de participants.
 - **Paiement** : mobile money (MVola / Orange Money / Airtel Money) **+** carte (Stripe / PayPal). Affichage **bi-devise** (MGA / USD selon la localisation).
 - Levier de coût : infra quasi gratuite (serverless + Redis) → prix accessible.

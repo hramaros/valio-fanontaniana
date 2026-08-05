@@ -131,8 +131,12 @@ Le PAYG à l'unité plafonne l'ARPU. Deux leviers **additifs**, pas substitutifs
   enseignants : ticket 10 à 50× supérieur, et déplacement du curseur du B2C micro vers le
   B2B2C. C'est la voie la plus rapide pour redresser **les critères 2, 3 et 9 d'un coup**.
   Déjà pressenti dans le brief (`[À CONFIRMER offre établissement]`) → instrumenté par **Q22**.
-- **Packs de crédits prépayés** avec léger avantage volume (le top-up minimum ~22 500 Ar
-  l'amorce déjà) → augmente la valeur par transaction et lisse l'acquisition.
+- **Packs de crédits prépayés** avec léger avantage volume → augmente la valeur par
+  transaction et lisse l'acquisition. **Livré le 2026-08-05** : paliers libellés en examens
+  (5 · 20 +2 offerts · 50 +8 offerts), bonus réellement crédité.
+  *(Cette ligne citait auparavant un « top-up minimum ~22 500 Ar » repris d'une erreur du
+  brief ; le plancher réel est d'environ 2 400 Ar, imposé par la commission plancher de
+  Stripe.)*
 
 ### C · Élargir la TAILLE utile (5 → 7) — expansion francophone séquencée
 
