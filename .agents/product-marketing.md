@@ -4,8 +4,10 @@
 *Statut : V1 auto-rédigée à partir du code. Les `[À CONFIRMER]` attendent ta validation.*
 
 **Documents liés :** [`evaluation-marche.md`](./evaluation-marche.md) (grille Personal MBA,
-62/100) · [`sondage-validation-besoin.md`](./sondage-validation-besoin.md) (instrument de
-validation terrain).
+62/100) · [`sondage-validation-besoin.md`](./sondage-validation-besoin.md) (validation terrain,
+côté **formateur** = utilisateur) · [`sondage-etablissements.md`](./sondage-etablissements.md)
+(validation terrain, côté **établissement** = acheteur) ·
+[`site-vitrine.md`](./site-vitrine.md).
 
 ## Product Overview
 **One-liner :** Le quiz en direct façon Kahoot — mais qui produit une **vraie note /20** et accepte les **réponses libres** corrigées par le formateur.
@@ -64,7 +66,17 @@ paie un accès pour N enseignants : ticket 10 à 50× supérieur au PAYG unitair
 du curseur du B2C micro vers le B2B2C. C'est le levier le plus rapide pour desserrer le
 **plafond de prix** — la note la plus basse de [`evaluation-marche.md`](./evaluation-marche.md)
 (3/10) — et il redresse simultanément la taille de marché utile et le potentiel d'upsell.
-Statut : **non validée**, instrumentée par la **Q33** du sondage (« qui devrait payer ? »).
+Statut : **non validée**. Deux instruments la testent, depuis les deux côtés :
+- côté formateur, la **Q33** du [sondage formateurs](./sondage-validation-besoin.md)
+  (« qui devrait payer ? ») ;
+- côté acheteur, le [**sondage établissements**](./sondage-etablissements.md) tout entier —
+  dont la **Q20** (« la structure porterait-elle le sujet, ou le laisse-t-elle à chacun ? »)
+  suffit à elle seule à faire tomber l'hypothèse.
+
+⚠️ Ce sondage teste aussi l'**anti-persona** décrit plus bas : si les établissements
+demandent surtout des bulletins, des emplois du temps et du suivi d'absences, ils attendent un
+logiciel de gestion scolaire — et la bonne décision est de **renoncer au segment**, pas
+d'élargir le périmètre.
 
 ## Problems & Pain Points
 **Core problem :** Les quiz live existants **engagent mais ne notent pas** vraiment (pas de /20, QCM uniquement) ; les outils d'évaluation classiques **notent mais n'engagent pas** ; et beaucoup sont chers ou pensés pour un contexte anglophone/US.

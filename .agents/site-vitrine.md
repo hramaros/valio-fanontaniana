@@ -130,8 +130,10 @@ Page destinée au responsable pédagogique / RH : équiper N enseignants, cohér
 évaluations, budget maîtrisé. C'est le levier le plus puissant sur le **plafond de prix**
 (3/10 dans l'évaluation).
 
-> **Ne pas construire cette page — ni la fonctionnalité — avant que la Q33 du sondage ne
-> confirme l'appétit.** Côté app, aucune notion d'organisation n'existe aujourd'hui
+> **Ne pas construire cette page — ni la fonctionnalité — avant que le
+> [sondage établissements](./sondage-etablissements.md) ne confirme l'appétit** (sa Q20 en
+> particulier : la structure porterait-elle le sujet, ou le laisse-t-elle à chaque
+> enseignant ?). Côté app, aucune notion d'organisation n'existe aujourd'hui
 > (`src/lib/accounts.js` n'a ni équipe, ni rôle partagé, ni solde commun) : c'est un vrai
 > chantier de modèle de données. En attendant, un simple formulaire « Vous êtes un
 > établissement ? Parlons-en » suffit à mesurer la demande sans rien construire.

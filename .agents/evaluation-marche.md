@@ -130,7 +130,9 @@ Le PAYG à l'unité plafonne l'ARPU. Deux leviers **additifs**, pas substitutifs
 - **Offre établissement / pack multi-formateurs** — un responsable pédagogique paie pour N
   enseignants : ticket 10 à 50× supérieur, et déplacement du curseur du B2C micro vers le
   B2B2C. C'est la voie la plus rapide pour redresser **les critères 2, 3 et 9 d'un coup**.
-  Déjà pressenti dans le brief (`[À CONFIRMER offre établissement]`) → instrumenté par **Q33**.
+  Déjà pressenti dans le brief (`[À CONFIRMER offre établissement]`) → instrumenté par la **Q33**
+  du sondage formateurs et surtout par le [**sondage établissements**](./sondage-etablissements.md),
+  conçu pour pouvoir faire tomber cette hypothèse avant qu'on ne la construise.
 - **Packs de crédits prépayés** avec léger avantage volume → augmente la valeur par
   transaction et lisse l'acquisition. **Livré le 2026-08-05** : paliers libellés en examens
   (5 · 20 +2 offerts · 50 +8 offerts), bonus réellement crédité.
