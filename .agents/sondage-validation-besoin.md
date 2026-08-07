@@ -47,7 +47,39 @@ formulaire est probablement la Q39 : recruter des gens à qui parler.
 
 Corollaire assumé : ce questionnaire est **long** (~12 min complet, ~6 min en ne remplissant
 que les questions obligatoires). Les champs libres font chuter le taux de complétion — c'est
-le prix du vocabulaire client. D'où la règle : **24 questions obligatoires, 16 facultatives.**
+le prix du vocabulaire client. D'où la règle : **26 questions obligatoires, 16 facultatives.**
+
+## Formulaire nominatif — ce que ça coûte, et comment on limite la casse
+
+Ce sondage **n'est pas anonyme** : l'e-mail est obligatoire (Q40), la réponse est donc
+identifiable, et le formulaire sert aussi à **constituer une base de contacts**.
+
+C'est un choix assumé, mais il a un prix : **les gens répondent moins franchement quand ils
+sont identifiés.** Les questions touchées ici sont précisément les plus utiles —
+
+| Question | Ce qui se dégrade sous identité |
+|---|---|
+| Q11 « ce qui vous a le plus agacé » | On critique moins son propre établissement à visage découvert |
+| Q13 « ce qui vous a empêché » | Admettre qu'on n'utilise aucun outil devient gênant |
+| Q26 « en parleriez-vous à un collègue ? » | Réponse socialement désirable, sur-déclarée |
+| Q28-Q29 budget et prix | On sous-déclare ou on esquive |
+
+**Quatre garde-fous pour compenser :**
+
+1. Ces questions restent **facultatives** et le formulaire le dit — un champ vide est un
+   signal, une réponse polie n'en est pas un.
+2. La description annonce **explicitement** ce qui est collecté et à quoi ça sert. Un
+   répondant qui sait pourquoi on lui demande son e-mail répond mieux qu'un répondant qui le
+   découvre à la fin.
+3. Le **consentement e-mail est séparé** de la réponse au sondage (Q42). Sans cette
+   séparation, la base de contacts n'est pas une base opt-in — elle est juste une liste.
+4. À l'analyse, **traiter les verbatims comme prudents par nature** : ce qui est dit
+   négativement sous identité est probablement en dessous de la réalité, pas au-dessus.
+
+> **Cohérence de marque à surveiller.** Le produit se vend sur « aucune inscription, données
+> minimales » (`product-marketing.md`). Un formulaire qui exige une identité pour un simple
+> avis entre en tension avec ce discours. La contrepartie doit être visible : dire à quoi sert
+> l'e-mail, et s'y tenir.
 
 ---
 
@@ -61,8 +93,15 @@ le prix du vocabulaire client. D'où la règle : **24 questions obligatoires, 16
 > Vos réponses peuvent nous faire changer complètement de direction.
 >
 > Comptez **10 à 12 minutes**, ou 6 si vous ne remplissez que les questions obligatoires.
-> C'est **anonyme**, et il n'y a pas de bonne réponse : dites-nous ce qui se passe vraiment
-> chez vous, y compris si tout va bien.
+> Il n'y a pas de bonne réponse : dites-nous ce qui se passe vraiment chez vous, y compris si
+> tout va bien.
+>
+> **Ce que nous vous demandons et pourquoi.** Ce questionnaire n'est pas anonyme : nous vous
+> demandons votre e-mail pour pouvoir revenir vers vous, vous donner accès à l'outil en
+> avant-première et vous dire ce que vos réponses ont changé. Vos réponses ne sont **ni
+> publiées, ni transmises à un tiers**, et votre nom n'apparaîtra jamais à côté d'un
+> commentaire. Vous pouvez laisser vide toute question qui vous met mal à l'aise — un champ
+> vide nous est plus utile qu'une réponse de politesse.
 
 ---
 
@@ -319,7 +358,22 @@ n'est jamais facturée. » Est-ce que cela change quelque chose pour vous ?**
 - Oui · Peut-être · Non
 > *Probablement la question la plus rentable du formulaire (voir l'avertissement de méthode).*
 
-**Q40. Votre email, si vous êtes d'accord pour qu'on vous recontacte** *(réponse courte — facultatif)*
+**Q40. Votre e-mail** *(réponse courte — **obligatoire**, validation « adresse e-mail »)*
+> *Nous vous écrirons pour vous dire ce que vos réponses ont changé, et pour vous donner accès
+> à l'outil en avant-première.*
+
+**Q41. Votre prénom** *(réponse courte — facultatif)*
+> *Facultatif à dessein : un e-mail suffit à recontacter, un prénom ne sert qu'à écrire
+> correctement. L'exiger ajouterait de la friction sans rien apporter.*
+
+**Q42. Souhaitez-vous recevoir nos actualités (avancement du projet, ouverture des tests) ?**
+*(choix unique — obligatoire)*
+- Oui
+- Non, contactez-moi uniquement au sujet de ce questionnaire
+> ⚠️ **Consentement séparé, et non pré-coché.** C'est ce qui distingue une base opt-in d'une
+> simple liste d'adresses. Un « non » ici **n'annule pas** la réponse au sondage : il interdit
+> seulement l'usage marketing de l'adresse. Respecter ce choix n'est pas une option — c'est ce
+> qui rend la base exploitable dans la durée.
 
 ---
 
@@ -328,10 +382,15 @@ n'est jamais facturée. » Est-ce que cela change quelque chose pour vous ?**
 - **6 sections** natives — lisibilité sur smartphone modeste, contexte fréquent de la cible.
 - **Aucune capture d'écran nulle part**, en particulier en Section 4. C'est la règle qui rend
   une refonte encore possible.
-- **Ne pas** activer la collecte automatique de l'e-mail Google (Q40 suffit, opt-in explicite).
-- **Obligatoires (24)** : Q1-Q10, Q12, Q14, Q16, Q18, Q21, Q23, Q26, Q27, Q30, Q32, Q33, Q34,
-  Q36, Q39. Tout le reste est facultatif.
-- Branchement : Q39 = « Non » → sauter la Q40.
+- **Ne pas** activer la collecte automatique de l'e-mail Google : elle ne fonctionne qu'avec un
+  compte Google connecté et exclurait une partie de la cible. La Q40 la remplace et couvre tout
+  le monde.
+- **Obligatoires (26)** : Q1-Q10, Q12, Q14, Q16, Q18, Q21, Q23, Q26, Q27, Q30, Q32, Q33, Q34,
+  Q36, Q39, Q40, Q42. Tout le reste est facultatif.
+- **Aucun branchement sur la Q40** : l'e-mail est demandé à tout le monde, y compris à ceux qui
+  refusent l'entretien (Q39) ou les actualités (Q42). Ce sont trois consentements distincts.
+- Activer la **validation « adresse e-mail »** sur la Q40 — sans elle, la base se remplit de
+  saisies fautives et devient inutilisable.
 - Barre de progression activée (le formulaire est long, il faut montrer la fin).
 
 ---

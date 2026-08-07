@@ -4,10 +4,21 @@
 *Statut : V1 auto-rédigée à partir du code. Les `[À CONFIRMER]` attendent ta validation.*
 
 **Documents liés :** [`evaluation-marche.md`](./evaluation-marche.md) (grille Personal MBA,
-62/100) · [`sondage-validation-besoin.md`](./sondage-validation-besoin.md) (validation terrain,
-côté **formateur** = utilisateur) · [`sondage-etablissements.md`](./sondage-etablissements.md)
-(validation terrain, côté **établissement** = acheteur) ·
-[`site-vitrine.md`](./site-vitrine.md).
+62/100) · [`site-vitrine.md`](./site-vitrine.md).
+
+**Dispositif de recherche terrain — trois publics, trois questionnaires**, délibérément
+séparés : leurs douleurs, leur vocabulaire et leurs critères n'ont rien de commun, et les
+fusionner produirait des moyennes vraies pour personne.
+
+| Questionnaire | Public | Ce qu'il tranche |
+|---|---|---|
+| [`sondage-validation-besoin.md`](./sondage-validation-besoin.md) | **Formateur** — utilisateur et payeur | Le besoin, le parcours, l'offre individuelle |
+| [`sondage-etablissements.md`](./sondage-etablissements.md) | **Établissement** — acheteur qui n'utilise pas | L'offre établissement, et l'anti-persona |
+| [`sondage-parents.md`](./sondage-parents.md) | **Parent** — ni utilisateur ni acheteur | La fiche vérifiable, le risque « données de l'enfant », la prescription |
+
+Les trois sont **nominatifs** (e-mail obligatoire, consentement marketing séparé) et alimentent
+la base de contacts. Chacun documente ce que cette identification coûte en franchise sur ses
+questions sensibles, et les garde-fous retenus.
 
 ## Product Overview
 **One-liner :** Le quiz en direct façon Kahoot — mais qui produit une **vraie note /20** et accepte les **réponses libres** corrigées par le formateur.
