@@ -16,9 +16,10 @@ fusionner produirait des moyennes vraies pour personne.
 | [`sondage-etablissements.md`](./sondage-etablissements.md) | **Établissement** — acheteur qui n'utilise pas | L'offre établissement, et l'anti-persona |
 | [`sondage-parents.md`](./sondage-parents.md) | **Parent** — ni utilisateur ni acheteur | La fiche vérifiable, le risque « données de l'enfant », la prescription |
 
-Les trois sont **nominatifs** (e-mail obligatoire, consentement marketing séparé) et alimentent
-la base de contacts. Chacun documente ce que cette identification coûte en franchise sur ses
-questions sensibles, et les garde-fous retenus.
+Les trois demandent **l'e-mail, et rien d'autre** — ni nom, ni établissement, ni téléphone — et
+alimentent la base de contacts. La finalité est écrite dans l'intitulé de la question, ce qui
+évite une case de consentement séparée. Chacun signale ce que l'identification coûte en
+franchise sur ses questions sensibles, laissées facultatives pour cette raison.
 
 ## Product Overview
 **One-liner :** Le quiz en direct façon Kahoot — mais qui produit une **vraie note /20** et accepte les **réponses libres** corrigées par le formateur.

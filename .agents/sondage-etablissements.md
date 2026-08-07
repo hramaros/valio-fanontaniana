@@ -51,37 +51,31 @@ responsable pédagogique vaut mieux que son formulaire — la Q30 est là pour �
 direction produit une donnée fausse : la Q6 mesure son pouvoir réel d'engager une dépense, et
 l'analyse doit écarter ceux qui n'en ont aucun.
 
-Durée : ~9 min. **26 questions obligatoires, 8 facultatives.**
+Durée : ~9 min. **23 questions obligatoires, 8 facultatives.**
 
-## Formulaire nominatif — le coût est plus élevé ici
+## Une seule donnée collectée : l'e-mail
 
-Ce sondage **n'est pas anonyme** : e-mail obligatoire (Q32), et le nom de la structure est
-demandé (Q33). Il alimente aussi la **base de contacts**.
+Ce sondage **n'est pas anonyme** : l'e-mail est demandé (Q31) pour pouvoir recontacter les
+structures et leur proposer un essai. **C'est la seule donnée personnelle collectée** — ni nom,
+ni fonction, ni nom d'établissement.
 
-Ce choix coûte plus cher côté établissement que côté formateur, parce que les questions qui
-comptent portent sur des sujets qu'on n'expose pas volontiers sous le nom de son école :
+Le coût est plus élevé ici que côté formateur : les questions qui comptent portent sur des
+sujets qu'on n'expose pas volontiers depuis une adresse professionnelle identifiable — Q10
+(dernier incident), Q14 (budget), Q17 (achat échoué). Elles restent donc **facultatives**, la
+Q14 conserve son « je préfère ne pas répondre », et le formulaire promet d'emblée que rien
+n'est publié ni transmis.
 
-| Question | Ce qui se dégrade sous identité |
-|---|---|
-| Q10 « dernier incident » | Personne ne raconte une contestation de note au nom de son établissement |
-| Q14 budget annuel | Le budget est une information stratégique — la non-réponse va augmenter |
-| Q17 « un achat a-t-il échoué ? » | Revient à documenter un échec interne, signé |
-| Q8 « règle commune peu appliquée » | Aveu d'un défaut d'organisation |
+Deux points d'analyse qui en découlent :
 
-**Compensations retenues :**
+- **La non-réponse à la Q14 est une donnée.** Un fort taux de « préfère ne pas répondre »
+  signale une réticence à parler budget, pas une absence de budget. Ne pas confondre.
+- **Le domaine de l'adresse identifie souvent la structure** (`@nom-du-lycee.mg`) : cela suffit
+  généralement à dédoublonner et à préparer une relance, sans avoir eu à demander le nom de
+  l'établissement.
 
-1. Ces quatre questions restent **facultatives**, et l'option « je préfère ne pas répondre »
-   existe sur la Q14.
-2. Le formulaire annonce d'emblée que **rien n'est publié ni transmis**, et qu'aucun nom
-   d'établissement ne sera cité — c'est la condition minimale pour obtenir la Q10.
-3. Le **consentement marketing est séparé** (Q34) de la réponse et de l'accord d'entretien.
-4. À l'analyse : **la non-réponse à la Q14 est elle-même une donnée.** Un taux élevé de
-   « préfère ne pas répondre » indique une réticence à parler budget, pas une absence de
-   budget — ne pas confondre les deux.
-
-> **Contrepartie à honorer.** Sur ce segment, la relance nominative *est* l'intérêt du
-> nominatif : un responsable qui a répondu et qu'on rappelle deux semaines plus tard avec une
-> proposition de pilote, c'est le cycle de vente réel. Encore faut-il rappeler.
+> **Contrepartie à honorer.** Sur ce segment, l'intérêt du nominatif *est* la relance : un
+> responsable qu'on rappelle deux semaines plus tard avec une proposition de pilote, c'est le
+> cycle de vente réel. Encore faut-il rappeler.
 
 ---
 
@@ -97,10 +91,10 @@ comptent portent sur des sujets qu'on n'expose pas volontiers sous le nom de son
 > Comptez **9 minutes**. Il n'y a pas de bonne réponse : décrivez ce qui se passe réellement
 > chez vous.
 >
-> **Ce que nous vous demandons et pourquoi.** Nous vous demandons votre e-mail et le nom de
-> votre structure afin de pouvoir vous recontacter, vous proposer un essai et vous dire ce que
-> vos réponses ont changé. **Rien n'est publié, rien n'est transmis à un tiers, et aucun nom
-> d'établissement ne sera cité nulle part.** Les questions sensibles — incidents, budget — sont
+> **Ce que nous vous demandons et pourquoi.** Nous vous demandons **uniquement votre e-mail**,
+> afin de pouvoir vous recontacter, vous proposer un essai et vous dire ce que vos réponses ont
+> changé — ni votre nom, ni celui de votre établissement. **Rien n'est publié ni transmis à un
+> tiers.** Les questions sensibles — incidents, budget — sont
 > facultatives : laissez-les vides si vous préférez, c'est plus utile qu'une réponse
 > approximative.
 
@@ -337,25 +331,10 @@ enseignant ?** *(choix unique — obligatoire)*
 - Oui · Peut-être · Non
 > *Le meilleur rendement du formulaire sur ce segment.*
 
-**Q31. Votre nom et votre fonction** *(réponse courte — obligatoire)*
-> *Contrairement au sondage formateurs, le nom est ici **obligatoire** : en B2B, on ne
-> recontacte pas une adresse, on rappelle une personne identifiée dans une organisation.*
-
-**Q32. Votre e-mail** *(réponse courte — **obligatoire**, validation « adresse e-mail »)*
-
-**Q33. Le nom de votre structure** *(réponse courte — obligatoire)*
-> *Permet de dédoublonner (plusieurs réponses d'un même établissement), de rapprocher un
-> décideur de ses enseignants s'ils ont répondu à l'autre sondage, et de préparer une
-> proposition de pilote ciblée. **Ne jamais le citer ailleurs** — c'est la promesse faite en
-> tête de formulaire.*
-
-**Q34. Souhaitez-vous recevoir nos actualités (avancement du projet, ouverture des essais) ?**
-*(choix unique — obligatoire)*
-- Oui
-- Non, contactez-moi uniquement au sujet de ce questionnaire
-> ⚠️ **Consentement séparé, non pré-coché**, et distinct de l'accord d'entretien (Q30). Trois
-> consentements différents : répondre, être rappelé pour un entretien, recevoir des actualités.
-> Les confondre rendrait la base inexploitable dans la durée.
+**Q31. Votre e-mail** *(réponse courte — **obligatoire**, validation « adresse e-mail »)*
+> *Intitulé à afficher tel quel : « Votre e-mail — pour vous recontacter et, si vous le
+> souhaitez, vous proposer un essai. » Seule donnée personnelle demandée : ni nom, ni fonction,
+> ni nom de structure.*
 
 ---
 
@@ -364,10 +343,10 @@ enseignant ?** *(choix unique — obligatoire)*
 - **6 sections** natives.
 - **Aucune capture d'écran**, en particulier en Section 4 — le concept doit rester discutable,
   et la « vue établissement » qu'il décrit n'existe pas.
-- **Obligatoires (26)** : Q1-Q9, Q11-Q14, Q16, Q18, Q20-Q22, Q24, Q26, Q27, Q30-Q34.
-- **Aucun branchement sur les Q31-Q33** : identité, e-mail et structure sont demandés à tous,
-  y compris à ceux qui refusent l'entretien (Q30) ou les actualités (Q34).
-- Activer la **validation « adresse e-mail »** sur la Q32.
+- **Obligatoires (23)** : Q1-Q9, Q11-Q14, Q16, Q18, Q20-Q22, Q24, Q26, Q27, Q30, Q31.
+- **Aucun branchement sur la Q31** : l'e-mail est demandé à tous, y compris à ceux qui
+  déclinent l'entretien (Q30).
+- Activer la **validation « adresse e-mail »** sur la Q31.
 - Laisser les Q10, Q14, Q17 **facultatives** : ce sont les questions que l'identité fragilise
   (voir plus haut). Les rendre obligatoires ferait fuir les réponses, pas apparaître la vérité.
 - Barre de progression activée.

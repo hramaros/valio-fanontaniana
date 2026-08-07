@@ -53,18 +53,20 @@ familles — l'écrire noir sur blanc dans toute conclusion.
 
 Durée : **~6 min**. Volontairement plus court que les deux autres : ce n'est pas un public
 professionnel, et il ne remplit pas ce formulaire dans le cadre de son travail.
-**21 questions obligatoires, 7 facultatives.**
+**20 questions obligatoires, 7 facultatives.**
 
-## Formulaire nominatif
+## Une seule donnée collectée : l'e-mail
 
-Ce sondage **n'est pas anonyme** : e-mail obligatoire (Q26), avec consentement séparé (Q27).
-Le coût est ici plus faible que sur les autres publics — un parent n'a pas de secret
-professionnel à protéger. Une exception : **la Q10** (avoir contesté une note) touche à une
-relation avec un établissement identifiable, et reste donc facultative.
+Ce sondage **n'est pas anonyme** : l'e-mail est demandé (Q26) pour pouvoir recontacter les
+répondants. **C'est la seule donnée personnelle collectée.**
 
-**Ne jamais demander le nom de l'enfant ni celui de son école.** Cela n'apporterait rien à
-l'analyse et créerait une donnée sensible à protéger — sur un questionnaire qui interroge
-justement les familles sur la protection des données de leurs enfants.
+**Ne jamais demander le nom de l'enfant, sa classe précise ni celui de son école.** Cela
+n'apporterait rien à l'analyse et créerait une donnée sensible à protéger — sur un
+questionnaire qui interroge justement les familles sur la protection des données de leurs
+enfants. L'e-mail du parent suffit à recontacter.
+
+La Q10 (avoir contesté une note) touche à une relation avec un établissement identifiable :
+elle reste facultative.
 
 ---
 
@@ -76,9 +78,9 @@ justement les familles sur la protection des données de leurs enfants.
 > Nous concevons un outil d'évaluation destiné aux enseignants, et nous voulons savoir ce que
 > les familles en attendraient — **rien n'est encore décidé**.
 >
-> Comptez **6 minutes**. Nous vous demandons votre e-mail pour vous tenir informé·e et vous
-> dire ce que vos réponses ont changé. **Nous ne vous demandons ni le nom de votre enfant, ni
-> celui de son école.** Rien n'est publié ni transmis à un tiers.
+> Comptez **6 minutes**. Nous vous demandons **uniquement votre e-mail**, pour vous tenir
+> informé·e et vous dire ce que vos réponses ont changé. **Nous ne demandons ni votre nom, ni
+> celui de votre enfant, ni celui de son école.** Rien n'est publié ni transmis à un tiers.
 
 ---
 
@@ -237,13 +239,10 @@ justement les familles sur la protection des données de leurs enfants.
 *(réponse longue — facultatif)*
 
 **Q26. Votre e-mail** *(réponse courte — **obligatoire**, validation « adresse e-mail »)*
+> *Intitulé à afficher tel quel : « Votre e-mail — pour vous tenir informé·e de la suite du
+> projet. » Seule donnée personnelle demandée.*
 
-**Q27. Souhaitez-vous recevoir nos actualités ?** *(choix unique — obligatoire)*
-- Oui
-- Non, contactez-moi uniquement au sujet de ce questionnaire
-> ⚠️ Consentement séparé, non pré-coché.
-
-**Q28. Accepteriez-vous un échange de 15 minutes ?** *(choix unique — facultatif)*
+**Q27. Accepteriez-vous un échange de 15 minutes ?** *(choix unique — facultatif)*
 - Oui · Non
 
 ---
@@ -253,7 +252,7 @@ justement les familles sur la protection des données de leurs enfants.
 - **6 sections** natives, formulaire court : la cible n'est pas captive.
 - **Aucune capture d'écran.**
 - **Ne jamais demander** le nom de l'enfant, sa classe précise ni son établissement.
-- **Obligatoires (21)** : Q1-Q9, Q11-Q13, Q15, Q16, Q18, Q19, Q21-Q23, Q26, Q27.
+- **Obligatoires (20)** : Q1-Q9, Q11-Q13, Q15, Q16, Q18, Q19, Q21-Q23, Q26.
 - Activer la **validation « adresse e-mail »** sur la Q26.
 - Diffusion recommandée : via des enseignants ou des groupes WhatsApp de parents. **Noter le
   canal de diffusion** — il conditionne l'interprétation (voir le biais de recrutement).
