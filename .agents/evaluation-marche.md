@@ -121,7 +121,7 @@ Cesser de vendre « quiz ludique + note » (vitamine) et vendre :
 
 C'est un médicament, ancré sur un **déclencheur daté** (période de contrôles / d'examens).
 L'urgence ne se décrète pas, elle se fabrique en s'attachant à un moment où le besoin est
-aigu. → À injecter dans le hero de la landing et à confirmer par **Q6, Q8 et Q11** du sondage.
+aigu. → À injecter dans le hero de la landing et à confirmer par **Q6, Q8 et Q12** du sondage.
 
 ### B · Contourner le plafond de PRIX (3 → 5-6) sans trahir l'accessibilité
 
@@ -130,7 +130,7 @@ Le PAYG à l'unité plafonne l'ARPU. Deux leviers **additifs**, pas substitutifs
 - **Offre établissement / pack multi-formateurs** — un responsable pédagogique paie pour N
   enseignants : ticket 10 à 50× supérieur, et déplacement du curseur du B2C micro vers le
   B2B2C. C'est la voie la plus rapide pour redresser **les critères 2, 3 et 9 d'un coup**.
-  Déjà pressenti dans le brief (`[À CONFIRMER offre établissement]`) → instrumenté par la **Q33**
+  Déjà pressenti dans le brief (`[À CONFIRMER offre établissement]`) → instrumenté par la **Q34**
   du sondage formateurs et surtout par le [**sondage établissements**](./sondage-etablissements.md),
   conçu pour pouvoir faire tomber cette hypothèse avant qu'on ne la construise.
 - **Packs de crédits prépayés** avec léger avantage volume → augmente la valeur par
@@ -160,7 +160,7 @@ Bonne nouvelle sur l'effort : `src/lib/payments.js:47` expose déjà un **regist
 et `TODO.md:168` confirme que l'abstraction « permettra [Mvola/Orange/Airtel] sans changement
 de la couche solde/examen ». Brancher un agrégateur mobile money est donc une **extension
 contenue, pas une réécriture**.
-→ **Q34** du sondage dit quel rail activer en priorité.
+→ **Q35** du sondage dit quel rail activer en priorité.
 
 ### E · Renforcer la RÉSISTANCE (5 → 7) — créer du retour sans trahir l'éphémère
 
@@ -180,14 +180,14 @@ Chaque critère faible est instrumenté par au moins une question de
 
 | Critère évalué | Questions du sondage |
 |---|---|
-| **Urgence** (1) | Q9 temps de correction · **Q6 pic de charge** · Q11 verbatim frustration · Q14 corvée à supprimer |
+| **Urgence** (1) | Q9 temps de correction · **Q6 pic de charge** · Q12 verbatim frustration · Q15 corvée à supprimer |
 | **Taille du marché** (2) | Q3 géographie · Q4 taille de session · Q5 fréquence |
-| **Prix possible** (3) | Q28 dépense actuelle · Q29 prix spontané · Q30 réaction au prix · **Q33 qui paie** |
-| **Coût d'acquisition** (4) | Q36 canal de découverte · Q26 bouche-à-oreille |
-| **Originalité** (6) | Q12 outils actuels · Q16 capacités attendues · Q18-Q20 réaction au concept |
-| **Vente additionnelle** (9) | Q4 taille de session (palier illimité) · Q32 structure d'offre |
-| **Résistance** (10) | Q5 récurrence · Q17 et Q25 freins · Q21 seuil de confiance |
-| **Paiement** (D) | **Q34 rail de paiement** |
+| **Prix possible** (3) | Q29 dépense actuelle · Q30 prix spontané · Q31 réaction au prix · **Q34 qui paie** |
+| **Coût d'acquisition** (4) | Q37 canal de découverte · Q27 bouche-à-oreille |
+| **Originalité** (6) | Q13 outils actuels · Q11 types d'exercices · Q17 capacités attendues · Q19-Q21 réaction |
+| **Vente additionnelle** (9) | Q4 taille de session (palier illimité) · Q33 structure d'offre |
+| **Résistance** (10) | Q5 récurrence · Q18 et Q26 freins · Q22 seuil de confiance |
+| **Paiement** (D) | **Q35 rail de paiement** |
 
 **Après dépouillement** : re-scorer cette grille avec les données réelles, remonter les
 conclusions dans [`product-marketing.md`](./product-marketing.md), et arbitrer les priorités

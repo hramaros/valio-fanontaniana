@@ -19,6 +19,8 @@ import {
   getReviewData,
   endSession,
   switchToLibre,
+  quizHasFree,
+  getPlayer,
 } from "./rooms.js";
 import { createAccount, topupTest, getAccountById, debit } from "./accounts.js";
 import { WELCOME_CREDIT_AR, LIBRE_MAX } from "./exam.js";
@@ -675,4 +677,140 @@ test("switchToLibre : idempotent sur une salle déjà en Libre", async () => {
   const res = await switchToLibre(meta.code);
   assert.equal(res.ok, true);
   assert.equal(res.alreadyLibre, true);
+});
+
+/* ------------------------------------------------------------------ */
+/* Types auto-corrigés : réponse courte et numérique                   */
+/* ------------------------------------------------------------------ */
+
+const autoQuiz = {
+  title: "Contrôle",
+  mode: "examen",
+  capacity: "small",
+  totalDurationSec: 600,
+  questions: [
+    {
+      text: "Capitale de Madagascar ?",
+      type: "short",
+      basePoints: 1000,
+      accepted: ["Antananarivo", "Tananarive"],
+    },
+    {
+      text: "Racine carrée de 144 ?",
+      type: "number",
+      basePoints: 1000,
+      expected: 12,
+      tolerance: 0.5,
+      unit: "",
+    },
+  ],
+};
+
+test("short/number : corrigés immédiatement, sans phase de correction", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "p@e.mg", password: "secret1" });
+  const meta = await createRoom("Prof", account.id);
+  assert.equal((await setQuiz(meta.code, autoQuiz)).ok, true);
+
+  const full = await getMeta(meta.code);
+  assert.equal(quizHasFree(full.quiz), false, "aucune correction manuelle requise");
+  const [qShort, qNum] = full.quiz.questions;
+
+  const alice = await registerPlayer(meta.code, "Alice");
+  await startGame(meta.code);
+
+  await revealQuestion(meta.code, alice.playerId, qShort.id);
+  const a1 = await submitAnswer(meta.code, alice.playerId, qShort.id, null, " TANANARIVE ");
+  assert.equal(a1.correct, true, "variante acceptée, casse et espaces ignorés");
+  assert.ok(a1.points > 0);
+
+  await revealQuestion(meta.code, alice.playerId, qNum.id);
+  const a2 = await submitAnswer(meta.code, alice.playerId, qNum.id, null, "12,3");
+  assert.equal(a2.correct, true, "dans la tolérance");
+
+  // Fin du chrono → terminé directement, pas de statut « review ».
+  const m2 = await getMeta(meta.code);
+  assert.equal(deriveStatus(m2, m2.startedAt + m2.durationMs + 1), "ended");
+
+  await endSession(meta.code);
+  const me = await getMe(meta.code, alice.playerId);
+  assert.equal(me.nbCorrect, 2);
+  assert.equal(me.note, 20);
+});
+
+test("short/number : réponse fausse conservée pour relecture du formateur", async () => {
+  setRedisClient(createFakeRedis());
+  const meta = await createRoom("Prof", null);
+  await setQuiz(meta.code, { ...autoQuiz, mode: "examen" });
+  const full = await getMeta(meta.code);
+  const [qShort] = full.quiz.questions;
+
+  const bob = await registerPlayer(meta.code, "Bob");
+  await startGame(meta.code);
+  await revealQuestion(meta.code, bob.playerId, qShort.id);
+  const res = await submitAnswer(meta.code, bob.playerId, qShort.id, null, "Toamasina");
+
+  assert.equal(res.correct, false);
+  assert.equal(res.points, 0);
+  const player = await getPlayer(meta.code, bob.playerId);
+  assert.equal(player.answered[qShort.id].text, "Toamasina", "le texte soumis est conservé");
+});
+
+test("validateQuiz : short et number exigent le mode Examen", async () => {
+  setRedisClient(createFakeRedis());
+  const meta = await createRoom("Prof", null);
+  const res = await setQuiz(meta.code, { ...autoQuiz, mode: "libre" });
+  assert.equal(res.ok, false);
+  assert.match(res.error, /mode Examen/i);
+});
+
+test("validateQuiz : short sans réponse acceptée est refusé", async () => {
+  setRedisClient(createFakeRedis());
+  const meta = await createRoom("Prof", null);
+  const res = await setQuiz(meta.code, {
+    ...autoQuiz,
+    questions: [{ text: "Capitale ?", type: "short", basePoints: 1000, accepted: ["  "] }],
+  });
+  assert.equal(res.ok, false);
+  assert.match(res.error, /réponse acceptée/i);
+});
+
+test("validateQuiz : number sans valeur attendue est refusé", async () => {
+  setRedisClient(createFakeRedis());
+  const meta = await createRoom("Prof", null);
+  const res = await setQuiz(meta.code, {
+    ...autoQuiz,
+    questions: [{ text: "Combien ?", type: "number", basePoints: 1000, expected: "abc" }],
+  });
+  assert.equal(res.ok, false);
+  assert.match(res.error, /valeur numérique/i);
+});
+
+test("les champs de correction ne doivent jamais atteindre le joueur", async () => {
+  // Garde-fou : la route /api/room/[code]/questions filtre par liste blanche.
+  // Ce test verrouille l'intention côté données — si un jour quelqu'un renvoie
+  // la question brute, il saura ce qu'il expose.
+  setRedisClient(createFakeRedis());
+  const meta = await createRoom("Prof", null);
+  await setQuiz(meta.code, {
+    ...autoQuiz,
+    questions: [
+      ...autoQuiz.questions,
+      { text: "Expliquez", type: "free", basePoints: 500, reference: "corrigé secret" },
+    ],
+  });
+  const full = await getMeta(meta.code);
+  const [qShort, qNum, qFree] = full.quiz.questions;
+
+  // Ces champs existent bien côté serveur…
+  assert.deepEqual(qShort.accepted, ["Antananarivo", "Tananarive"]);
+  assert.equal(qNum.expected, 12);
+  assert.equal(qFree.reference, "corrigé secret");
+
+  // …et c'est précisément pour ça qu'ils ne doivent pas être sérialisés tels
+  // quels vers le client (voir la liste blanche de la route questions).
+  const exposed = ["id", "text", "type", "basePoints", "unit", "answers"];
+  for (const secret of ["accepted", "expected", "tolerance", "reference"]) {
+    assert.ok(!exposed.includes(secret), `${secret} ne doit pas être exposé`);
+  }
 });

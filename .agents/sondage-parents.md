@@ -24,7 +24,7 @@ Ce sondage n'est donc **pas** un test de marché. Il sert quatre choses beaucoup
 | **Valider la fiche vérifiable** | Fonctionnalité **déjà construite** et jamais confrontée à son public | Q11-Q17 |
 | **Mesurer le risque « données de l'enfant »** | Un rejet ici est un **risque produit**, pas un détail | Q18-Q20 |
 | **Tester la prescription vers l'école** | Un parent qui réclame l'outil est un canal d'acquisition gratuit | Q21-Q22 |
-| **Tester l'hypothèse famille-payeuse** | Elle figure dans le sondage formateurs (Q33) sans avoir jamais été testée côté familles | Q23-Q24 |
+| **Tester l'hypothèse famille-payeuse** | Elle figure dans le sondage formateurs (Q34) sans avoir jamais été testée côté familles | Q23-Q24 |
 
 **Ce qu'il ne faut pas en attendre :** une justification pour construire un espace parent, une
 application famille, ou un abonnement aux familles. Si l'envie apparaît à la lecture des
@@ -225,7 +225,7 @@ elle reste facultative.
 **Q23. Si l'école ne le finançait pas, seriez-vous prêt·e à payer pour y accéder ?**
 *(choix unique — obligatoire)*
 - Oui · Peut-être, selon le prix · Non · Non, cela devrait être fourni par l'école
-> *Teste l'hypothèse « les familles paient », présente dans le sondage formateurs (Q33) et
+> *Teste l'hypothèse « les familles paient », présente dans le sondage formateurs (Q34) et
 > jamais confrontée aux familles elles-mêmes. **Attendre un « non » massif** — auquel cas
 > l'option doit disparaître de toute réflexion sur le modèle économique.*
 
@@ -297,7 +297,7 @@ elle reste facultative.
    de la fonctionnalité auprès des familles ou des établissements.
 2. Reporter le verdict de la Q23 dans
    [`product-marketing.md`](./product-marketing.md) — l'option « les apprenants ou leurs
-   familles » de la Q33 du sondage formateurs doit être tranchée, pas laissée en suspens.
+   familles » de la Q34 du sondage formateurs doit être tranchée, pas laissée en suspens.
 3. Si la Q22 est positive : l'argument devient utilisable dans le
    [sondage établissements](./sondage-etablissements.md) et sur la page `/etablissements` de
    [`site-vitrine.md`](./site-vitrine.md).

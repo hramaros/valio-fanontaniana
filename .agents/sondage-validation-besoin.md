@@ -28,36 +28,37 @@ La v2 corrige les trois. **Principe directeur :**
 
 | Objectif | Comment | Questions |
 |---|---|---|
-| **Valider le besoin** | Récit d'un épisode réel et récent, pas d'hypothèses | Q7-Q13 |
-| **Valider le parcours** | Seuil de confiance, frein au premier usage, identité des apprenants | Q18-Q25 |
-| **Valider les offres** | Dépense réelle → leur prix → puis seulement le nôtre | Q27-Q35 |
-| **Alimenter le go-to-market** | Pic de charge, canal de découverte, bouche-à-oreille | Q6, Q26, Q36 |
-| **Récolter leur vocabulaire** | Champs libres à chaque étape clé | Q8, Q11, Q14, Q15, Q18 |
-| **Autoriser l'invalidation** | Capacités testées **au-delà** du périmètre actuel | Q16 |
+| **Valider le besoin** | Récit d'un épisode réel et récent, pas d'hypothèses | Q7-Q14 |
+| **Cadrer le moteur d'évaluation** | Types d'exercices réellement pratiqués, croisés avec la matière | Q2 + Q11 |
+| **Valider le parcours** | Seuil de confiance, frein au premier usage, identité des apprenants | Q19-Q26 |
+| **Valider les offres** | Dépense réelle → leur prix → puis seulement le nôtre | Q28-Q36 |
+| **Alimenter le go-to-market** | Pic de charge, canal de découverte, bouche-à-oreille | Q6, Q27, Q37 |
+| **Récolter leur vocabulaire** | Champs libres à chaque étape clé | Q8, Q12, Q15, Q16, Q19 |
+| **Autoriser l'invalidation** | Capacités testées **au-delà** du périmètre actuel | Q17 |
 
 **Liberté laissée au répondant** — exigence explicite de conception : chaque question fermée
 porte une option « Autre », les questions décisives sont suivies d'un « pourquoi ? » ouvert, et
-la Q37 lui rend la main sur le questionnaire lui-même.
+la Q38 lui rend la main sur le questionnaire lui-même.
 
 ## Avertissement de méthode
 
 **Un sondage ne remplace pas des entretiens.** À ce stade — zéro utilisateur — **quinze
 conversations de vingt minutes valent mieux que cent réponses**. Le meilleur rendement de ce
-formulaire est probablement la Q39 : recruter des gens à qui parler.
+formulaire est probablement la Q40 : recruter des gens à qui parler.
 
 Corollaire assumé : ce questionnaire est **long** (~12 min complet, ~6 min en ne remplissant
 que les questions obligatoires). Les champs libres font chuter le taux de complétion — c'est
-le prix du vocabulaire client. D'où la règle : **25 questions obligatoires, 15 facultatives.**
+le prix du vocabulaire client. D'où la règle : **26 questions obligatoires, 15 facultatives.**
 
 ## Une seule donnée collectée : l'e-mail
 
-Ce sondage **n'est pas anonyme** : l'e-mail est demandé (Q40) pour pouvoir recontacter les
+Ce sondage **n'est pas anonyme** : l'e-mail est demandé (Q41) pour pouvoir recontacter les
 répondants. **C'est la seule donnée personnelle collectée** — ni nom, ni établissement, ni
 téléphone. La finalité est écrite dans l'intitulé de la question, ce qui évite d'ajouter une
 case de consentement séparée.
 
 Conséquence à garder en tête : une réponse identifiable est une réponse **plus prudente**. Les
-questions qui en souffrent — Q11 (ce qui vous a agacé), Q13, Q28-Q29 (budget et prix) — restent
+questions qui en souffrent — Q12 (ce qui vous a agacé), Q14, Q29-Q30 (budget et prix) — restent
 donc **facultatives**, et le formulaire invite explicitement à les laisser vides. À l'analyse,
 traiter les critiques comme **en dessous** de la réalité, jamais au-dessus.
 
@@ -144,15 +145,34 @@ traiter les critiques comme **en dessous** de la réalité, jamais au-dessus.
 - Communiquer les résultats
 - Autre…
 
-**Q11. Qu'est-ce qui vous a le plus agacé ?** *(réponse longue — facultatif)*
+**Q11. Quels types d'exercices utilisez-vous dans vos évaluations ?**
+*(choix multiple — obligatoire)*
+- Questions à choix unique (une seule bonne réponse)
+- Questions à choix multiples (plusieurs bonnes réponses)
+- Vrai / Faux
+- Réponses courtes (un mot, une date, un nom)
+- Calculs ou résultats chiffrés
+- Textes à trous / phrases à compléter
+- Rédaction, questions de cours à développer
+- Appariement (relier deux colonnes)
+- Remise en ordre (chronologie, étapes)
+- Exercices avec un schéma, une carte ou une image
+- Autre…
+> *Question absente jusqu'ici : le sondage demandait quelles **capacités** comptaient, jamais
+> quels **types d'exercices** sont réellement pratiqués. Or c'est ce qui détermine ce que le
+> moteur doit savoir corriger. À **croiser avec la Q2** (matière enseignée) : un professeur de
+> mathématiques et un professeur de français n'ont pas les mêmes besoins, et une moyenne sur
+> l'ensemble masquerait les deux.*
+
+**Q12. Qu'est-ce qui vous a le plus agacé ?** *(réponse longue — facultatif)*
 > *Le champ « émotion ». Une douleur exprimée avec des mots forts est un bien meilleur
 > prédicteur d'achat qu'une case cochée.*
 
-**Q12. Avez-vous utilisé un outil numérique ?** *(choix multiple — obligatoire)*
+**Q13. Avez-vous utilisé un outil numérique ?** *(choix multiple — obligatoire)*
 - Kahoot · Quizizz · Wooclap · Mentimeter · Google Forms / Microsoft Forms
 - Un tableur (Excel, Google Sheets) · Papier ou oral uniquement · Aucun · Autre…
 
-**Q13. Si vous avez utilisé un outil : qu'est-ce qui vous a manqué ? Sinon : qu'est-ce qui vous
+**Q14. Si vous avez utilisé un outil : qu'est-ce qui vous a manqué ? Sinon : qu'est-ce qui vous
 en a empêché ?** *(réponse longue — facultatif)*
 
 ---
@@ -162,16 +182,16 @@ en a empêché ?** *(réponse longue — facultatif)*
 > *Toujours rien montré. On leur laisse d'abord dessiner la solution, sinon on ne recueille
 > qu'un écho de la nôtre.*
 
-**Q14. Si vous pouviez faire disparaître UNE seule corvée dans votre travail d'évaluation,
+**Q15. Si vous pouviez faire disparaître UNE seule corvée dans votre travail d'évaluation,
 laquelle ?** *(réponse longue — obligatoire)*
 > *Signal de priorité non suggéré. Si les réponses ne parlent pas de correction ni de
 > notation, l'hypothèse centrale du projet est en danger — et c'est exactement ce qu'on veut
 > savoir.*
 
-**Q15. Décrivez l'outil idéal pour vous.** *(réponse longue — facultatif)*
+**Q16. Décrivez l'outil idéal pour vous.** *(réponse longue — facultatif)*
 > *On leur donne le crayon. Les réponses les plus utiles viendront d'ici.*
 
-**Q16. Parmi ces capacités, lesquelles compteraient vraiment pour vous ?** *(choix multiple — obligatoire)*
+**Q17. Parmi ces capacités, lesquelles compteraient vraiment pour vous ?** *(choix multiple — obligatoire)*
 - Une note sur 20 calculée automatiquement
 - Des questions à rédiger (pas seulement des QCM)
 - Une banque de questions réutilisable d'une année sur l'autre
@@ -190,7 +210,7 @@ laquelle ?** *(réponse longue — obligatoire)*
 > n'existe. Si la demande se concentre là, **c'est le signal d'une refonte** — et c'est
 > précisément pour l'entendre que ces items sont dans la liste.
 
-**Q17. Qu'est-ce qui vous ferait renoncer à un outil, même gratuit ?** *(réponse longue — facultatif)*
+**Q18. Qu'est-ce qui vous ferait renoncer à un outil, même gratuit ?** *(réponse longue — facultatif)*
 
 ---
 
@@ -200,7 +220,7 @@ laquelle ?** *(réponse longue — obligatoire)*
 > qu'il reste discutable. Montrer une interface aboutie transformerait la suite du
 > questionnaire en test d'esthétique.
 
-**Texte à coller au-dessus de Q18** :
+**Texte à coller au-dessus de Q19** :
 > Voici ce que nous envisageons — **rien n'est construit, tout peut changer** :
 >
 > Vous préparez une série de questions. Vos apprenants rejoignent depuis leur téléphone avec
@@ -209,17 +229,17 @@ laquelle ?** *(réponse longue — obligatoire)*
 > questions à rédiger, que **vous** validez vous-même avant de publier les résultats. Le tout
 > est exportable en PDF.
 
-**Q18. Votre première réaction, spontanément ?** *(réponse longue — obligatoire)*
+**Q19. Votre première réaction, spontanément ?** *(réponse longue — obligatoire)*
 > *Poser cette question **avant** toute question fermée : la réaction non filtrée est la plus
 > informative, et elle disparaît dès qu'on a proposé des cases à cocher.*
 
-**Q19. Qu'est-ce qui vous plaît là-dedans ?** *(réponse longue — facultatif)*
+**Q20. Qu'est-ce qui vous plaît là-dedans ?** *(réponse longue — facultatif)*
 
-**Q20. Qu'est-ce qui vous gêne, vous manque, ou vous paraît inutile ?** *(réponse longue — facultatif)*
+**Q21. Qu'est-ce qui vous gêne, vous manque, ou vous paraît inutile ?** *(réponse longue — facultatif)*
 > *Question posée séparément du « ce qui vous plaît » : mélangées, les critiques
 > s'auto-censurent.*
 
-**Q21. Utiliseriez-vous cela pour une évaluation qui compte vraiment (note au bulletin) ?**
+**Q22. Utiliseriez-vous cela pour une évaluation qui compte vraiment (note au bulletin) ?**
 *(choix unique — obligatoire)*
 - Oui, sans hésiter
 - Oui, mais seulement après l'avoir testé sur des évaluations sans enjeu
@@ -227,24 +247,24 @@ laquelle ?** *(réponse longue — obligatoire)*
 - Non, jamais
 - Je ne sais pas
 
-**Q22. Pourquoi ?** *(réponse longue — facultatif)*
-> *Q21 + Q22 mesurent le **seuil de confiance**. Un outil cantonné à la révision ne se vend
+**Q23. Pourquoi ?** *(réponse longue — facultatif)*
+> *Q22 + Q23 mesurent le **seuil de confiance**. Un outil cantonné à la révision ne se vend
 > pas au même prix et ne rend pas le même service : c'est une question de survie du modèle.*
 
-**Q23. Que vos apprenants n'aient aucun compte à créer, c'est plutôt…** *(choix unique — obligatoire)*
+**Q24. Que vos apprenants n'aient aucun compte à créer, c'est plutôt…** *(choix unique — obligatoire)*
 - Un vrai avantage
 - Sans importance
 - Un problème (je ne saurais pas qui est qui)
-- Un problème pour une autre raison *(préciser en Q24)*
+- Un problème pour une autre raison *(préciser en Q25)*
 
-**Q24. Précisez si vous le souhaitez.** *(réponse courte — facultatif)*
+**Q25. Précisez si vous le souhaitez.** *(réponse courte — facultatif)*
 > *Teste **dans les deux sens** un différenciateur revendiqué. S'il s'avère être un défaut
 > pour une évaluation notée, tout le positionnement est à revoir.*
 
-**Q25. Concrètement, qu'est-ce qui vous empêcherait de l'utiliser dès votre prochain cours ?**
+**Q26. Concrètement, qu'est-ce qui vous empêcherait de l'utiliser dès votre prochain cours ?**
 *(réponse longue — facultatif)*
 
-**Q26. En parleriez-vous à un collègue ?** *(choix unique — obligatoire)*
+**Q27. En parleriez-vous à un collègue ?** *(choix unique — obligatoire)*
 - Oui, spontanément · Peut-être, si on m'en parlait · Non
 > *Mesure du bouche-à-oreille — le seul moteur d'acquisition réaliste à budget nul.*
 
@@ -255,30 +275,30 @@ laquelle ?** *(réponse longue — obligatoire)*
 > *Ordre délibéré : leur dépense réelle d'abord, leur prix ensuite, le nôtre en dernier. Donner
 > notre prix trop tôt ancre toutes les réponses suivantes.*
 
-**Q27. Aujourd'hui, dépensez-vous quelque chose pour vos évaluations ?** *(choix multiple — obligatoire)*
+**Q28. Aujourd'hui, dépensez-vous quelque chose pour vos évaluations ?** *(choix multiple — obligatoire)*
 - Photocopies / papier · Un abonnement à un outil · Du crédit internet / données mobiles
 - Rien du tout · Autre…
 
-**Q28. Si vous dépensez quelque chose, combien environ par mois ?** *(réponse courte — facultatif)*
+**Q29. Si vous dépensez quelque chose, combien environ par mois ?** *(réponse courte — facultatif)*
 > *La dépense actuelle est un prédicteur bien plus fiable que n'importe quelle intention
 > déclarée : elle est déjà arbitrée dans un budget réel.*
 
-**Q29. Selon vous, quel prix serait juste pour un tel outil ?** *(réponse courte — facultatif)*
+**Q30. Selon vous, quel prix serait juste pour un tel outil ?** *(réponse courte — facultatif)*
 > *Champ libre, sans aucune suggestion de montant ni d'unité : on veut savoir s'ils raisonnent
 > spontanément par évaluation, par mois, par élève ou par an — ce choix d'unité est en soi une
 > information sur le modèle économique attendu.*
 
-**Texte à coller au-dessus de Q30** :
+**Texte à coller au-dessus de Q31** :
 > Ce que nous envisageons aujourd'hui : le **QCM en direct resterait gratuit** et sans compte.
 > Les fonctions avancées (questions à rédiger, export PDF, historique) seraient payées **à
 > l'usage, sans abonnement** — autour de **1 000 Ar par évaluation**.
 
-**Q30. Qu'en pensez-vous ?** *(choix unique — obligatoire)*
+**Q31. Qu'en pensez-vous ?** *(choix unique — obligatoire)*
 - Trop cher · Un peu cher · Juste · Bon marché · Je ne sais pas
 
-**Q31. Pourquoi ?** *(réponse courte — facultatif)*
+**Q32. Pourquoi ?** *(réponse courte — facultatif)*
 
-**Q32. Quelle formule vous conviendrait le mieux ?** *(choix unique — obligatoire)*
+**Q33. Quelle formule vous conviendrait le mieux ?** *(choix unique — obligatoire)*
 - Payer à chaque évaluation
 - Acheter un lot d'évaluations à l'avance (moins cher à l'unité)
 - Un abonnement mensuel
@@ -288,7 +308,7 @@ laquelle ?** *(réponse longue — obligatoire)*
 > *Valide directement la structure d'offre : paiement à l'acte vs lots prépayés vs abonnement.
 > Le projet a choisi les deux premiers — cette question peut le contredire.*
 
-**Q33. Qui devrait payer, selon vous ?** *(choix unique — obligatoire)*
+**Q34. Qui devrait payer, selon vous ?** *(choix unique — obligatoire)*
 - Moi, l'enseignant / formateur
 - Mon établissement ou mon employeur
 - Les apprenants ou leurs familles
@@ -297,11 +317,11 @@ laquelle ?** *(réponse longue — obligatoire)*
 > *Teste l'hypothèse « offre établissement » sans avoir à la décrire — et sans supposer que le
 > payeur est forcément l'utilisateur.*
 
-**Q34. Comment préféreriez-vous payer ?** *(choix multiple — obligatoire)*
+**Q35. Comment préféreriez-vous payer ?** *(choix multiple — obligatoire)*
 - MVola · Orange Money · Airtel Money · Carte bancaire · PayPal
 - Je ne paie jamais en ligne · Autre…
 
-**Q35. « Vous ne seriez débité que si l'évaluation va jusqu'au bout : une session interrompue
+**Q36. « Vous ne seriez débité que si l'évaluation va jusqu'au bout : une session interrompue
 n'est jamais facturée. » Est-ce que cela change quelque chose pour vous ?**
 *(choix unique — facultatif)*
 - Oui, ça lève une vraie inquiétude
@@ -315,7 +335,7 @@ n'est jamais facturée. » Est-ce que cela change quelque chose pour vous ?**
 
 ### Section 6 — À vous
 
-**Q36. Comment découvrez-vous de nouveaux outils pédagogiques ?** *(choix multiple — obligatoire)*
+**Q37. Comment découvrez-vous de nouveaux outils pédagogiques ?** *(choix multiple — obligatoire)*
 - Recommandation d'un collègue
 - Groupes Facebook / WhatsApp d'enseignants
 - Recherche Google
@@ -326,19 +346,19 @@ n'est jamais facturée. » Est-ce que cela change quelque chose pour vous ?**
 > *Seule question d'acquisition : où atteindre ce public. La section* How to Reach Them *de
 > `product-marketing.md` est vide tant qu'elle n'a pas de réponses.*
 
-**Q37. Qu'aurions-nous dû vous demander et que nous n'avons pas demandé ?**
+**Q38. Qu'aurions-nous dû vous demander et que nous n'avons pas demandé ?**
 *(réponse longue — facultatif)*
 > *On rend la main sur le questionnaire lui-même. Souvent la réponse la plus utile de tout le
 > formulaire, et elle révèle nos angles morts.*
 
-**Q38. Autre chose à ajouter ?** *(réponse longue — facultatif)*
+**Q39. Autre chose à ajouter ?** *(réponse longue — facultatif)*
 
-**Q39. Accepteriez-vous un échange de 20 minutes pour nous en dire plus ?**
+**Q40. Accepteriez-vous un échange de 20 minutes pour nous en dire plus ?**
 *(choix unique — obligatoire)*
 - Oui · Peut-être · Non
 > *Probablement la question la plus rentable du formulaire (voir l'avertissement de méthode).*
 
-**Q40. Votre e-mail** *(réponse courte — **obligatoire**, validation « adresse e-mail »)*
+**Q41. Votre e-mail** *(réponse courte — **obligatoire**, validation « adresse e-mail »)*
 > *Intitulé à afficher tel quel : « Votre e-mail — pour vous tenir informé·e du projet et vous
 > donner accès à l'outil en avant-première. » La finalité dans l'intitulé remplace une case de
 > consentement séparée : le répondant sait à quoi il s'engage en validant.*
@@ -351,13 +371,13 @@ n'est jamais facturée. » Est-ce que cela change quelque chose pour vous ?**
 - **Aucune capture d'écran nulle part**, en particulier en Section 4. C'est la règle qui rend
   une refonte encore possible.
 - **Ne pas** activer la collecte automatique de l'e-mail Google : elle ne fonctionne qu'avec un
-  compte Google connecté et exclurait une partie de la cible. La Q40 la remplace et couvre tout
+  compte Google connecté et exclurait une partie de la cible. La Q41 la remplace et couvre tout
   le monde.
-- **Obligatoires (25)** : Q1-Q10, Q12, Q14, Q16, Q18, Q21, Q23, Q26, Q27, Q30, Q32, Q33, Q34,
-  Q36, Q39, Q40. Tout le reste est facultatif.
-- **Aucun branchement sur la Q40** : l'e-mail est demandé à tout le monde, y compris à ceux qui
-  déclinent l'entretien (Q39) — décliner un entretien n'est pas refuser d'être tenu informé.
-- Activer la **validation « adresse e-mail »** sur la Q40 — sans elle, la base se remplit de
+- **Obligatoires (26)** : Q1-Q11, Q13, Q15, Q17, Q19, Q22, Q24, Q27, Q28, Q31, Q33, Q34, Q35,
+  Q37, Q40, Q41. Tout le reste est facultatif.
+- **Aucun branchement sur la Q41** : l'e-mail est demandé à tout le monde, y compris à ceux qui
+  déclinent l'entretien (Q40) — décliner un entretien n'est pas refuser d'être tenu informé.
+- Activer la **validation « adresse e-mail »** sur la Q41 — sans elle, la base se remplit de
   saisies fautives et devient inutilisable.
 - Barre de progression activée (le formulaire est long, il faut montrer la fin).
 
@@ -382,8 +402,8 @@ Une douzaine de champs libres ne servent à rien sans protocole. Pour chaque que
 | **Moyenne** | 2 répondants, ou seulement en réponse à une question fermée, ou limité à un segment |
 | **Faible** | Un seul répondant — à revérifier avant toute décision |
 
-5. **Chercher les contradictions** entre fermé et ouvert. Quand la Q30 dit « juste » mais que
-   la Q31 dit « je n'ai pas de budget », **c'est l'ouvert qui dit vrai.**
+5. **Chercher les contradictions** entre fermé et ouvert. Quand la Q31 dit « juste » mais que
+   la Q32 dit « je n'ai pas de budget », **c'est l'ouvert qui dit vrai.**
 6. **Minimum 5 répondants par segment** avant toute conclusion. En dessous, on lit du bruit.
 
 ---
@@ -398,7 +418,7 @@ Dépouiller **sur le segment cœur** (Q1 = formateur/enseignant **et** Q3 = Mada
 |---|---|---|
 | Douleur située sur la correction / la notation | Q10 = corriger ou reporter les notes | ≥ 40 % |
 | Douleur intense | Q9 ≥ 1 h | ≥ 40 % |
-| Douleur spontanée | Q14 mentionne correction, notation ou report | ≥ 40 % |
+| Douleur spontanée | Q15 mentionne correction, notation ou report | ≥ 40 % |
 | Récurrence | Q5 ≥ 1×/mois | ≥ 60 % |
 | Pic exploitable | Q6 = un moment daté | ≥ 50 % |
 
@@ -406,30 +426,30 @@ Dépouiller **sur le segment cœur** (Q1 = formateur/enseignant **et** Q3 = Mada
 
 | Signal | Question | Seuil |
 |---|---|---|
-| Réaction spontanée positive | Q18 (codé) | ≥ 50 % |
-| **Utilisable pour une vraie note** | **Q21 = « oui » ou « oui après test »** | **≥ 50 %** |
-| Le zéro-compte n'est pas un défaut | Q23 ≠ « un problème » | ≥ 70 % |
-| Bouche-à-oreille crédible | Q26 = « oui, spontanément » | ≥ 40 % |
+| Réaction spontanée positive | Q19 (codé) | ≥ 50 % |
+| **Utilisable pour une vraie note** | **Q22 = « oui » ou « oui après test »** | **≥ 50 %** |
+| Le zéro-compte n'est pas un défaut | Q24 ≠ « un problème » | ≥ 70 % |
+| Bouche-à-oreille crédible | Q27 = « oui, spontanément » | ≥ 40 % |
 
 ### L'offre tient-elle ?
 
 | Signal | Question | Seuil |
 |---|---|---|
-| Prix accepté | Q30 = juste ou bon marché | ≥ 50 % |
-| Prix spontané cohérent | médiane Q29 ≥ 1 000 Ar / évaluation | — |
-| Structure d'offre confirmée | Q32 = à l'acte **ou** lot prépayé | ≥ 50 % |
-| Rail de paiement praticable | Q34, un canal dominant | ≥ 50 % |
-| Payeur identifié | Q33 = moi **ou** mon établissement | ≥ 70 % |
+| Prix accepté | Q31 = juste ou bon marché | ≥ 50 % |
+| Prix spontané cohérent | médiane Q30 ≥ 1 000 Ar / évaluation | — |
+| Structure d'offre confirmée | Q33 = à l'acte **ou** lot prépayé | ≥ 50 % |
+| Rail de paiement praticable | Q35, un canal dominant | ≥ 50 % |
+| Payeur identifié | Q34 = moi **ou** mon établissement | ≥ 70 % |
 
 ### Signaux de refonte — à prendre au sérieux
 
 | Signal | Lecture |
 |---|---|
-| **Q16** : la demande se porte sur des capacités absentes (banque de questions, suivi longitudinal, asynchrone) | Le produit envisagé n'est pas celui qu'ils attendent → **refondre le périmètre** |
-| **Q21** majoritairement « non » ou « révision seulement » | Le direct chronométré est incompatible avec une vraie évaluation → **refondre le format** |
-| **Q23** : le zéro-compte perçu comme un problème | Un différenciateur central est un défaut → **refondre le modèle d'identité** |
-| **Q33** = « personne, ça devrait être gratuit » majoritaire | Pas de marché payant sur ce segment → **refondre le modèle économique** |
-| **Q14** ne parle ni de correction ni de notation | La douleur visée n'est pas la vraie → **refondre la proposition de valeur** |
+| **Q17** : la demande se porte sur des capacités absentes (banque de questions, suivi longitudinal, asynchrone) | Le produit envisagé n'est pas celui qu'ils attendent → **refondre le périmètre** |
+| **Q22** majoritairement « non » ou « révision seulement » | Le direct chronométré est incompatible avec une vraie évaluation → **refondre le format** |
+| **Q24** : le zéro-compte perçu comme un problème | Un différenciateur central est un défaut → **refondre le modèle d'identité** |
+| **Q34** = « personne, ça devrait être gratuit » majoritaire | Pas de marché payant sur ce segment → **refondre le modèle économique** |
+| **Q15** ne parle ni de correction ni de notation | La douleur visée n'est pas la vraie → **refondre la proposition de valeur** |
 
 **Verdict** : le projet est confirmé si le besoin **et** le concept **et** l'offre passent leurs
 seuils. Un seul bloc en échec ne condamne pas le projet — il désigne ce qu'il faut refaire, et
@@ -440,11 +460,11 @@ la dernière ligne de chaque tableau dit quoi.
 ## Après collecte
 
 1. Remplacer les `[À CONFIRMER]` / `[À COLLECTER]` de
-   [`product-marketing.md`](./product-marketing.md) par des verbatims réels (Q8, Q11, Q14).
+   [`product-marketing.md`](./product-marketing.md) par des verbatims réels (Q8, Q12, Q15).
 2. Re-scorer [`evaluation-marche.md`](./evaluation-marche.md) — en particulier urgence, taille
    de marché et prix possible, les trois critères les plus faibles et les moins étayés.
 3. Ajuster l'accroche de [`site-vitrine.md`](./site-vitrine.md) avec **leurs** mots, et le
    calendrier de lancement avec la Q6.
-4. Prioriser le rail de paiement (Q34) et arbitrer la structure d'offre (Q32).
-5. **Appeler les gens de la Q39.** C'est là que se trouvent les réponses que ce formulaire ne
+4. Prioriser le rail de paiement (Q35) et arbitrer la structure d'offre (Q33).
+5. **Appeler les gens de la Q40.** C'est là que se trouvent les réponses que ce formulaire ne
    peut pas donner.

@@ -7,6 +7,10 @@ import {
   rankParticipants,
   getPodium,
   refMsForQuiz,
+  normalizeShortText,
+  isShortAnswerCorrect,
+  parseNumericAnswer,
+  isNumericAnswerCorrect,
 } from "./scoring.js";
 
 const singleQuestion = {
@@ -169,4 +173,72 @@ test("getPodium: moins de 3 joueurs", () => {
 test("refMsForQuiz: temps total réparti par question", () => {
   assert.equal(refMsForQuiz(60, 4), 15000);
   assert.equal(refMsForQuiz(60, 0), 60000); // garde-fou : pas de division par 0
+});
+
+/* ------------------------------------------------------------------ */
+/* Réponse courte auto-corrigée                                        */
+/* ------------------------------------------------------------------ */
+
+test("normalizeShortText : casse, accents et espaces neutralisés", () => {
+  assert.equal(normalizeShortText("  Ántananarívo  "), "antananarivo");
+  assert.equal(normalizeShortText("LE   Caire"), "le caire");
+  assert.equal(normalizeShortText(null), "");
+});
+
+test("isShortAnswerCorrect : accepte toute variante listée", () => {
+  const q = { accepted: ["Antananarivo", "Tananarive"] };
+  assert.equal(isShortAnswerCorrect(q, "ANTANANARIVO"), true);
+  assert.equal(isShortAnswerCorrect(q, " tananarive "), true);
+  assert.equal(isShortAnswerCorrect(q, "Toamasina"), false);
+});
+
+test("isShortAnswerCorrect : une réponse vide n'est jamais juste", () => {
+  assert.equal(isShortAnswerCorrect({ accepted: ["x"] }, "   "), false);
+  assert.equal(isShortAnswerCorrect({ accepted: [] }, "x"), false);
+});
+
+test("isShortAnswerCorrect : pas de correction approximative", () => {
+  // « Antananarivou » n'est pas accepté : sur une note, un refus prévisible
+  // vaut mieux qu'un point donné par erreur (le formateur ajoute la variante).
+  assert.equal(
+    isShortAnswerCorrect({ accepted: ["Antananarivo"] }, "Antananarivou"),
+    false,
+  );
+});
+
+/* ------------------------------------------------------------------ */
+/* Réponse numérique                                                   */
+/* ------------------------------------------------------------------ */
+
+test("parseNumericAnswer : virgule décimale et espaces de milliers", () => {
+  assert.equal(parseNumericAnswer("3,14"), 3.14);
+  assert.equal(parseNumericAnswer("3.14"), 3.14);
+  assert.equal(parseNumericAnswer("1 234,5"), 1234.5);
+  assert.equal(parseNumericAnswer("-7"), -7);
+  assert.equal(parseNumericAnswer(",5"), 0.5);
+});
+
+test("parseNumericAnswer : rejette ce qui n'est pas un nombre", () => {
+  for (const bad of ["douze", "", "  ", "12abc", "1,2,3", null, undefined]) {
+    assert.equal(parseNumericAnswer(bad), null, `« ${bad} » doit être rejeté`);
+  }
+});
+
+test("isNumericAnswerCorrect : tolérance appliquée dans les deux sens", () => {
+  const q = { expected: 12, tolerance: 0.5 };
+  assert.equal(isNumericAnswerCorrect(q, "12"), true);
+  assert.equal(isNumericAnswerCorrect(q, "12,5"), true, "borne haute incluse");
+  assert.equal(isNumericAnswerCorrect(q, "11,5"), true, "borne basse incluse");
+  assert.equal(isNumericAnswerCorrect(q, "13"), false);
+});
+
+test("isNumericAnswerCorrect : sans tolérance, exactitude requise", () => {
+  const q = { expected: 12 };
+  assert.equal(isNumericAnswerCorrect(q, "12"), true);
+  assert.equal(isNumericAnswerCorrect(q, "12,1"), false);
+});
+
+test("isNumericAnswerCorrect : saisie non numérique ou attendu invalide", () => {
+  assert.equal(isNumericAnswerCorrect({ expected: 12 }, "douze"), false);
+  assert.equal(isNumericAnswerCorrect({ expected: "abc" }, "12"), false);
 });

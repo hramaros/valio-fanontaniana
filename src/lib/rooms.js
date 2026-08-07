@@ -2,6 +2,8 @@ import { getRedis } from "./redis.js";
 import { generateCode, generateId, generateVerifyCode } from "./code.js";
 import {
   isAnswerCorrect,
+  isShortAnswerCorrect,
+  isNumericAnswerCorrect,
   computePoints,
   computeNote,
   rankParticipants,
@@ -36,6 +38,13 @@ const now = () => Date.now();
 /* ------------------------------------------------------------------ */
 /* Statut dérivé                                                       */
 /* ------------------------------------------------------------------ */
+
+// Types de questions supportés. `single`/`multiple` se répondent par tuiles ;
+// `free`, `short` et `number` par une saisie au clavier. Parmi ces trois, seul
+// `free` passe par la phase de correction manuelle : `short` et `number` sont
+// corrigés automatiquement, ce qui est tout leur intérêt.
+export const QUESTION_TYPES = ["single", "multiple", "free", "short", "number"];
+export const TEXT_INPUT_TYPES = ["free", "short", "number"];
 
 /** Le quiz comporte-t-il au moins une question à réponse libre (à corriger) ? */
 export function quizHasFree(quiz) {
@@ -112,12 +121,27 @@ export function validateQuiz(quiz) {
   for (const [i, q] of quiz.questions.entries()) {
     if (!q.text || !String(q.text).trim())
       return { ok: false, error: `Question ${i + 1} : texte manquant.` };
-    // Réponse libre : réservée au mode Examen ; pas de réponses prédéfinies.
-    if (q.type === "free") {
+    // Types à saisie libre : réservés au mode Examen, pas de réponses
+    // prédéfinies. `free` est corrigé à la main, `short` et `number` le sont
+    // automatiquement — d'où des validations différentes.
+    if (TEXT_INPUT_TYPES.includes(q.type)) {
       if (normalizeMode(quiz.mode) !== "examen")
         return {
           ok: false,
-          error: `Question ${i + 1} : la réponse libre nécessite le mode Examen.`,
+          error: `Question ${i + 1} : ce type de question nécessite le mode Examen.`,
+        };
+      if (q.type === "short") {
+        const accepted = (q.accepted || []).filter((a) => String(a || "").trim());
+        if (accepted.length === 0)
+          return {
+            ok: false,
+            error: `Question ${i + 1} : indiquez au moins une réponse acceptée.`,
+          };
+      }
+      if (q.type === "number" && !Number.isFinite(Number(q.expected)))
+        return {
+          ok: false,
+          error: `Question ${i + 1} : indiquez la valeur numérique attendue.`,
         };
       continue;
     }
@@ -147,8 +171,7 @@ function sanitizeQuiz(quiz) {
     capacity: normalizeCapacity(quiz.capacity),
     totalDurationSec: Math.max(1, Math.round(Number(quiz.totalDurationSec) || 0)),
     questions: quiz.questions.map((q) => {
-      const type =
-        q.type === "multiple" ? "multiple" : q.type === "free" ? "free" : "single";
+      const type = QUESTION_TYPES.includes(q.type) ? q.type : "single";
       const base = {
         id: q.id || generateId("q"),
         text: String(q.text).slice(0, 500),
@@ -158,6 +181,25 @@ function sanitizeQuiz(quiz) {
       if (type === "free") {
         // Pas de réponses prédéfinies ; `reference` = corrigé indicatif (formateur).
         return { ...base, reference: String(q.reference || "").slice(0, 240), answers: [] };
+      }
+      if (type === "short") {
+        return {
+          ...base,
+          accepted: (q.accepted || [])
+            .map((a) => String(a || "").trim().slice(0, 120))
+            .filter(Boolean)
+            .slice(0, 10),
+          answers: [],
+        };
+      }
+      if (type === "number") {
+        return {
+          ...base,
+          expected: Number(q.expected),
+          tolerance: Math.abs(Number(q.tolerance) || 0),
+          unit: String(q.unit || "").trim().slice(0, 16),
+          answers: [],
+        };
       }
       return {
         ...base,
@@ -424,6 +466,27 @@ export async function submitAnswer(code, playerId, questionId, answerIds, text) 
     meta.quiz.totalDurationSec,
     meta.quiz.questions.length,
   );
+
+  // Saisie clavier corrigée automatiquement : on garde le texte soumis pour que
+  // le formateur puisse relire (et contester) la correction dans les résultats.
+  if (question.type === "short" || question.type === "number") {
+    const submitted = String(text || "").trim().slice(0, 240);
+    const correct =
+      question.type === "short"
+        ? isShortAnswerCorrect(question, submitted)
+        : isNumericAnswerCorrect(question, submitted);
+    const points = computePoints({
+      correct,
+      timeMs,
+      refMs,
+      basePoints: question.basePoints,
+    });
+    player.answered[questionId] = { text: submitted, correct, timeMs, points };
+    player.score += points;
+    await savePlayer(code, player);
+    return { ok: true, correct, points, score: player.score };
+  }
+
   const correct = isAnswerCorrect(question, answerIds);
   const points = computePoints({
     correct,

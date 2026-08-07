@@ -38,7 +38,7 @@ L'accroche produit actuelle (« Le quiz en direct façon Kahoot, mais qui produi
 
 **Statut : hypothèse non validée.** La Q6 du
 [sondage](./sondage-validation-besoin.md) identifie le pic de charge réel (période de
-contrôles / fin de trimestre / continu) et les Q8/Q11 en collectent les mots exacts. Ajuster
+contrôles / fin de trimestre / continu) et les Q8/Q12 en collectent les mots exacts. Ajuster
 l'accroche dès les premières réponses, en réutilisant **leur vocabulaire**, pas le nôtre.
 
 ### Ton et vocabulaire
@@ -91,7 +91,7 @@ Deux colonnes, sans abonnement, prix affichés **en Ariary d'abord** (USD en sec
 |---|---|---|
 | Prix | **Gratuit à vie** | **1 000 Ar** / examen (≤ 20 participants) · **2 000 Ar** illimité |
 | Compte | Aucun | Requis |
-| Questions | QCM uniquement | QCM **+ réponses libres corrigées** |
+| Questions | QCM et Vrai/Faux | QCM · Vrai/Faux · **réponse courte et numérique, corrigées automatiquement** · **rédaction corrigée par vous** |
 | Participants | ≤ 10 | ≤ 20 ou illimité |
 | Résultats | À l'écran | **Export PDF**, historique, classes, carnet de notes |
 
@@ -116,7 +116,7 @@ gratuit pour toujours.
 > Les montants sont pilotés côté app par `src/lib/exam.js` (`PRICE_SMALL_AR`,
 > `PRICE_UNLIMITED_AR`, `LIBRE_MAX`, `EXAMEN_SMALL_MAX`). **Garder les deux sources
 > synchronisées** — un prix affiché faux sur la vitrine est un bug de confiance.
-> Le prix réellement acceptable sera connu via les Q29/Q30 du sondage.
+> Le prix réellement acceptable sera connu via les Q30/Q31 du sondage.
 
 ### 3. Comment ça marche (`/comment-ca-marche`)
 
@@ -155,7 +155,7 @@ La consultation publique par code `VF-XXXX-XXXX` vit **dans l'app**
 
 ### 7. Blog / ressources — plus tard
 
-Pas prioritaire tant que l'acquisition n'est pas validée (Q36 du sondage dit où se trouvent
+Pas prioritaire tant que l'acquisition n'est pas validée (Q37 du sondage dit où se trouvent
 réellement les formateurs). S'il est lancé un jour, viser les recherches de terrain :
 « corriger un contrôle plus vite », « alternative gratuite à Kahoot », « quiz avec note /20 ».
 
@@ -233,13 +233,13 @@ Le lien participant → vitrine (`utm_source=app&utm_content=result`) mesure sp�
 - [ ] Captures d'écran à jour (lobby, podium, écran de correction, carnet de notes).
 - [ ] Pages légales publiées.
 - [ ] UTM vérifiés de bout en bout.
-- [ ] Accroche ajustée aux verbatims des Q8/Q11, et calendrier calé sur la Q6.
+- [ ] Accroche ajustée aux verbatims des Q8/Q12, et calendrier calé sur la Q6.
 
 ## Ce qu'on ne met pas sur la vitrine
 
 - Aucune fonctionnalité de l'app (pas de saisie de code, pas de connexion, pas de `/verifier`).
 - Aucun chiffre de preuve inventé (« +1 000 formateurs ») : il n'y a **aucun utilisateur réel à
-  ce jour**. Les témoignages viendront des pilotes recrutés par la Q40 du sondage.
+  ce jour**. Les témoignages viendront des pilotes recrutés par la Q41 du sondage.
 - Aucune promesse de fonctionnalité non livrée (offre établissement, suivi longitudinal).
 
 ---

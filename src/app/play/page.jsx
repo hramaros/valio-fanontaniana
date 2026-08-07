@@ -10,6 +10,17 @@ import { normalizeCode } from "@/lib/code";
 import { getPlayerSession } from "@/lib/session";
 import { usePolling } from "@/lib/usePolling";
 
+// Types répondus au clavier plutôt que par tuiles.
+const TEXT_TYPES = ["free", "short", "number"];
+
+const TYPE_META = {
+  single: { icon: "circleDot", label: "Une seule réponse" },
+  multiple: { icon: "listChecks", label: "Plusieurs réponses" },
+  short: { icon: "penLine", label: "Réponse courte" },
+  number: { icon: "hash", label: "Réponse chiffrée" },
+  free: { icon: "bookOpen", label: "Réponse rédigée" },
+};
+
 function PlayInner() {
   const router = useRouter();
   const params = useSearchParams();
@@ -114,7 +125,10 @@ function PlayInner() {
     setTimeout(advance, 1300);
   }
 
-  async function submitFree() {
+  // Sert les trois types à saisie clavier. « Rédaction » revient en attente de
+  // correction ; « réponse courte » et « numérique » sont corrigés dans la
+  // foulée et renvoient donc un vrai retour immédiat, comme les tuiles.
+  async function submitText() {
     if (submitting || !question) return;
     const text = freeText.trim();
     if (!text) return;
@@ -133,7 +147,11 @@ function PlayInner() {
       advance();
       return;
     }
-    setFeedback({ pending: true });
+    setFeedback(
+      data?.pending
+        ? { pending: true }
+        : { correct: data.correct, points: data.points },
+    );
     setTimeout(advance, 1300);
   }
 
@@ -215,41 +233,53 @@ function PlayInner() {
           <div className="card">
             <h1 style={{ fontSize: "1.8rem" }}>{question.text}</h1>
             <span className="pill" style={{ marginTop: 12 }}>
-              <Icon
-                name={
-                  question.type === "multiple"
-                    ? "listChecks"
-                    : question.type === "free"
-                      ? "penLine"
-                      : "circleDot"
-                }
-                size={14}
-              />
-              {question.type === "multiple"
-                ? "Plusieurs réponses"
-                : question.type === "free"
-                  ? "Réponse libre"
-                  : "Une seule réponse"}
+              <Icon name={TYPE_META[question.type]?.icon || "circleDot"} size={14} />
+              {TYPE_META[question.type]?.label || "Une seule réponse"}
             </span>
           </div>
 
-          {question.type === "free" ? (
+          {TEXT_TYPES.includes(question.type) ? (
             !feedback && (
               <div className="stack gap-12">
-                <textarea
-                  className="input input--area"
-                  aria-label="Votre réponse"
-                  placeholder="Saisissez votre réponse…"
-                  value={freeText}
-                  onChange={(e) => setFreeText(e.target.value)}
-                  maxLength={500}
-                  disabled={submitting}
-                  autoFocus
-                />
+                {question.type === "free" ? (
+                  <textarea
+                    className="input input--area"
+                    aria-label="Votre réponse"
+                    placeholder="Saisissez votre réponse…"
+                    value={freeText}
+                    onChange={(e) => setFreeText(e.target.value)}
+                    maxLength={500}
+                    disabled={submitting}
+                    autoFocus
+                  />
+                ) : (
+                  // Champ d'une ligne : sur un clavier de téléphone, une zone de
+                  // texte pour un mot ou un nombre n'apporte rien et masque
+                  // l'écran. `inputMode` fait surgir le bon clavier.
+                  <div className="row gap-8">
+                    <input
+                      className="input"
+                      aria-label="Votre réponse"
+                      placeholder={
+                        question.type === "number" ? "ex. 12" : "Votre réponse…"
+                      }
+                      inputMode={question.type === "number" ? "decimal" : "text"}
+                      value={freeText}
+                      onChange={(e) => setFreeText(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && submitText()}
+                      maxLength={240}
+                      disabled={submitting}
+                      autoFocus
+                    />
+                    {question.type === "number" && question.unit && (
+                      <span className="pill" aria-hidden="true">{question.unit}</span>
+                    )}
+                  </div>
+                )}
                 <button
                   className="btn btn--primary btn--lg btn--block"
                   disabled={!freeText.trim() || submitting}
-                  onClick={submitFree}
+                  onClick={submitText}
                 >
                   Valider ma réponse
                 </button>

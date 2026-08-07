@@ -32,6 +32,58 @@ export function isAnswerCorrect(question, answerIds) {
 }
 
 /**
+ * Normalise un texte pour comparaison : minuscules, sans accents, espaces
+ * réduits. Permet d'accepter « antananarivo » ou « Antananarivo  » pour
+ * « Antananarivo » sans que le formateur ait à lister ces variantes.
+ */
+export function normalizeShortText(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "") // diacritiques
+    .replace(/\s+/g, " ");
+}
+
+/**
+ * Réponse courte : correcte si elle correspond à l'une des réponses acceptées
+ * listées par le formateur (comparaison normalisée).
+ *
+ * Volontairement SANS correction orthographique approximative : sur une
+ * évaluation notée, mieux vaut un refus prévisible — que le formateur peut
+ * rattraper en ajoutant une variante — qu'un point accordé par erreur.
+ */
+export function isShortAnswerCorrect(question, text) {
+  const given = normalizeShortText(text);
+  if (!given) return false;
+  return (question?.accepted || []).some((a) => normalizeShortText(a) === given);
+}
+
+/**
+ * Convertit une saisie en nombre. Accepte la virgule décimale (usage
+ * francophone) et les espaces de milliers. Retourne `null` si ce n'est pas un
+ * nombre — un `null` ne vaut jamais 0.
+ */
+export function parseNumericAnswer(value) {
+  const cleaned = String(value ?? "")
+    .replace(/[\s  ]/g, "")
+    .replace(",", ".");
+  if (!cleaned || !/^[+-]?(\d+\.?\d*|\.\d+)$/.test(cleaned)) return null;
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Numérique : correct si l'écart à la valeur attendue tient dans la tolérance. */
+export function isNumericAnswerCorrect(question, text) {
+  const given = parseNumericAnswer(text);
+  if (given === null) return false;
+  const expected = Number(question?.expected);
+  if (!Number.isFinite(expected)) return false;
+  const tolerance = Math.abs(Number(question?.tolerance) || 0);
+  return Math.abs(given - expected) <= tolerance;
+}
+
+/**
  * Points pour une réponse :
  *   - mauvaise → 0
  *   - bonne → basePoints * (1 - 0.5 * min(timeMs/refMs, 1))
