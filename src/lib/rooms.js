@@ -5,7 +5,8 @@ import {
   isShortAnswerCorrect,
   isNumericAnswerCorrect,
   computePoints,
-  computeNote,
+  computeWeightedNote,
+  normalizeCredit,
   rankParticipants,
   getPodium,
   refMsForQuiz,
@@ -519,8 +520,12 @@ function sumPoints(player) {
   );
 }
 
-/** Le formateur valide (true) ou refuse (false) une réponse libre. */
-export async function gradeFreeAnswer(code, playerId, questionId, correct) {
+/**
+ * Le formateur note une rédaction. `credit` vaut 0 à 1 — une rédaction se
+ * corrige rarement en tout-ou-rien. Les booléens restent acceptés (ancienne
+ * correction binaire, et sessions déjà en cours).
+ */
+export async function gradeFreeAnswer(code, playerId, questionId, credit) {
   const meta = await getMeta(code);
   if (!meta) return { ok: false, status: 404, error: "Salle introuvable." };
   if (meta.finalizedAt)
@@ -535,15 +540,18 @@ export async function gradeFreeAnswer(code, playerId, questionId, correct) {
   const entry = player.answered?.[questionId];
   if (!entry) return { ok: false, status: 400, error: "Aucune réponse à valider." };
 
-  const isCorrect = !!correct;
+  const ratio = normalizeCredit(credit);
   const refMs = refMsForQuiz(
     meta.quiz.totalDurationSec,
     meta.quiz.questions.length,
   );
-  entry.correct = isCorrect;
+  entry.credit = ratio;
+  // `correct` reste réservé au crédit PLEIN : une rédaction à moitié créditée
+  // compte dans la note, sans être comptabilisée comme une bonne réponse.
+  entry.correct = ratio >= 1;
   entry.pending = false;
   entry.points = computePoints({
-    correct: isCorrect,
+    credit: ratio,
     timeMs: entry.timeMs,
     refMs,
     basePoints: question.basePoints,
@@ -552,7 +560,13 @@ export async function gradeFreeAnswer(code, playerId, questionId, correct) {
   player.score = sumPoints(player);
   await savePlayer(code, player);
 
-  return { ok: true, correct: isCorrect, points: entry.points, score: player.score };
+  return {
+    ok: true,
+    credit: ratio,
+    correct: entry.correct,
+    points: entry.points,
+    score: player.score,
+  };
 }
 
 /** Finalise la session : fige le classement et débloque les notes. */
@@ -587,6 +601,9 @@ export async function getReviewData(code) {
           pseudo: p.pseudo,
           text: entry.text || "",
           correct: entry.correct ?? null, // null = en attente de validation
+          // Crédit déjà accordé (0 à 1), pour que l'écran de correction
+          // affiche le choix en cours. `null` = pas encore corrigée.
+          credit: entry.credit ?? (entry.correct == null ? null : entry.correct ? 1 : 0),
         };
       })
       .filter(Boolean)
@@ -614,19 +631,24 @@ export async function getLeaderboard(code) {
   const meta = await getMeta(code);
   if (!meta) return null;
   const players = await listPlayers(code);
+  const questions = meta.quiz?.questions || [];
   const ranked = rankParticipants(
     players.map((p) => ({
       id: p.id,
       pseudo: p.pseudo,
       studentId: p.studentId || null,
       score: p.score,
+      // `nbCorrect` ne compte que les réponses PLEINEMENT justes. Une rédaction
+      // créditée à moitié pèse dans la note mais n'est pas « une bonne
+      // réponse » — c'est la note qui fait foi, pas ce compteur.
       nbCorrect: Object.values(p.answered || {}).filter((a) => a.correct).length,
+      answered: p.answered || {},
     })),
   );
-  const nbQuestions = meta.quiz?.questions.length || 0;
-  const withNote = ranked.map((p) => ({
+  const nbQuestions = questions.length;
+  const withNote = ranked.map(({ answered, ...p }) => ({
     ...p,
-    note: computeNote(p.nbCorrect, nbQuestions),
+    note: computeWeightedNote(questions, answered),
   }));
 
   const status = deriveStatus(meta);

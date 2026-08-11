@@ -64,9 +64,11 @@ function HostResultsInner() {
   const [overlay, setOverlay] = useState({});
   const [finalizing, setFinalizing] = useState(false);
 
-  async function grade(questionId, playerId, correct) {
-    setOverlay((o) => ({ ...o, [`${questionId}:${playerId}`]: correct }));
-    await apiPost(`/api/host/${code}/grade`, { questionId, playerId, correct });
+  // `credit` : 0 à 1. L'overlay applique le choix tout de suite, sans attendre
+  // le prochain poll — corriger une classe entière doit rester fluide.
+  async function grade(questionId, playerId, credit) {
+    setOverlay((o) => ({ ...o, [`${questionId}:${playerId}`]: credit }));
+    await apiPost(`/api/host/${code}/grade`, { questionId, playerId, credit });
   }
 
   async function finalize() {
@@ -87,7 +89,9 @@ function HostResultsInner() {
         ...q,
         submissions: q.submissions.map((s) => {
           const k = `${q.id}:${s.playerId}`;
-          return k in overlay ? { ...s, correct: overlay[k] } : s;
+          if (!(k in overlay)) return s;
+          const credit = overlay[k];
+          return { ...s, credit, correct: credit >= 1 };
         }),
       })),
     };

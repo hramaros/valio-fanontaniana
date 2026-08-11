@@ -814,3 +814,141 @@ test("les champs de correction ne doivent jamais atteindre le joueur", async () 
     assert.ok(!exposed.includes(secret), `${secret} ne doit pas être exposé`);
   }
 });
+
+/* ------------------------------------------------------------------ */
+/* Barème pondéré et correction graduée                                */
+/* ------------------------------------------------------------------ */
+
+test("la note /20 est pondérée par le barème des questions", async () => {
+  setRedisClient(createFakeRedis());
+  const meta = await createRoom("Prof", null);
+  // Question « dure » à 3 000 points : elle pèse 3× la question facile.
+  await setQuiz(meta.code, {
+    title: "Barème",
+    mode: "libre",
+    totalDurationSec: 600,
+    questions: [
+      {
+        text: "Facile ?",
+        type: "single",
+        basePoints: 1000,
+        answers: [
+          { text: "oui", color: "#fff", correct: true },
+          { text: "non", color: "#fff", correct: false },
+        ],
+      },
+      {
+        text: "Dure ?",
+        type: "single",
+        basePoints: 3000,
+        answers: [
+          { text: "oui", color: "#fff", correct: true },
+          { text: "non", color: "#fff", correct: false },
+        ],
+      },
+    ],
+  });
+  const full = await getMeta(meta.code);
+  const [facile, dure] = full.quiz.questions;
+
+  const alice = await registerPlayer(meta.code, "Alice"); // réussit la dure
+  const bob = await registerPlayer(meta.code, "Bob"); // réussit la facile
+  await startGame(meta.code);
+
+  await revealQuestion(meta.code, alice.playerId, dure.id);
+  await submitAnswer(meta.code, alice.playerId, dure.id, [
+    dure.answers.find((a) => a.correct).id,
+  ]);
+  await revealQuestion(meta.code, bob.playerId, facile.id);
+  await submitAnswer(meta.code, bob.playerId, facile.id, [
+    facile.answers.find((a) => a.correct).id,
+  ]);
+
+  await endSession(meta.code);
+  const board = await getLeaderboard(meta.code);
+  const note = (pseudo) => board.leaderboard.find((p) => p.pseudo === pseudo).note;
+
+  assert.equal(note("Alice"), 15, "3000/4000 des points → 15/20");
+  assert.equal(note("Bob"), 5, "1000/4000 des points → 5/20");
+});
+
+test("correction graduée : un demi-crédit compte pour moitié dans la note", async () => {
+  setRedisClient(createFakeRedis());
+  const meta = await createRoom("Prof", null);
+  await setQuiz(meta.code, {
+    title: "Rédaction",
+    mode: "examen",
+    totalDurationSec: 600,
+    questions: [
+      { text: "Expliquez A", type: "free", basePoints: 1000 },
+      { text: "Expliquez B", type: "free", basePoints: 1000 },
+    ],
+  });
+  const full = await getMeta(meta.code);
+  const [qa, qb] = full.quiz.questions;
+
+  const alice = await registerPlayer(meta.code, "Alice");
+  await startGame(meta.code);
+  for (const q of [qa, qb]) {
+    await revealQuestion(meta.code, alice.playerId, q.id);
+    await submitAnswer(meta.code, alice.playerId, q.id, null, "une réponse");
+  }
+
+  // Une rédaction pleinement juste, l'autre à moitié → 1,5 / 2 → 15/20.
+  assert.equal((await gradeFreeAnswer(meta.code, alice.playerId, qa.id, 1)).credit, 1);
+  const half = await gradeFreeAnswer(meta.code, alice.playerId, qb.id, 0.5);
+  assert.equal(half.credit, 0.5);
+  assert.equal(half.correct, false, "un demi-crédit n'est pas « une bonne réponse »");
+
+  await finalizeSession(meta.code);
+  const board = await getLeaderboard(meta.code);
+  const me = board.leaderboard.find((p) => p.pseudo === "Alice");
+  assert.equal(me.note, 15);
+  assert.equal(me.nbCorrect, 1, "seule la rédaction pleinement juste est comptée");
+});
+
+test("correction graduée : les booléens restent acceptés", async () => {
+  setRedisClient(createFakeRedis());
+  const meta = await createRoom("Prof", null);
+  await setQuiz(meta.code, {
+    title: "Rédaction",
+    mode: "examen",
+    totalDurationSec: 600,
+    questions: [{ text: "Expliquez", type: "free", basePoints: 1000 }],
+  });
+  const full = await getMeta(meta.code);
+  const [q] = full.quiz.questions;
+  const alice = await registerPlayer(meta.code, "Alice");
+  await startGame(meta.code);
+  await revealQuestion(meta.code, alice.playerId, q.id);
+  await submitAnswer(meta.code, alice.playerId, q.id, null, "réponse");
+
+  const res = await gradeFreeAnswer(meta.code, alice.playerId, q.id, true);
+  assert.equal(res.credit, 1);
+  assert.equal(res.correct, true);
+});
+
+test("correction graduée : le crédit est révisable et le score suit", async () => {
+  setRedisClient(createFakeRedis());
+  const meta = await createRoom("Prof", null);
+  await setQuiz(meta.code, {
+    title: "Rédaction",
+    mode: "examen",
+    totalDurationSec: 600,
+    questions: [{ text: "Expliquez", type: "free", basePoints: 1000 }],
+  });
+  const full = await getMeta(meta.code);
+  const [q] = full.quiz.questions;
+  const alice = await registerPlayer(meta.code, "Alice");
+  await startGame(meta.code);
+  await revealQuestion(meta.code, alice.playerId, q.id);
+  await submitAnswer(meta.code, alice.playerId, q.id, null, "réponse");
+
+  const plein = await gradeFreeAnswer(meta.code, alice.playerId, q.id, 1);
+  const quart = await gradeFreeAnswer(meta.code, alice.playerId, q.id, 0.25);
+  assert.ok(quart.points < plein.points, "revoir la note à la baisse la baisse");
+  assert.equal(quart.score, quart.points, "le score est recalculé, pas cumulé");
+
+  const review = await getReviewData(meta.code);
+  assert.equal(review.questions[0].submissions[0].credit, 0.25);
+});

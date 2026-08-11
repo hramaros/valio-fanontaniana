@@ -109,7 +109,9 @@ d'élargir le périmètre.
 ## Differentiation
 **Key differentiators :**
 - **Score de jeu + note /20** dans une seule session (ludique **et** académique).
-- **Réponses libres** avec **validation manuelle** par le formateur (au-delà du QCM).
+- **Barème pondéré** : chaque question porte son poids dans la note /20 (`basePoints`), comme un vrai contrôle — pas un simple comptage de bonnes réponses.
+- **Réponses libres** avec **correction graduée** par le formateur (0, ¼, ½, ¾, tout) : on ne corrige pas une rédaction en tout-ou-rien.
+- **Réponse courte et numérique corrigées automatiquement** (variantes acceptées, tolérance ±) : le formateur ne valide à la main que ce qui le mérite.
 - **Export PDF** (classement formateur + résultat individuel).
 - **Zéro inscription** participant (code + pseudo), **ultra léger** (polling, serverless, salles éphémères) → adapté aux connexions limitées et au RGPD/données minimales.
 - Interface **française** et identité **locale**.

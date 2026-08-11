@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import {
   isAnswerCorrect,
   computePoints,
-  computeNote,
+  computeWeightedNote,
+  normalizeCredit,
   rankParticipants,
   getPodium,
   refMsForQuiz,
@@ -103,24 +104,83 @@ test("computePoints: timeMs négatif traité comme 0", () => {
   );
 });
 
-test("computeNote: 0 bonne réponse = 0/20", () => {
-  assert.equal(computeNote(0, 4), 0);
+// Barème homogène : la note pondérée doit redonner « bonnes / total × 20 »,
+// sans quoi les quiz existants (tous à 1 000 points) changeraient de note.
+const q4 = [
+  { id: "a", basePoints: 1000 },
+  { id: "b", basePoints: 1000 },
+  { id: "c", basePoints: 1000 },
+  { id: "d", basePoints: 1000 },
+];
+const juste = { correct: true };
+const faux = { correct: false };
+
+test("computeWeightedNote : aucune bonne réponse = 0/20", () => {
+  assert.equal(computeWeightedNote(q4, { a: faux, b: faux }), 0);
 });
 
-test("computeNote: toutes bonnes = 20/20", () => {
-  assert.equal(computeNote(4, 4), 20);
+test("computeWeightedNote : toutes bonnes = 20/20", () => {
+  assert.equal(computeWeightedNote(q4, { a: juste, b: juste, c: juste, d: juste }), 20);
 });
 
-test("computeNote: moitié = 10/20", () => {
-  assert.equal(computeNote(2, 4), 10);
+test("computeWeightedNote : moitié = 10/20", () => {
+  assert.equal(computeWeightedNote(q4, { a: juste, b: juste, c: faux, d: faux }), 10);
 });
 
-test("computeNote: arrondi à une décimale", () => {
-  assert.equal(computeNote(1, 3), 6.7);
+test("computeWeightedNote : une question non répondue compte comme fausse", () => {
+  // Répondre juste à une seule question ne donne pas 20/20.
+  assert.equal(computeWeightedNote(q4, { a: juste }), 5);
 });
 
-test("computeNote: aucune question = 0", () => {
-  assert.equal(computeNote(0, 0), 0);
+test("computeWeightedNote : arrondi à une décimale", () => {
+  const q3 = [{ id: "a" }, { id: "b" }, { id: "c" }];
+  assert.equal(computeWeightedNote(q3, { a: juste }), 6.7);
+});
+
+test("computeWeightedNote : aucune question = 0", () => {
+  assert.equal(computeWeightedNote([], {}), 0);
+  assert.equal(computeWeightedNote(null, null), 0);
+});
+
+test("computeWeightedNote : le barème pondère la note", () => {
+  // Une question à 3 000 points pèse trois fois une question à 1 000.
+  const bareme = [
+    { id: "facile", basePoints: 1000 },
+    { id: "dure", basePoints: 3000 },
+  ];
+  assert.equal(computeWeightedNote(bareme, { facile: juste, dure: faux }), 5);
+  assert.equal(computeWeightedNote(bareme, { facile: faux, dure: juste }), 15);
+});
+
+test("computeWeightedNote : le crédit partiel compte au prorata", () => {
+  assert.equal(computeWeightedNote(q4, { a: { credit: 0.5 } }), 2.5);
+  assert.equal(
+    computeWeightedNote(q4, { a: { credit: 0.5 }, b: { credit: 0.5 }, c: juste, d: juste }),
+    15,
+  );
+});
+
+test("computeWeightedNote : un poids absent ou aberrant retombe sur 1 000", () => {
+  const mixte = [{ id: "a" }, { id: "b", basePoints: -5 }];
+  assert.equal(computeWeightedNote(mixte, { a: juste, b: faux }), 10);
+});
+
+test("normalizeCredit : booléens, bornes et valeurs invalides", () => {
+  assert.equal(normalizeCredit(true), 1);
+  assert.equal(normalizeCredit(false), 0);
+  assert.equal(normalizeCredit(null), 0);
+  assert.equal(normalizeCredit(undefined), 0);
+  assert.equal(normalizeCredit(0.5), 0.5);
+  assert.equal(normalizeCredit(2), 1, "borné à 1");
+  assert.equal(normalizeCredit(-1), 0, "borné à 0");
+  assert.equal(normalizeCredit("abc"), 0);
+});
+
+test("computePoints : le crédit partiel réduit les points de jeu", () => {
+  const plein = computePoints({ credit: 1, timeMs: 0, refMs: 1000, basePoints: 1000 });
+  const moitie = computePoints({ credit: 0.5, timeMs: 0, refMs: 1000, basePoints: 1000 });
+  assert.equal(moitie, Math.round(plein / 2));
+  assert.equal(computePoints({ credit: 0, timeMs: 0, refMs: 1000, basePoints: 1000 }), 0);
 });
 
 test("rankParticipants: tri par score décroissant + rang", () => {

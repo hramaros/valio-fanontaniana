@@ -31,6 +31,9 @@ export default function QuestionBuilder({
     patch({ type, answers });
   }
 
+  // Types répondus au clavier : ils n'ont pas de tuiles de réponse à éditer.
+  const isTextInput = ["free", "short", "number"].includes(question.type);
+
   // Préréglage Vrai/Faux : un choix unique avec deux réponses figées.
   const isTrueFalse =
     question.type === "single" &&
@@ -359,13 +362,15 @@ export default function QuestionBuilder({
       )}
 
       <div className="row gap-12 wrap">
-        {question.type !== "free" && question.answers.length < 6 && (
+        {!isTextInput && question.answers.length < 6 && (
           <button type="button" className="btn btn--ghost" onClick={addAnswer}>
             <Icon name="plus" size={15} /> Réponse
           </button>
         )}
-        <label className="check" style={{ marginLeft: "auto" }}>
-          Points
+        {/* Ce poids sert deux fois : au score de jeu et, depuis le barème
+            pondéré, au calcul de la note /20. D'où le libellé « Barème ». */}
+        <label className="check" style={{ marginLeft: "auto" }} title="Poids de la question dans la note /20">
+          Barème
           <input
             type="number"
             className="input"

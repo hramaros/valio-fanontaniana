@@ -1,6 +1,16 @@
 import Icon from "@/components/Icon";
 
-// Vue formateur : valide / refuse chaque réponse libre, groupée par question.
+// Paliers de crédit accordés à une rédaction. Cinq suffisent : au-delà, on
+// délibère au lieu de corriger, et le gain de finesse est illusoire.
+const CREDIT_STEPS = [
+  { value: 0, label: "0", title: "Rien accordé" },
+  { value: 0.25, label: "¼", title: "Un quart des points" },
+  { value: 0.5, label: "½", title: "La moitié des points" },
+  { value: 0.75, label: "¾", title: "Trois quarts des points" },
+  { value: 1, label: "Tout", title: "Tous les points" },
+];
+
+// Vue formateur : note chaque rédaction, groupée par question.
 export default function ReviewGrader({ review, onGrade }) {
   if (!review || review.questions.length === 0) return null;
 
@@ -35,27 +45,35 @@ export default function ReviewGrader({ review, onGrade }) {
                       {s.text ? s.text : <em>(réponse vide)</em>}
                     </div>
                   </div>
-                  <div className="row gap-8">
-                    <button
-                      type="button"
-                      className={`btn btn--compact ${
-                        s.correct === true ? "btn--primary" : "btn--ghost"
-                      }`}
-                      aria-pressed={s.correct === true}
-                      onClick={() => onGrade(q.id, s.playerId, true)}
-                    >
-                      <Icon name="check" size={16} /> Valider
-                    </button>
-                    <button
-                      type="button"
-                      className={`btn btn--compact ${
-                        s.correct === false ? "btn--danger" : "btn--ghost"
-                      }`}
-                      aria-pressed={s.correct === false}
-                      onClick={() => onGrade(q.id, s.playerId, false)}
-                    >
-                      <Icon name="close" size={16} /> Refuser
-                    </button>
+                  {/* Cinq paliers plutôt que juste/faux : une rédaction se
+                      corrige rarement en tout-ou-rien. Des boutons, pas un
+                      curseur — on corrige vite et sans viser. */}
+                  <div
+                    className="row gap-8"
+                    role="group"
+                    aria-label={`Note de ${s.pseudo}`}
+                  >
+                    {CREDIT_STEPS.map((step) => {
+                      const on = s.credit === step.value;
+                      return (
+                        <button
+                          key={step.value}
+                          type="button"
+                          className={`btn btn--compact ${
+                            on
+                              ? step.value === 0
+                                ? "btn--danger"
+                                : "btn--primary"
+                              : "btn--ghost"
+                          }`}
+                          aria-pressed={on}
+                          title={step.title}
+                          onClick={() => onGrade(q.id, s.playerId, step.value)}
+                        >
+                          {step.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
