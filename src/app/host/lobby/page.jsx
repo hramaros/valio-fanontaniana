@@ -5,6 +5,7 @@ import Link from "next/link";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
+import { HOST_LOBBY_MS } from "@/lib/polling";
 import RechargeModal from "@/components/RechargeModal";
 import Icon from "@/components/Icon";
 import { examPriceAr } from "@/lib/exam";
@@ -31,7 +32,7 @@ function LobbyInner() {
     },
     [code],
   );
-  const state = usePolling(fetcher, 1200, true);
+  const state = usePolling(fetcher, HOST_LOBBY_MS, true);
 
   // Si la partie est déjà lancée, on file vers le suivi des résultats.
   useEffect(() => {

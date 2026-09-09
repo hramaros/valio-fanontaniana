@@ -6,6 +6,7 @@ import Icon from "@/components/Icon";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
+import { JOIN_MS } from "@/lib/polling";
 import { savePlayerSession, getPlayerSession } from "@/lib/session";
 
 function JoinInner() {
@@ -33,7 +34,7 @@ function JoinInner() {
     () => async () => (await apiGet(`/api/room/${code}/state`)).data,
     [code],
   );
-  const state = usePolling(stateFetcher, 1200, true);
+  const state = usePolling(stateFetcher, JOIN_MS, true);
 
   // Bascule vers le jeu / résultats quand l'hôte lance ou que le temps est fini.
   useEffect(() => {

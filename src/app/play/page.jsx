@@ -9,6 +9,7 @@ import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { getPlayerSession } from "@/lib/session";
 import { usePolling } from "@/lib/usePolling";
+import { PLAY_MS } from "@/lib/polling";
 
 // Types répondus au clavier plutôt que par tuiles.
 const TEXT_TYPES = ["free", "short", "number"];
@@ -85,7 +86,7 @@ function PlayInner() {
     () => async () => (await apiGet(`/api/room/${code}/state`)).data,
     [code],
   );
-  const state = usePolling(stateFetcher, 1200, phase === "playing" || phase === "done");
+  const state = usePolling(stateFetcher, PLAY_MS, phase === "playing" || phase === "done");
   useEffect(() => {
     if (state && state.status !== "running") goToResult();
   }, [state, goToResult]);

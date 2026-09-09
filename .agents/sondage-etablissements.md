@@ -293,8 +293,16 @@ enseignant ?** *(choix unique — obligatoire)*
 > qu'ils choisissent spontanément est déjà une information.*
 
 **Texte à coller au-dessus de Q24** :
-> À titre indicatif, nous envisageons un ordre de grandeur d'environ **20 000 Ar par
-> enseignant et par an**, sans engagement de durée.
+> À titre indicatif, nous envisageons un **abonnement annuel forfaitaire d'environ
+> 1 500 000 Ar** pour l'établissement : enseignants et évaluations **illimités**,
+> accompagnement à la mise en route inclus. **Pas de tarif par enseignant**, pas
+> d'engagement de durée.
+
+> ⚠️ **Ancrage révisé le 2026-09-09.** La version précédente testait « 20 000 Ar par
+> enseignant et par an ». Ce modèle a été écarté : au-delà de 20 évaluations par an — soit
+> le rythme du cœur de cible — il revient **moins cher** que le paiement à l'acte, donc
+> l'offre établissement devenait une remise au lieu d'un upsell. Le détail du calcul et le
+> choix du forfait sont dans [`tarification.md`](./tarification.md).
 
 **Q24. Qu'en pensez-vous ?** *(choix unique — obligatoire)*
 - Trop cher · Un peu cher · Juste · Bon marché · Je ne sais pas

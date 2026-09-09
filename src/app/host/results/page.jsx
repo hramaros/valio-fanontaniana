@@ -12,6 +12,7 @@ import Icon from "@/components/Icon";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
+import { HOST_STATE_MS, HOST_BOARD_MS, HOST_REVIEW_MS } from "@/lib/polling";
 import { useAccount } from "@/lib/account-client";
 import { canAfford } from "@/lib/wallet";
 import { PRICE_SMALL_AR } from "@/lib/exam";
@@ -52,13 +53,13 @@ function HostResultsInner() {
     [code],
   );
 
-  const state = usePolling(stateFetcher, 1200, true);
+  const state = usePolling(stateFetcher, HOST_STATE_MS, true);
   const status = state?.status;
   const review = status === "review";
   const ended = status === "ended";
 
-  const board = usePolling(resultsFetcher, 1500, true);
-  const reviewData = usePolling(reviewFetcher, 1000, review);
+  const board = usePolling(resultsFetcher, HOST_BOARD_MS, true);
+  const reviewData = usePolling(reviewFetcher, HOST_REVIEW_MS, review);
 
   // Aperçu local instantané pendant que le polling rattrape le serveur.
   const [overlay, setOverlay] = useState({});

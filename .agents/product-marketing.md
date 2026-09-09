@@ -4,7 +4,8 @@
 *Statut : V1 auto-rédigée à partir du code. Les `[À CONFIRMER]` attendent ta validation.*
 
 **Documents liés :** [`evaluation-marche.md`](./evaluation-marche.md) (grille Personal MBA,
-62/100) · [`site-vitrine.md`](./site-vitrine.md).
+62/100) · [`tarification.md`](./tarification.md) (décision de prix et calculs de rentabilité) ·
+[`site-vitrine.md`](./site-vitrine.md).
 
 **Dispositif de recherche terrain — trois publics, trois questionnaires**, délibérément
 séparés : leurs douleurs, leur vocabulaire et leurs critères n'ont rien de commun, et les
@@ -78,6 +79,10 @@ paie un accès pour N enseignants : ticket 10 à 50× supérieur au PAYG unitair
 du curseur du B2C micro vers le B2B2C. C'est le levier le plus rapide pour desserrer le
 **plafond de prix** — la note la plus basse de [`evaluation-marche.md`](./evaluation-marche.md)
 (3/10) — et il redresse simultanément la taille de marché utile et le potentiel d'upsell.
+**Prix retenu (2026-09-09)** : abonnement annuel forfaitaire de **1 500 000 Ar**, enseignants
+illimités — et non un tarif par enseignant, qui revenait moins cher que le paiement à l'acte
+dès 20 évaluations par an. Calculs complets dans [`tarification.md`](./tarification.md).
+
 Statut : **non validée**. Deux instruments la testent, depuis les deux côtés :
 - côté formateur, la **Q34** du [sondage formateurs](./sondage-validation-besoin.md)
   (« qui devrait payer ? ») ;
