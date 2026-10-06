@@ -11,7 +11,7 @@ const CREDIT_STEPS = [
 ];
 
 // Vue formateur : note chaque rédaction, groupée par question.
-export default function ReviewGrader({ review, onGrade }) {
+export default function ReviewGrader({ review, onGrade, onGradeAll }) {
   if (!review || review.questions.length === 0) return null;
 
   return (
@@ -30,6 +30,31 @@ export default function ReviewGrader({ review, onGrade }) {
               </p>
             )}
           </div>
+
+          {/* Raccourci de masse : quand toutes les réponses d'une question se
+              ressemblent, cliquer 30 fois n'apporte rien. Un seul appel
+              réseau, groupé par élève côté serveur. */}
+          {onGradeAll && q.submissions.length > 1 && (
+            <div className="row gap-8 wrap">
+              <span className="tiny muted" style={{ alignSelf: "center" }}>
+                Toute la classe :
+              </span>
+              <button
+                type="button"
+                className="btn btn--ghost btn--compact"
+                onClick={() => onGradeAll(q.id, 1)}
+              >
+                <Icon name="check" size={15} /> Tout accorder
+              </button>
+              <button
+                type="button"
+                className="btn btn--ghost btn--compact"
+                onClick={() => onGradeAll(q.id, 0)}
+              >
+                <Icon name="close" size={15} /> Tout refuser
+              </button>
+            </div>
+          )}
 
           {q.submissions.length === 0 ? (
             <p className="hint">

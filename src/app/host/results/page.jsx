@@ -12,7 +12,7 @@ import Icon from "@/components/Icon";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
-import { HOST_STATE_MS, HOST_BOARD_MS, HOST_REVIEW_MS } from "@/lib/polling";
+import { HOST_BOARD_MS, HOST_REVIEW_MS } from "@/lib/polling";
 import { useAccount } from "@/lib/account-client";
 import { canAfford } from "@/lib/wallet";
 import { PRICE_SMALL_AR } from "@/lib/exam";
@@ -30,18 +30,17 @@ function HostResultsInner() {
 
   // Les fetchers ne renvoient que des données valides : un payload d'erreur
   // (salle expirée, Redis indisponible…) ne doit jamais entrer dans l'état.
-  const stateFetcher = useMemo(
-    () => async () => {
-      const { ok, status, data } = await apiGet(`/api/room/${code}/state`);
-      if (ok) return data;
-      return status === 404 ? { notFound: true } : undefined;
-    },
-    [code],
-  );
+  //
+  // Cet écran pollait `/state` ET `/results` en parallèle, alors que
+  // `/results` porte déjà statut, mode, capacité et prix — il ne manquait que
+  // les trois champs du chrono, désormais inclus. Un seul poller suffit donc,
+  // soit un tiers de requêtes en moins sur l'écran le plus longtemps ouvert
+  // par le formateur.
   const resultsFetcher = useMemo(
     () => async () => {
-      const { ok, data } = await apiGet(`/api/room/${code}/results`);
-      return ok ? data : undefined;
+      const { ok, status, data } = await apiGet(`/api/room/${code}/results`);
+      if (ok) return data;
+      return status === 404 ? { notFound: true } : undefined;
     },
     [code],
   );
@@ -53,12 +52,11 @@ function HostResultsInner() {
     [code],
   );
 
-  const state = usePolling(stateFetcher, HOST_STATE_MS, true);
-  const status = state?.status;
+  const board = usePolling(resultsFetcher, HOST_BOARD_MS, true);
+  const status = board?.status;
   const review = status === "review";
   const ended = status === "ended";
 
-  const board = usePolling(resultsFetcher, HOST_BOARD_MS, true);
   const reviewData = usePolling(reviewFetcher, HOST_REVIEW_MS, review);
 
   // Aperçu local instantané pendant que le polling rattrape le serveur.
@@ -70,6 +68,25 @@ function HostResultsInner() {
   async function grade(questionId, playerId, credit) {
     setOverlay((o) => ({ ...o, [`${questionId}:${playerId}`]: credit }));
     await apiPost(`/api/host/${code}/grade`, { questionId, playerId, credit });
+  }
+
+  // Correction de masse : un seul appel pour toute la question. L'overlay
+  // applique le choix immédiatement sur chaque ligne, sans attendre le poll.
+  async function gradeAll(questionId, credit) {
+    const question = mergedReview?.questions.find((q) => q.id === questionId);
+    if (!question) return;
+    const grades = question.submissions.map((s) => ({
+      playerId: s.playerId,
+      questionId,
+      credit,
+    }));
+    if (grades.length === 0) return;
+    setOverlay((o) => {
+      const next = { ...o };
+      for (const g of grades) next[`${questionId}:${g.playerId}`] = credit;
+      return next;
+    });
+    await apiPost(`/api/host/${code}/grade-bulk`, { grades });
   }
 
   async function finalize() {
@@ -105,11 +122,11 @@ function HostResultsInner() {
       )
     : 0;
 
-  if (!state) {
+  if (!board) {
     return <div className="center-work"><div className="spin" role="status" aria-label="Chargement" /></div>;
   }
 
-  if (state.notFound) {
+  if (board.notFound) {
     return (
       <div className="center-work">
         <div className="card stack gap-16" style={{ textAlign: "center", maxWidth: 440 }}>
@@ -125,8 +142,8 @@ function HostResultsInner() {
     );
   }
 
-  const offset = state.serverNow - Date.now();
-  const endsAt = state.startedAt + state.durationMs;
+  const offset = board.serverNow - Date.now();
+  const endsAt = board.startedAt + board.durationMs;
 
   const header = (
     <div className="row row--between wrap gap-12">
@@ -154,7 +171,7 @@ function HostResultsInner() {
         </div>
 
         {mergedReview ? (
-          <ReviewGrader review={mergedReview} onGrade={grade} />
+          <ReviewGrader review={mergedReview} onGrade={grade} onGradeAll={gradeAll} />
         ) : (
           <div className="panel" style={{ textAlign: "center" }}>
             <div className="spin" role="status" aria-label="Chargement" style={{ margin: "0 auto" }} />
@@ -216,7 +233,7 @@ function HostResultsInner() {
           <div className="stack gap-8 session-live__actions">
             <Countdown
               endsAt={endsAt}
-              durationMs={state.durationMs}
+              durationMs={board.durationMs}
               serverOffset={offset}
             />
             <ConfirmButton
@@ -267,7 +284,7 @@ function HostResultsInner() {
         </div>
       )}
 
-      {ended && state.mode === "examen" && (
+      {ended && board.mode === "examen" && (
         <div className="panel" style={{ textAlign: "center" }}>
           <span className="tiny muted">Coût de cet examen</span>
           <div className="money" style={{ fontSize: "1.4rem", fontWeight: 800 }}>

@@ -119,6 +119,9 @@ export function createFakeRedis() {
       lists.set(key, arr);
       return arr.length;
     },
+    async llen(key) {
+      return (lists.get(key) || []).length;
+    },
     async lrange(key, start, stop) {
       const arr = lists.get(key) || [];
       return arr.slice(start, end(arr, stop)).map(clone);

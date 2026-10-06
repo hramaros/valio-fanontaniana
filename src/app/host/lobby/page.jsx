@@ -5,7 +5,7 @@ import Link from "next/link";
 import { apiGet, apiPost } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
-import { HOST_LOBBY_MS } from "@/lib/polling";
+import { HOST_LOBBY_MS, HOST_LOBBY_BACKOFF_MS } from "@/lib/polling";
 import RechargeModal from "@/components/RechargeModal";
 import Icon from "@/components/Icon";
 import { examPriceAr } from "@/lib/exam";
@@ -32,7 +32,12 @@ function LobbyInner() {
     },
     [code],
   );
-  const state = usePolling(fetcher, HOST_LOBBY_MS, true);
+  // Backoff : la signature bouge à chaque arrivée d'élève et à chaque
+  // changement de statut, donc la cadence repart au plus petit événement.
+  const state = usePolling(fetcher, HOST_LOBBY_MS, true, {
+    backoffMs: HOST_LOBBY_BACKOFF_MS,
+    signature: (d) => `${d?.status}:${d?.participants?.length ?? 0}:${d?.notFound ?? false}`,
+  });
 
   // Si la partie est déjà lancée, on file vers le suivi des résultats.
   useEffect(() => {

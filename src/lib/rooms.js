@@ -47,6 +47,10 @@ const now = () => Date.now();
 export const QUESTION_TYPES = ["single", "multiple", "free", "short", "number"];
 export const TEXT_INPUT_TYPES = ["free", "short", "number"];
 
+// Plafond d'une correction en masse. Une classe dépasse rarement 50 élèves, et
+// borner évite qu'une requête unique parte en boucle sur des milliers d'écritures.
+export const BULK_GRADE_MAX = 200;
+
 /** Le quiz comporte-t-il au moins une question à réponse libre (à corriger) ? */
 export function quizHasFree(quiz) {
   return !!quiz?.questions?.some((q) => q.type === "free");
@@ -569,6 +573,94 @@ export async function gradeFreeAnswer(code, playerId, questionId, credit) {
   };
 }
 
+/**
+ * Corrige PLUSIEURS rédactions en un appel.
+ *
+ * Cas d'usage réel : un formateur qui accorde le même crédit à toute une
+ * classe sur une question (« tout accorder », « tout refuser »). La version
+ * unitaire relisait la salle à chaque clic : 30 élèves = 30 `getMeta`.
+ *
+ * Ici la salle est lue une fois, et les corrections sont **regroupées par
+ * joueur** — un seul cycle lecture/écriture par élève, quel que soit le nombre
+ * de questions corrigées pour lui. Le score est recalculé une fois, après
+ * application de toutes ses corrections.
+ *
+ * @param {Array<{playerId: string, questionId: string, credit: number}>} grades
+ */
+export async function gradeFreeAnswersBulk(code, grades) {
+  const meta = await getMeta(code);
+  if (!meta) return { ok: false, status: 404, error: "Salle introuvable." };
+  if (meta.finalizedAt)
+    return { ok: false, status: 409, error: "Session déjà finalisée." };
+  if (!Array.isArray(grades) || grades.length === 0)
+    return { ok: false, status: 400, error: "Aucune correction fournie." };
+  if (grades.length > BULK_GRADE_MAX)
+    return {
+      ok: false,
+      status: 400,
+      error: `Trop de corrections d'un coup (maximum ${BULK_GRADE_MAX}).`,
+    };
+
+  const refMs = refMsForQuiz(
+    meta.quiz.totalDurationSec,
+    meta.quiz.questions.length,
+  );
+
+  // Regroupement par joueur : c'est ce qui évite de relire le même élève
+  // autant de fois qu'il a de rédactions à corriger.
+  const byPlayer = new Map();
+  for (const g of grades) {
+    if (!g?.playerId || !g?.questionId) continue;
+    if (!byPlayer.has(g.playerId)) byPlayer.set(g.playerId, []);
+    byPlayer.get(g.playerId).push(g);
+  }
+
+  let applied = 0;
+  const skipped = [];
+
+  for (const [playerId, list] of byPlayer) {
+    const player = await getPlayer(code, playerId);
+    if (!player) {
+      skipped.push({ playerId, reason: "joueur inconnu" });
+      continue;
+    }
+    let touched = false;
+    for (const { questionId, credit } of list) {
+      const question = meta.quiz?.questions.find((q) => q.id === questionId);
+      if (!question || question.type !== "free") {
+        skipped.push({ playerId, questionId, reason: "question libre inconnue" });
+        continue;
+      }
+      const entry = player.answered?.[questionId];
+      if (!entry) {
+        skipped.push({ playerId, questionId, reason: "aucune réponse" });
+        continue;
+      }
+      const ratio = normalizeCredit(credit);
+      entry.credit = ratio;
+      entry.correct = ratio >= 1;
+      entry.pending = false;
+      entry.points = computePoints({
+        credit: ratio,
+        timeMs: entry.timeMs,
+        refMs,
+        basePoints: question.basePoints,
+      });
+      player.answered[questionId] = entry;
+      touched = true;
+      applied += 1;
+    }
+    // Une seule écriture par joueur, score recalculé après toutes ses
+    // corrections — pas après chacune.
+    if (touched) {
+      player.score = sumPoints(player);
+      await savePlayer(code, player);
+    }
+  }
+
+  return { ok: true, applied, skipped };
+}
+
 /** Finalise la session : fige le classement et débloque les notes. */
 export async function finalizeSession(code) {
   const meta = await getMeta(code);
@@ -722,6 +814,12 @@ export async function getLeaderboard(code) {
     leaderboard: withNote,
     podium: getPodium(withNote),
     nbQuestions,
+    // Champs de chrono : ils permettent à l'écran formateur de n'interroger
+    // QUE cet endpoint, au lieu de poller `/state` en parallèle pour les
+    // mêmes trois valeurs (voir host/results/page.jsx).
+    startedAt: meta.startedAt || null,
+    durationMs: meta.durationMs || null,
+    serverNow: now(),
   };
 }
 

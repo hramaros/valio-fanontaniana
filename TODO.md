@@ -114,16 +114,39 @@ séquencer selon la croissance réelle.
       évaluation de 20 participants, soit 11 → 23 évaluations dans le palier
       gratuit Upstash. Chiffrage et seuils dans
       [`.agents/tarification.md`](.agents/tarification.md).
-- [ ] Mettre `usePolling` en pause via la Page Visibility API quand l'onglet
-      est caché.
-- [ ] Backoff adaptatif en lobby (cadence de base → 3-5 s si rien ne change,
-      retour à la cadence de base dès qu'un changement est détecté). **Les
-      valeurs de départ sont maintenant dans `src/lib/polling.js`, plus en dur
-      à 1,2 s.**
-- [ ] Fusionner les endpoints pollés en parallèle côté
-      `host/results/page.jsx` (`state` + `results` + `review`).
-- [ ] Endpoint de correction en masse des réponses libres
-      (`POST /api/host/[code]/grade-bulk`).
+- [x] **Pause sur onglet caché** (`usePolling`, Page Visibility API). Un élève
+      qui met son navigateur en arrière-plan — cas très fréquent sur mobile —
+      ou un onglet projeté laissé ouvert ne coûtaient rien de moins qu'un
+      onglet actif. Au retour, rafraîchissement immédiat et retour à la cadence
+      de base.
+- [x] **Backoff adaptatif**, activé sur `/host/lobby` (plafond 6 s) et
+      `/result` (8 s). La boucle est passée d'un `setInterval` fixe à un
+      `setTimeout` auto-replanifié, et purge toujours le timer en cours avant
+      d'en poser un — sinon un retour d'onglet pendant une requête en vol
+      laissait deux boucles tourner, ce qui *doublait* la charge.
+      **Le backoff exige une `signature`** fournie par l'appelant : la charge
+      utile de `/state` contient `serverNow: Date.now()`, donc comparer l'objet
+      entier aurait toujours vu un changement et le backoff ne se serait jamais
+      enclenché. Volontairement **absent** de `/join` (ce que l'élève attend —
+      le lancement — EST le changement : ralentir retarderait le moment le plus
+      visible du parcours), de `/play` et de `/host/results`.
+- [x] **Un poller au lieu de deux sur `host/results/page.jsx`** — résolu
+      autrement que prévu. Plutôt que de fusionner les endpoints, il suffisait
+      de constater que `/results` portait déjà statut, mode, capacité et prix :
+      seuls les trois champs de chrono manquaient. `getLeaderboard` les expose
+      désormais (`startedAt`, `durationMs`, `serverNow`) et le poller `/state`
+      est supprimé — un tiers de requêtes en moins sur l'écran que le formateur
+      laisse ouvert le plus longtemps, sans nouvel endpoint ni refonte du
+      verrou de clôture. Un test garde ces champs : s'ils disparaissent, le
+      chrono formateur casse en silence.
+- [x] **Correction en masse** (`gradeFreeAnswersBulk`,
+      `POST /api/host/[code]/grade-bulk`, boutons « tout accorder / tout
+      refuser » par question). La salle est lue une fois et les corrections sont
+      **regroupées par joueur** : un seul cycle lecture/écriture par élève quel
+      que soit le nombre de rédactions corrigées pour lui, et le score
+      recalculé une fois à la fin. Plafonné à `BULK_GRADE_MAX` (200). Les
+      entrées invalides sont signalées dans `skipped` sans faire échouer le
+      lot.
 - [ ] Observabilité : Sentry (ou équivalent) + logs structurés ; suivre le
       volume de commandes Upstash et le coût du polling via Vercel Analytics.
 
@@ -152,8 +175,14 @@ séquencer selon la croissance réelle.
 - [ ] Précalculer les agrégats du tableau de bord (`src/lib/analytics.js`)
       au lieu de recalculer sur jusqu'à 200 enregistrements à chaque
       chargement.
-- [ ] Plafonner `classList:{accountId}` (aujourd'hui non borné dans
-      `src/lib/classrooms.js`), même pattern LTRIM que l'historique.
+- [x] **Plafond sur `classList:{accountId}`** — résolu **autrement** que par le
+      `LTRIM` initialement prescrit, parce que ce pattern aurait causé une perte
+      silencieuse : tronquer cette liste ne masque pas de vieilles données, elle
+      rend des classes **inaccessibles** alors que leur `class:{id}` et le
+      carnet de notes associé survivent dans Redis. C'est donc un **refus
+      explicite à la création** au-delà de `MAX_CLASSES_PER_ACCOUNT` (200), avec
+      un message clair. `deleteClass` faisant déjà un `LREM`, supprimer une
+      classe libère la place — le plafond n'est pas définitif.
 - [ ] Surveiller la taille/le coût Redis à mesure que les `examRecord:*`
       s'accumulent (sans TTL) ; envisager un stockage objet (ex. Vercel Blob)
       pour le classement complet si le volume le justifie.

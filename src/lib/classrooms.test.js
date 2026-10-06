@@ -10,6 +10,7 @@ import {
   deleteClass,
   addStudent,
   removeStudent,
+  MAX_CLASSES_PER_ACCOUNT,
 } from "./classrooms.js";
 
 test("createClass → listClasses → getClass (appartenance)", async () => {
@@ -56,4 +57,35 @@ test("opérations refusées sur une classe d'un autre compte", async () => {
   const { classroom } = await createClass("acc1", "6ème A");
   assert.equal((await addStudent("acc2", classroom.id, "X")).ok, false);
   assert.equal((await deleteClass("acc2", classroom.id)).ok, false);
+});
+
+test("createClass : plafonne le nombre de classes sans perte silencieuse", async () => {
+  setRedisClient(createFakeRedis());
+  // On remplit jusqu'au plafond.
+  for (let i = 0; i < MAX_CLASSES_PER_ACCOUNT; i++) {
+    const r = await createClass("acc_1", `Classe ${i}`);
+    assert.equal(r.ok, true);
+  }
+  // La suivante est refusée EXPLICITEMENT — pas de troncature qui rendrait
+  // une classe existante inaccessible.
+  const trop = await createClass("acc_1", "Une de trop");
+  assert.equal(trop.ok, false);
+  assert.equal(trop.status, 409);
+  assert.match(trop.error, /limite/i);
+
+  // Toutes les classes créées restent listées : rien n'a été perdu.
+  assert.equal((await listClasses("acc_1")).length, MAX_CLASSES_PER_ACCOUNT);
+
+  // Supprimer libère la place : le plafond n'est pas définitif.
+  const premiere = (await listClasses("acc_1"))[0];
+  assert.equal((await deleteClass("acc_1", premiere.id)).ok, true);
+  assert.equal((await createClass("acc_1", "Remplaçante")).ok, true);
+});
+
+test("createClass : le plafond est propre à chaque compte", async () => {
+  setRedisClient(createFakeRedis());
+  for (let i = 0; i < MAX_CLASSES_PER_ACCOUNT; i++) {
+    await createClass("acc_1", `Classe ${i}`);
+  }
+  assert.equal((await createClass("acc_2", "Première")).ok, true);
 });

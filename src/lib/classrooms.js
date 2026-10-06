@@ -5,6 +5,21 @@ import { generateId } from "./code.js";
 const classKey = (id) => `class:${id}`;
 const listKey = (accountId) => `classList:${accountId}`;
 
+/**
+ * Plafond du nombre de classes par compte.
+ *
+ * Volontairement appliqué comme un REFUS À LA CRÉATION, et non comme un
+ * `LTRIM` à la manière de l'historique d'examens. La différence est
+ * importante : tronquer cette liste ne masquerait pas de vieilles données, elle
+ * rendrait des classes **inaccessibles** — leur `class:{id}` et le carnet de
+ * notes associé survivraient dans Redis sans plus apparaître nulle part. Mieux
+ * vaut échouer bruyamment que faire disparaître un carnet en silence.
+ *
+ * `deleteClass` retire bien l'entrée de la liste (`LREM`), donc le plafond
+ * n'est pas un plafond définitif : supprimer une classe libère la place.
+ */
+export const MAX_CLASSES_PER_ACCOUNT = 200;
+
 function summary(c) {
   return { id: c.id, name: c.name, studentCount: (c.students || []).length };
 }
@@ -13,6 +28,15 @@ export async function createClass(accountId, name) {
   const redis = getRedis();
   const clean = String(name || "").trim().slice(0, 80);
   if (!clean) return { ok: false, status: 400, error: "Nom de classe requis." };
+
+  const existing = await redis.llen(listKey(accountId));
+  if (Number(existing) >= MAX_CLASSES_PER_ACCOUNT)
+    return {
+      ok: false,
+      status: 409,
+      error: `Limite de ${MAX_CLASSES_PER_ACCOUNT} classes atteinte. Supprimez une classe pour en créer une nouvelle.`,
+    };
+
   const id = generateId("cls");
   const classroom = {
     id,

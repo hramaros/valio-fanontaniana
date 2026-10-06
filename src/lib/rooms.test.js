@@ -21,6 +21,8 @@ import {
   switchToLibre,
   quizHasFree,
   getPlayer,
+  gradeFreeAnswersBulk,
+  BULK_GRADE_MAX,
 } from "./rooms.js";
 import { createAccount, topupTest, getAccountById, debit } from "./accounts.js";
 import { WELCOME_CREDIT_AR, LIBRE_MAX } from "./exam.js";
@@ -951,4 +953,121 @@ test("correction graduée : le crédit est révisable et le score suit", async (
 
   const review = await getReviewData(meta.code);
   assert.equal(review.questions[0].submissions[0].credit, 0.25);
+});
+
+test("getLeaderboard expose les champs de chrono (écran formateur mono-poller)", async () => {
+  // L'écran /host/results pollait /state en parallèle UNIQUEMENT pour ces
+  // trois valeurs. Si elles disparaissent, le chrono formateur casse en
+  // silence — d'où ce garde-fou.
+  setRedisClient(createFakeRedis());
+  const meta = await createRoom("Prof", null);
+  await setQuiz(meta.code, { title: "Chrono", mode: "libre", totalDurationSec: 600, questions: qcm });
+  await registerPlayer(meta.code, "Alice");
+  await startGame(meta.code);
+
+  const board = await getLeaderboard(meta.code);
+  assert.ok(Number.isFinite(board.startedAt), "startedAt présent");
+  assert.ok(Number.isFinite(board.durationMs), "durationMs présent");
+  assert.ok(Number.isFinite(board.serverNow), "serverNow présent");
+  // Déjà présents, mais l'écran en dépend aussi depuis la fusion.
+  assert.equal(board.status, "running");
+  assert.equal(board.mode, "libre");
+  assert.ok("priceAr" in board);
+});
+
+/* ------------------------------------------------------------------ */
+/* Correction en masse                                                 */
+/* ------------------------------------------------------------------ */
+
+async function roomWithTwoFreeAnswers() {
+  const meta = await createRoom("Prof", null);
+  await setQuiz(meta.code, {
+    title: "Rédactions",
+    mode: "examen",
+    totalDurationSec: 600,
+    questions: [
+      { text: "Expliquez A", type: "free", basePoints: 1000 },
+      { text: "Expliquez B", type: "free", basePoints: 1000 },
+    ],
+  });
+  const full = await getMeta(meta.code);
+  const [qa, qb] = full.quiz.questions;
+  const alice = await registerPlayer(meta.code, "Alice");
+  const bob = await registerPlayer(meta.code, "Bob");
+  await startGame(meta.code);
+  for (const p of [alice, bob]) {
+    for (const q of [qa, qb]) {
+      await revealQuestion(meta.code, p.playerId, q.id);
+      await submitAnswer(meta.code, p.playerId, q.id, null, "une réponse");
+    }
+  }
+  return { code: meta.code, qa, qb, alice, bob };
+}
+
+test("gradeFreeAnswersBulk : applique tous les crédits en un appel", async () => {
+  setRedisClient(createFakeRedis());
+  const { code, qa, qb, alice, bob } = await roomWithTwoFreeAnswers();
+
+  const res = await gradeFreeAnswersBulk(code, [
+    { playerId: alice.playerId, questionId: qa.id, credit: 1 },
+    { playerId: alice.playerId, questionId: qb.id, credit: 0.5 },
+    { playerId: bob.playerId, questionId: qa.id, credit: 0 },
+    { playerId: bob.playerId, questionId: qb.id, credit: 1 },
+  ]);
+  assert.equal(res.ok, true);
+  assert.equal(res.applied, 4);
+  assert.deepEqual(res.skipped, []);
+
+  await finalizeSession(code);
+  const board = await getLeaderboard(code);
+  const note = (p) => board.leaderboard.find((x) => x.pseudo === p).note;
+  assert.equal(note("Alice"), 15, "1 + 0,5 sur 2 → 15/20");
+  assert.equal(note("Bob"), 10, "0 + 1 sur 2 → 10/20");
+});
+
+test("gradeFreeAnswersBulk : score recalculé une fois par joueur, pas cumulé", async () => {
+  setRedisClient(createFakeRedis());
+  const { code, qa, qb, alice } = await roomWithTwoFreeAnswers();
+
+  await gradeFreeAnswersBulk(code, [
+    { playerId: alice.playerId, questionId: qa.id, credit: 1 },
+    { playerId: alice.playerId, questionId: qb.id, credit: 1 },
+  ]);
+  const player = await getPlayer(code, alice.playerId);
+  const somme =
+    player.answered[qa.id].points + player.answered[qb.id].points;
+  assert.equal(player.score, somme, "le score vaut la somme des points, sans double comptage");
+});
+
+test("gradeFreeAnswersBulk : signale les entrées ignorées sans tout rejeter", async () => {
+  setRedisClient(createFakeRedis());
+  const { code, qa, alice } = await roomWithTwoFreeAnswers();
+
+  const res = await gradeFreeAnswersBulk(code, [
+    { playerId: alice.playerId, questionId: qa.id, credit: 1 },
+    { playerId: "inconnu", questionId: qa.id, credit: 1 },
+    { playerId: alice.playerId, questionId: "q_inexistante", credit: 1 },
+  ]);
+  assert.equal(res.ok, true);
+  assert.equal(res.applied, 1, "la correction valide passe");
+  assert.equal(res.skipped.length, 2, "les deux invalides sont signalées");
+});
+
+test("gradeFreeAnswersBulk : refuse une liste vide, trop longue, ou après finalisation", async () => {
+  setRedisClient(createFakeRedis());
+  const { code, qa, alice } = await roomWithTwoFreeAnswers();
+
+  assert.equal((await gradeFreeAnswersBulk(code, [])).status, 400);
+  const trop = Array.from({ length: BULK_GRADE_MAX + 1 }, () => ({
+    playerId: alice.playerId,
+    questionId: qa.id,
+    credit: 1,
+  }));
+  assert.equal((await gradeFreeAnswersBulk(code, trop)).status, 400);
+
+  await finalizeSession(code);
+  const apres = await gradeFreeAnswersBulk(code, [
+    { playerId: alice.playerId, questionId: qa.id, credit: 1 },
+  ]);
+  assert.equal(apres.status, 409, "plus de correction après finalisation");
 });

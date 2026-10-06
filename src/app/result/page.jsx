@@ -7,7 +7,7 @@ import Icon from "@/components/Icon";
 import { apiGet } from "@/lib/api";
 import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
-import { RESULT_MS } from "@/lib/polling";
+import { RESULT_MS, RESULT_BACKOFF_MS } from "@/lib/polling";
 import { getPlayerSession } from "@/lib/session";
 import { marketingUrl } from "@/lib/marketing";
 
@@ -27,7 +27,12 @@ function ResultInner() {
     () => async () => (await apiGet(`/api/room/${code}/results`)).data,
     [code],
   );
-  const board = usePolling(fetcher, RESULT_MS, true);
+  // Backoff : l'élève attend que le formateur finisse de corriger, ce qui
+  // peut durer. Seul le passage de statut compte ici.
+  const board = usePolling(fetcher, RESULT_MS, true, {
+    backoffMs: RESULT_BACKOFF_MS,
+    signature: (d) => d?.status,
+  });
 
   const ended = board?.status === "ended";
   const me = board?.leaderboard?.find((p) => p.id === playerId) || null;

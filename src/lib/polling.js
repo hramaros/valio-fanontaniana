@@ -37,3 +37,24 @@ export const HOST_BOARD_MS = 2500;
 
 /** Vue de correction : le formateur y agit, il n'attend pas. */
 export const HOST_REVIEW_MS = 2000;
+
+/* ------------------------------------------------------------------ */
+/* Plafonds de backoff                                                 */
+/* ------------------------------------------------------------------ */
+//
+// Le backoff ralentit tant que rien ne change, et repart à la cadence de base
+// au premier changement (voir `usePolling`). Il n'est activé que là où
+// l'attente est longue ET où un retard de détection ne gêne personne.
+//
+// Volontairement ABSENT de :
+//  - `/join` : ce que l'élève attend (le lancement) EST le changement. Ralentir
+//    à mesure que l'attente dure retarderait précisément le moment le plus
+//    visible du parcours — c'est l'inverse de ce qu'il faut.
+//  - `/play` : doit détecter une clôture anticipée sans traîner.
+//  - `/host/results` : le formateur y travaille, il n'attend pas.
+
+/** Lobby formateur : chaque arrivée d'élève remet la cadence à zéro. */
+export const HOST_LOBBY_BACKOFF_MS = 6000;
+
+/** Attente du classement : peut durer toute la correction des rédactions. */
+export const RESULT_BACKOFF_MS = 8000;
