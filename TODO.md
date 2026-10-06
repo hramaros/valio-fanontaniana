@@ -104,10 +104,22 @@ séquencer selon la croissance réelle.
 
 ### Phase 1 — Réduire le coût du polling (le plus gros levier)
 
+- [x] **Cadences relâchées et centralisées** (`src/lib/polling.js`, 2026-09-09).
+      Tous les écrans étaient à ~1,2 s. Or les surfaces PARTICIPANT sont
+      multipliées par le nombre d'élèves : à 20 participants, la seule phase de
+      jeu pesait ~63 % des commandes Redis d'une séance. Le poller de `/play`
+      ne sert qu'à détecter une clôture anticipée (le chrono est calculé côté
+      client), il est donc passé à 3 s ; `/join` reste à 2 s car le lancement
+      est la transition visible. Résultat : ~47 000 → ~22 000 commandes par
+      évaluation de 20 participants, soit 11 → 23 évaluations dans le palier
+      gratuit Upstash. Chiffrage et seuils dans
+      [`.agents/tarification.md`](.agents/tarification.md).
 - [ ] Mettre `usePolling` en pause via la Page Visibility API quand l'onglet
       est caché.
-- [ ] Backoff adaptatif en lobby (1.2s → 3-5s si rien ne change, retour à
-      1.2s dès qu'un changement est détecté).
+- [ ] Backoff adaptatif en lobby (cadence de base → 3-5 s si rien ne change,
+      retour à la cadence de base dès qu'un changement est détecté). **Les
+      valeurs de départ sont maintenant dans `src/lib/polling.js`, plus en dur
+      à 1,2 s.**
 - [ ] Fusionner les endpoints pollés en parallèle côté
       `host/results/page.jsx` (`state` + `results` + `review`).
 - [ ] Endpoint de correction en masse des réponses libres
