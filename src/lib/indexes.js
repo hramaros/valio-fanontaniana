@@ -94,6 +94,14 @@ export async function indexPlay({
 }
 
 // — Lecture (espace admin) —
+//
+// PIÈGE : `ZRANGE ... BYSCORE REV` attend ses bornes dans l'ordre INVERSE
+// (`ZRANGE key <max> <min> BYSCORE REV`), et le client Upstash les transmet
+// positionnellement sans rien réordonner. Passer (from, to) comme on l'écrit
+// naturellement demande donc « score >= to ET <= from » : un intervalle vide,
+// silencieusement. Les fonctions ci-dessous gardent une signature
+// chronologique (from, to) et font l'interversion au moment de l'appel ; c'est
+// le seul endroit du projet qui doit connaître cette bizarrerie.
 
 /** Nombre total d'entrées d'un index. */
 export async function countAll(key) {
@@ -111,7 +119,9 @@ export async function countBetween(key, from, to = Date.now()) {
  * rapatrier un index entier.
  */
 export async function idsBetween(key, from, to = Date.now(), limit = 500) {
-  const ids = await getRedis().zrange(key, from, to, {
+  // `to, from` et non `from, to` : avec REV, Redis attend les bornes dans
+  // l'ordre inverse (cf. revBounds).
+  const ids = await getRedis().zrange(key, to, from, {
     byScore: true,
     rev: true,
     offset: 0,
@@ -122,7 +132,7 @@ export async function idsBetween(key, from, to = Date.now(), limit = 500) {
 
 /** Membres avec leur score, du plus récent au plus ancien : [{member, score}]. */
 export async function entriesBetween(key, from, to = Date.now(), limit = 500) {
-  const flat = await getRedis().zrange(key, from, to, {
+  const flat = await getRedis().zrange(key, to, from, {
     byScore: true,
     rev: true,
     withScores: true,

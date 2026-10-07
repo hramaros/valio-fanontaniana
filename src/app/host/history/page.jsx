@@ -25,14 +25,36 @@ export default function HostHistoryPage() {
   const { account, loading } = useAccount();
   const [records, setRecords] = useState(null);
   const [selected, setSelected] = useState(null);
+  const [cursor, setCursor] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     if (!account) return;
     (async () => {
       const { ok, data } = await apiGet("/api/host/history");
-      if (ok) setRecords(data.records);
+      if (ok) {
+        setRecords(data.records);
+        setCursor(data.nextCursor);
+      }
     })();
   }, [account]);
+
+  // L'historique n'est plus plafonné : on charge par pages de 50 plutôt que
+  // de rapatrier des années d'examens pour afficher les dix derniers.
+  async function loadMore() {
+    if (!cursor || loadingMore) return;
+    setLoadingMore(true);
+    const q = new URLSearchParams({
+      before: String(cursor.before),
+      ...(cursor.afterId ? { afterId: cursor.afterId } : {}),
+    });
+    const { ok, data } = await apiGet(`/api/host/history?${q}`);
+    if (ok) {
+      setRecords((prev) => [...(prev || []), ...data.records]);
+      setCursor(data.nextCursor);
+    }
+    setLoadingMore(false);
+  }
 
   async function open(id) {
     const { ok, data } = await apiGet(`/api/host/history/${id}`);
@@ -102,6 +124,16 @@ export default function HostHistoryPage() {
               </button>
             </div>
           ))}
+          {cursor && (
+            <button
+              type="button"
+              className="btn btn--ghost btn--block"
+              onClick={loadMore}
+              disabled={loadingMore}
+            >
+              {loadingMore ? "Chargement…" : "Voir les examens plus anciens"}
+            </button>
+          )}
         </div>
       )}
 

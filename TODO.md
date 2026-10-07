@@ -165,16 +165,51 @@ séquencer selon la croissance réelle.
       `src/lib/backfill.js`) : reconstruit les index depuis l'existant via
       `SCAN`. Simulation par défaut, `--write` pour appliquer, idempotent.
       Rétroactif pour les comptes (`createdAt`) et les examens (`endedAt`) ;
-      impossible pour les paiements déjà détruits par l'ancien TTL.
+      impossible pour les paiements déjà détruits par l'ancien TTL. Reconstruit
+      aussi les index scopés `exams:acct:`, `exams:class:` et `txns:acct:`,
+      dans la **même** passe que les index globaux (les documents sont déjà en
+      main, un second `SCAN` ne rapporterait rien).
       **À exécuter une fois en production** — sans quoi les index ne
       contiennent que l'activité postérieure à leur mise en service.
-- [ ] Remplacer les listes `examHistory:{accountId}` / `classExams:{classId}`
-      (plafonnées à 200, entrées au-delà silencieusement inaccessibles) par
-      des Sorted Sets (`ZADD`, score = timestamp) pour une vraie pagination
-      par curseur.
+- [x] **Listes scopées plafonnées → Sorted Sets** (`src/lib/scopedIndex.js`).
+      `examHistory:{accountId}`, `classExams:{classId}` et
+      `txnHistory:{accountId}` étaient des listes `LPUSH` + `LTRIM 0 199`. Le
+      plafond ne libérait **rien** : les documents pointés (`examRecord:*`,
+      `txn:*`) n'ont pas de TTL et survivaient à leur éviction. La 201e entrée
+      rendait donc la première **inaccessible sans la supprimer** — sur un
+      carnet de notes de classe, une pièce justificative d'examen, et surtout
+      une écriture comptable. Remplacées par des ZSET scorés par date
+      (`exams:acct:`, `exams:class:`, `txns:acct:`), sans troncature.
+      - `txnHistory` n'était pas dans le périmètre initial : même bug, sur des
+        données financières, juste après l'épisode du TTL — corrigé aussi.
+      - **Curseur composite `(date, id)`** et non date seule : plusieurs
+        entrées peuvent partager la milliseconde de fin de page, et une borne
+        purement datée les écarterait toutes d'un bloc. Verrouillé par un test
+        qui échoue sans le départage.
+      - **Transition sans ordre imposé** : les lectures fusionnent le ZSET et
+        la liste héritée (dédoublonnées), si bien que le déploiement et le
+        rattrapage peuvent arriver dans n'importe quel ordre sans qu'une entrée
+        disparaisse. Le complément hérité pourra être retiré de
+        `scopedIndex.js` une fois le rattrapage passé et vérifié.
+      - Pagination exposée jusqu'à l'interface : « Voir les examens plus
+        anciens » (`/host/history`) et « Voir les recharges plus anciennes »
+        (`/host/wallet`).
+- [x] **Bornes de `ZRANGE ... BYSCORE REV` inversées** (`src/lib/indexes.js`) —
+      bug de production trouvé en bâtissant la pagination ci-dessus. Redis
+      attend `ZRANGE key <max> <min> BYSCORE REV` et le client Upstash transmet
+      les bornes positionnellement, sans réordonner : `idsBetween`/
+      `entriesBetween` demandaient « score >= to ET <= from », soit un
+      intervalle **toujours vide**. Tout l'espace admin (`overviewData`,
+      courbes, index globaux) ne renvoyait donc rien en production, alors que
+      les tests passaient — le double de test ignorait `rev` dans le calcul des
+      bornes. Double corrigé (12 tests sont alors tombés), puis appels corrigés.
+      Le piège est documenté à l'endroit unique qui doit le connaître.
 - [ ] Précalculer les agrégats du tableau de bord (`src/lib/analytics.js`)
       au lieu de recalculer sur jusqu'à 200 enregistrements à chaque
-      chargement.
+      chargement. En attendant, la route `/api/host/analytics` **dit** que les
+      cumuls portent sur une fenêtre de 200 (`partial`), et le nombre d'examens
+      reste exact (un `ZCARD`, sans rapatrier les documents) — un total partiel
+      affiché comme un total était le vrai défaut.
 - [x] **Plafond sur `classList:{accountId}`** — résolu **autrement** que par le
       `LTRIM` initialement prescrit, parce que ce pattern aurait causé une perte
       silencieuse : tronquer cette liste ne masque pas de vieilles données, elle

@@ -50,6 +50,15 @@ try {
   ligne("Examens", r.exams);
   ligne("Recharges", r.txns);
   console.log(
+    `  ${"Par compte".padEnd(14)} ${nombre(r.examsParCompte.entries).padStart(7)} examen(s) sur ${nombre(r.examsParCompte.keys)} compte(s)`,
+  );
+  console.log(
+    `  ${"Par classe".padEnd(14)} ${nombre(r.examsParClasse.entries).padStart(7)} examen(s) sur ${nombre(r.examsParClasse.keys)} classe(s)`,
+  );
+  console.log(
+    `  ${"Recharges/cpt".padEnd(14)} ${nombre(r.txnsParCompte.entries).padStart(7)} recharge(s) sur ${nombre(r.txnsParCompte.keys)} compte(s)`,
+  );
+  console.log(
     `  ${"Activité".padEnd(14)} ${nombre(r.lastSeen).padStart(7)} compte(s) datés d'après leur dernier examen`,
   );
   console.log(`\nTerminé en ${duree}s.`);

@@ -14,20 +14,28 @@ export function createFakeRedis() {
   const clone = (v) => (v == null ? v : JSON.parse(JSON.stringify(v)));
   const end = (arr, stop) => (stop < 0 ? arr.length + stop + 1 : stop + 1);
 
-  // Bornes de ZRANGE BYSCORE. On accepte les nombres et ±inf ; toute autre
-  // forme (intervalles exclusifs « (5 », lexicographiques…) lève plutôt que
-  // de renvoyer un résultat faux en silence — un double de test qui ment est
-  // pire que pas de double du tout.
+  // Bornes de ZRANGE BYSCORE. On accepte les nombres, ±inf et les intervalles
+  // exclusifs « (5 » (curseurs de pagination de src/lib/history.js) ; toute
+  // autre forme (lexicographique…) lève plutôt que de renvoyer un résultat
+  // faux en silence — un double de test qui ment est pire que pas de double.
   function scoreBound(v, fallback) {
-    if (typeof v === "number") return v;
+    if (typeof v === "number") return { value: v, open: false };
     const s = String(v);
-    if (s === "-inf") return -Infinity;
-    if (s === "+inf" || s === "inf") return Infinity;
+    if (s === "-inf") return { value: -Infinity, open: false };
+    if (s === "+inf" || s === "inf") return { value: Infinity, open: false };
+    if (s.startsWith("(")) {
+      const n = Number(s.slice(1));
+      if (Number.isFinite(n)) return { value: n, open: true };
+    }
     const n = Number(s);
-    if (Number.isFinite(n)) return n;
-    if (v == null) return fallback;
+    if (Number.isFinite(n)) return { value: n, open: false };
+    if (v == null) return { value: fallback, open: false };
     throw new Error(`testFakeRedis: borne de score non gérée « ${s} »`);
   }
+  // Appartenance à [lo, hi], bornes exclusives comprises.
+  const withinScore = (s, lo, hi) =>
+    (lo.open ? s > lo.value : s >= lo.value) &&
+    (hi.open ? s < hi.value : s <= hi.value);
   // Tri par score croissant, puis par membre — ordre total déterministe, comme
   // Redis qui départage les scores égaux lexicographiquement.
   function sortedEntries(key) {
@@ -169,9 +177,16 @@ export function createFakeRedis() {
     async zrange(key, min, max, opts) {
       let entries = sortedEntries(key);
       if (opts?.byScore) {
-        const lo = scoreBound(min, -Infinity);
-        const hi = scoreBound(max, Infinity);
-        entries = entries.filter(([, s]) => s >= lo && s <= hi);
+        // Sémantique Redis : avec REV, les deux bornes sont données dans
+        // l'ordre inverse — `ZRANGE key <max> <min> BYSCORE REV`. Les
+        // intervertir ici n'est pas du zèle : c'est la seule façon pour le
+        // double d'attraper l'inversion, et un appel écrit « from, to » avec
+        // `rev` renvoie bien vide, comme en production.
+        const first = scoreBound(min, opts?.rev ? Infinity : -Infinity);
+        const second = scoreBound(max, opts?.rev ? -Infinity : Infinity);
+        const lo = opts?.rev ? second : first;
+        const hi = opts?.rev ? first : second;
+        entries = entries.filter(([, s]) => withinScore(s, lo, hi));
         if (opts.rev) entries.reverse();
       } else {
         // Indices de rang : `rev` s'applique AVANT le découpage, comme Redis.
@@ -193,7 +208,7 @@ export function createFakeRedis() {
     async zcount(key, min, max) {
       const lo = scoreBound(min, -Infinity);
       const hi = scoreBound(max, Infinity);
-      return sortedEntries(key).filter(([, s]) => s >= lo && s <= hi).length;
+      return sortedEntries(key).filter(([, s]) => withinScore(s, lo, hi)).length;
     },
     async zscore(key, member) {
       const z = zsets.get(key);

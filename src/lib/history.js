@@ -1,13 +1,29 @@
 import { getRedis } from "./redis.js";
 import { generateVerifyCode, normalizeVerifyCode } from "./code.js";
 import { indexExam } from "./indexes.js";
+import { PAGE_MAX, recentDocs, countScoped } from "./scopedIndex.js";
 
 // Historique durable des examens pro, rattaché au compte formateur (sans TTL).
-const HISTORY_MAX = 200;
+//
+// Les index par compte et par classe sont des ZSET scorés par `endedAt`, lus
+// par curseur : voir src/lib/scopedIndex.js pour le pourquoi (ils étaient
+// des listes plafonnées à 200, ce qui rendait les examens suivants
+// inatteignables) et pour la mécanique de transition.
+//
+// Nommage aligné sur src/lib/indexes.js (`exams:all`). Une clé Redis ne peut
+// pas être à la fois liste et ZSET : les anciennes clés gardent donc leur nom
+// et sont lues en complément jusqu'au rattrapage (scripts/backfill-indexes.mjs).
+
 const recordKey = (id) => `examRecord:${id}`;
-const listKey = (accountId) => `examHistory:${accountId}`;
-const classListKey = (classId) => `classExams:${classId}`;
+// Exportées : le rattrapage (src/lib/backfill.js) reconstruit ces mêmes
+// index, et deux modules qui épellent une clé Redis chacun de leur côté
+// finissent toujours par diverger.
+export const examAcctKey = (accountId) => `exams:acct:${accountId}`;
+export const examClassKey = (classId) => `exams:class:${classId}`;
 const verifyKey = (code) => `verifyCode:${code}`;
+// Clés héritées : lecture seule, on n'y écrit plus.
+export const legacyAcctKey = (accountId) => `examHistory:${accountId}`;
+export const legacyClassKey = (classId) => `classExams:${classId}`;
 
 /**
  * Garantit qu'un enregistrement porte un code de consultation publique.
@@ -47,39 +63,59 @@ function summarize(r) {
 export async function saveExamRecord(record) {
   const redis = getRedis();
   if (!record.verifyCode) record.verifyCode = generateVerifyCode();
+  // Une date absente mettrait l'examen au fond du ZSET pour toujours ; mieux
+  // vaut l'horodater maintenant que le rendre introuvable dans un carnet.
+  const score = Number(record.endedAt) || Date.now();
   await redis.set(recordKey(record.id), record);
   await redis.set(verifyKey(record.verifyCode), record.id);
-  await redis.lpush(listKey(record.accountId), record.id);
-  await redis.ltrim(listKey(record.accountId), 0, HISTORY_MAX - 1);
+  await redis.zadd(examAcctKey(record.accountId), { score, member: record.id });
   // Index par classe (pour le carnet de notes).
   if (record.classId) {
-    await redis.lpush(classListKey(record.classId), record.id);
-    await redis.ltrim(classListKey(record.classId), 0, HISTORY_MAX - 1);
+    await redis.zadd(examClassKey(record.classId), { score, member: record.id });
   }
-  // Index global daté (pilotage). À noter : les listes par compte et par
-  // classe sont tronquées à HISTORY_MAX, celle-ci ne l'est pas — c'est
-  // justement elle qui garde la mémoire longue de l'activité.
+  // Index global daté (pilotage).
   await indexExam(record.id, record.endedAt);
   return record.id;
 }
 
-/** Examens complets (avec classement) rattachés à une classe — ordre chronologique. */
-export async function getClassExamRecords(classId, limit = 200) {
-  const redis = getRedis();
-  const ids = await redis.lrange(classListKey(classId), 0, limit - 1);
-  if (!ids || ids.length === 0) return [];
-  const records = await redis.mget(...ids.map(recordKey));
-  // lpush met le plus récent en tête ; on remet en ordre chronologique.
-  return Promise.all(records.filter(Boolean).reverse().map(ensureVerifyCode));
+/** Enregistrements complets d'un index, du plus récent au plus ancien. */
+async function recentRecords(zKey, legacyKey, { limit, before, afterId } = {}) {
+  const page = await recentDocs({
+    zKey,
+    legacyKey,
+    docKey: recordKey,
+    dateField: "endedAt",
+    limit,
+    before,
+    afterId,
+  });
+  return Promise.all(page.map(ensureVerifyCode));
 }
 
-export async function listExamRecords(accountId, limit = 50) {
-  const redis = getRedis();
-  const ids = await redis.lrange(listKey(accountId), 0, limit - 1);
-  if (!ids || ids.length === 0) return [];
-  const records = await redis.mget(...ids.map(recordKey));
-  const complete = await Promise.all(records.filter(Boolean).map(ensureVerifyCode));
-  return complete.map(summarize);
+/** Examens complets (avec classement) rattachés à une classe — ordre chronologique. */
+export async function getClassExamRecords(classId, limit = PAGE_MAX, opts = {}) {
+  const records = await recentRecords(examClassKey(classId), legacyClassKey(classId), {
+    limit,
+    ...opts,
+  });
+  // Un carnet de notes se lit du plus ancien au plus récent.
+  return records.reverse();
+}
+
+export async function listExamRecords(accountId, limit = 50, opts = {}) {
+  const records = await recentRecords(examAcctKey(accountId), legacyAcctKey(accountId), {
+    limit,
+    ...opts,
+  });
+  return records.map(summarize);
+}
+
+/**
+ * Nombre d'examens archivés par un compte. Sert à savoir s'il reste une page
+ * à charger sans rapatrier tout l'historique.
+ */
+export async function countExamRecords(accountId) {
+  return countScoped(examAcctKey(accountId), legacyAcctKey(accountId));
 }
 
 /** Détail d'un examen — null si inconnu ou n'appartenant pas au compte. */

@@ -96,6 +96,18 @@ export default function HostDashboardPage() {
             </div>
           </div>
 
+          {/* Au-delà de la fenêtre d'agrégation, les cumuls ne portent plus
+              sur tout l'historique. Le nombre d'examens, lui, reste exact. */}
+          {data.partial && (
+            <p className="hint">
+              <Icon name="info" size={14} />
+              <span>
+                Participants, note moyenne et dépense portent sur vos{" "}
+                {data.window} examens les plus récents.
+              </span>
+            </p>
+          )}
+
           {data.recent.length > 0 && (
             <div className="stack gap-12">
               <span className="eyebrow">Examens récents</span>

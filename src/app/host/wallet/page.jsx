@@ -46,11 +46,36 @@ function WalletInner() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [history, setHistory] = useState(null);
+  const [histCursor, setHistCursor] = useState(null);
+  const [histLoading, setHistLoading] = useState(false);
   const [pendingConfirm, setPendingConfirm] = useState(false);
 
+  // Recharge la première page. Remet le curseur à zéro : après un paiement,
+  // l'historique a changé de tête, une page suivante calculée avant serait
+  // caduque.
   async function loadHistory() {
     const { ok, data } = await apiGet("/api/wallet/history");
-    if (ok) setHistory(data.transactions || []);
+    if (ok) {
+      setHistory(data.transactions || []);
+      setHistCursor(data.nextCursor || null);
+    }
+  }
+
+  // Ces écritures ne sont plus plafonnées : au-delà d'une page, on charge à la
+  // demande plutôt que de rapatrier tout l'historique comptable.
+  async function loadMoreHistory() {
+    if (!histCursor || histLoading) return;
+    setHistLoading(true);
+    const q = new URLSearchParams({
+      before: String(histCursor.before),
+      ...(histCursor.afterId ? { afterId: histCursor.afterId } : {}),
+    });
+    const { ok, data } = await apiGet(`/api/wallet/history?${q}`);
+    if (ok) {
+      setHistory((prev) => [...(prev || []), ...(data.transactions || [])]);
+      setHistCursor(data.nextCursor || null);
+    }
+    setHistLoading(false);
   }
 
   useEffect(() => {
@@ -249,6 +274,16 @@ function WalletInner() {
                 </span>
               </div>
             ))}
+            {histCursor && (
+              <button
+                type="button"
+                className="btn btn--ghost btn--block"
+                onClick={loadMoreHistory}
+                disabled={histLoading}
+              >
+                {histLoading ? "Chargement…" : "Voir les recharges plus anciennes"}
+              </button>
+            )}
           </div>
         )}
       </div>

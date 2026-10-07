@@ -11,6 +11,7 @@ import {
   getTransaction,
   registerProvider,
   listTransactions,
+  countTransactions,
 } from "./payments.js";
 
 // Un compte neuf naît avec un examen offert : les soldes attendus en partent.
@@ -47,9 +48,20 @@ test("listTransactions : plus récent en tête, isolé par compte", async () => 
   const a = (await createAccount({ email: "a@e.mg", password: "secret1" })).account;
   const b = (await createAccount({ email: "b@e.mg", password: "secret1" })).account;
 
-  await initiateTopup(a.id, 5000, "stub");
-  await initiateTopup(a.id, 20000, "stub");
-  await initiateTopup(b.id, 1000, "stub");
+  // Horloge avancée entre les deux recharges : l'ordre testé est bien
+  // chronologique. Deux transactions nées dans la MÊME milliseconde sont
+  // départagées par identifiant (cf. listTransactions) — il n'y a pas d'ordre
+  // « juste » dans ce cas, et l'asserter rendrait ce test aléatoire.
+  const vraiNow = Date.now;
+  let t = vraiNow.call(Date);
+  Date.now = () => (t += 1000);
+  try {
+    await initiateTopup(a.id, 5000, "stub");
+    await initiateTopup(a.id, 20000, "stub");
+    await initiateTopup(b.id, 1000, "stub");
+  } finally {
+    Date.now = vraiNow;
+  }
 
   const listA = await listTransactions(a.id);
   assert.equal(listA.length, 2);
@@ -139,4 +151,35 @@ test("initiateTopup : sous le premier palier, aucun bonus", async () => {
     (await getAccountById(account.id)).balanceAr,
     WELCOME_CREDIT_AR + 3000,
   );
+});
+
+test("recharges : au-delà de 200, aucune écriture ne devient inaccessible", async () => {
+  setRedisClient(createFakeRedis());
+  const { account } = await createAccount({ email: "c@e.mg", password: "secret1" });
+
+  // Horloge avancée d'une seconde par recharge : des dates distinctes, donc un
+  // ordre chronologique strict et vérifiable.
+  const vraiNow = Date.now;
+  let t = vraiNow.call(Date);
+  Date.now = () => (t += 1000);
+  try {
+    for (let i = 0; i < 205; i++) await initiateTopup(account.id, 5000, "stub");
+  } finally {
+    Date.now = vraiNow;
+  }
+
+  assert.equal(await countTransactions(account.id), 205);
+
+  const vus = [];
+  let before;
+  let afterId;
+  for (;;) {
+    const page = await listTransactions(account.id, 50, { before, afterId });
+    if (page.length === 0) break;
+    vus.push(...page.map((x) => x.id));
+    before = page[page.length - 1].createdAt;
+    afterId = page[page.length - 1].id;
+  }
+  assert.equal(vus.length, 205, "l'historique comptable reste intégralement lisible");
+  assert.equal(new Set(vus).size, 205, "sans doublon");
 });

@@ -1,5 +1,7 @@
 import { getRedis } from "./redis.js";
 import { IDX_ACCOUNTS, IDX_EXAMS, IDX_LAST_SEEN, IDX_TXNS } from "./indexes.js";
+import { examAcctKey, examClassKey } from "./history.js";
+import { txnAcctKey } from "./payments.js";
 
 // Rattrapage des index globaux depuis les données déjà en base.
 //
@@ -11,9 +13,11 @@ import { IDX_ACCOUNTS, IDX_EXAMS, IDX_LAST_SEEN, IDX_TXNS } from "./indexes.js";
 //
 // Rétroactivité réelle :
 //   comptes  → intégrale (`createdAt` a toujours été persisté)
-//   examens  → intégrale (`endedAt` idem)
+//   examens  → intégrale (`endedAt` idem), index global ET index par compte
+//              et par classe, reconstruits dans la même passe
 //   recharges→ partielle : les transactions de plus de 30 j ont été détruites
 //              par un TTL depuis retiré. Ce qui a expiré est irrécupérable.
+//              Index global ET index par compte, même passe.
 //
 // Idempotent : ZADD écrase le score, le script peut être relancé sans risque.
 
@@ -56,6 +60,20 @@ async function zaddChunked(key, pairs, { gt = false } = {}) {
 const emptyStat = () => ({ scanned: 0, indexed: 0, orphelins: 0, sansDate: 0 });
 
 /**
+ * Écrit un paquet d'index scopés (une clé par compte / par classe).
+ * Renvoie le nombre de clés et d'entrées, pour que le rapport dise ce qui a
+ * été reconstruit et non seulement « c'est passé ».
+ */
+async function writeBuckets(bucket, keyOf, dryRun) {
+  let entries = 0;
+  for (const [scope, pairs] of bucket) {
+    entries += pairs.length;
+    if (!dryRun) await zaddChunked(keyOf(scope), pairs);
+  }
+  return { keys: bucket.size, entries };
+}
+
+/**
  * Reconstruit un index à partir d'un motif de clés.
  * `pick(doc)` renvoie `{ member, score }`, ou `null` si le document est
  * inutilisable (clé orpheline : la valeur a expiré mais l'index qui la
@@ -91,7 +109,16 @@ async function rebuild({ pattern, indexKey, pick, dryRun, onDoc }) {
  * passage sur des données de production.
  */
 export async function backfillIndexes({ dryRun = false } = {}) {
-  const report = { dryRun, accounts: null, exams: null, txns: null, lastSeen: 0 };
+  const report = {
+    dryRun,
+    accounts: null,
+    exams: null,
+    examsParCompte: null,
+    examsParClasse: null,
+    txns: null,
+    txnsParCompte: null,
+    lastSeen: 0,
+  };
 
   report.accounts = await rebuild({
     pattern: "account:*", // ne matche pas `accountEmail:*` (deux-points)
@@ -104,6 +131,18 @@ export async function backfillIndexes({ dryRun = false } = {}) {
   // (les sessions expirent sans laisser de trace), le dernier examen archivé
   // est le meilleur signal disponible pour l'antériorité.
   const dernierExamen = new Map();
+  // Index par compte et par classe (`exams:acct:*`, `exams:class:*`), qui
+  // remplacent les listes `examHistory:` / `classExams:` plafonnées à 200.
+  // Reconstruits dans la MÊME passe que `exams:all` : les documents sont déjà
+  // en main, un second SCAN ne rapporterait rien. C'est ce qui rend les
+  // examens au-delà du 200e de nouveau atteignables (cf. src/lib/history.js).
+  const parCompte = new Map(); // accountId -> [{score, member}]
+  const parClasse = new Map(); // classId   -> [{score, member}]
+  const range = (bucket, cle, paire) => {
+    const liste = bucket.get(cle);
+    if (liste) liste.push(paire);
+    else bucket.set(cle, [paire]);
+  };
   report.exams = await rebuild({
     pattern: "examRecord:*",
     indexKey: IDX_EXAMS,
@@ -111,6 +150,9 @@ export async function backfillIndexes({ dryRun = false } = {}) {
     dryRun,
     onDoc: (r) => {
       const at = Number(r.endedAt) || 0;
+      const paire = { score: at, member: r.id };
+      if (r.accountId) range(parCompte, r.accountId, paire);
+      if (r.classId) range(parClasse, r.classId, paire);
       if (!r.accountId || !at) return;
       if (at > (dernierExamen.get(r.accountId) || 0)) {
         dernierExamen.set(r.accountId, at);
@@ -118,12 +160,27 @@ export async function backfillIndexes({ dryRun = false } = {}) {
     },
   });
 
+  // Un ZADD par compte et par classe : ces index sont scopés, on ne peut pas
+  // les écrire en un seul lot comme les index globaux.
+  report.examsParCompte = await writeBuckets(parCompte, examAcctKey, dryRun);
+  report.examsParClasse = await writeBuckets(parClasse, examClassKey, dryRun);
+
+  // `txn:*` ne matche ni `txnHistory:*` ni `txns:acct:*` (deux-points).
+  const parCompteTxn = new Map();
   report.txns = await rebuild({
-    pattern: "txn:*", // ne matche pas `txnHistory:*`
+    pattern: "txn:*",
     indexKey: IDX_TXNS,
     pick: (t) => ({ member: t.id, score: t.createdAt }),
     dryRun,
+    onDoc: (t) => {
+      if (!t.accountId) return;
+      range(parCompteTxn, t.accountId, {
+        score: Number(t.createdAt) || 0,
+        member: t.id,
+      });
+    },
   });
+  report.txnsParCompte = await writeBuckets(parCompteTxn, txnAcctKey, dryRun);
 
   // `gt` : ne jamais faire régresser une activité plus récente déjà
   // enregistrée (une connexion d'aujourd'hui prime sur un examen d'il y a un

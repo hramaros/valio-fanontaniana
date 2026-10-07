@@ -3,6 +3,7 @@ import { generateId } from "./code.js";
 import { credit } from "./accounts.js";
 import { indexTxn } from "./indexes.js";
 import { topupBonusAr } from "./wallet.js";
+import { recentDocs, countScoped } from "./scopedIndex.js";
 
 // Abstraction de paiement PROVIDER-AGNOSTIQUE.
 // Une recharge = une transaction (pending → completed/failed). Le crédit du
@@ -19,8 +20,15 @@ import { topupBonusAr } from "./wallet.js";
 // détruisait silencieusement l'historique de recette au-delà d'un mois —
 // tout ce qui a expiré avant ce correctif est définitivement perdu.
 const txnKey = (id) => `txn:${id}`;
-const TXN_HISTORY_MAX = 200; // même borne que l'historique d'examens
-const txnHistoryKey = (accountId) => `txnHistory:${accountId}`;
+// Index des recharges d'un compte : ZSET scoré par `createdAt`, lu par
+// curseur (cf. src/lib/scopedIndex.js). C'était une liste plafonnée à 200,
+// ce qui — les documents `txn:*` n'ayant pas de TTL — rendait les écritures
+// au-delà inatteignables sans les supprimer. Sur de la comptabilité, après un
+// premier épisode de perte silencieuse par TTL, c'était le plafond à retirer
+// en premier.
+export const txnAcctKey = (accountId) => `txns:acct:${accountId}`;
+// Clé héritée : lecture seule, on n'y écrit plus.
+export const legacyTxnHistoryKey = (accountId) => `txnHistory:${accountId}`;
 // Liste blanche des champs qu'un provider peut ajouter à la transaction
 // (ex. taux de change appliqué, pour audit). Un Object.assign sans filtre
 // laisserait un provider — bugué ou tiers/HTTP-facing plus tard (Mvola,
@@ -94,10 +102,11 @@ export async function initiateTopup(accountId, amountAr, providerName = "stub", 
     }
   }
   await saveTxn(txn);
-  // Index d'historique des recharges du compte (plus récent en tête).
-  const redis = getRedis();
-  await redis.lpush(txnHistoryKey(accountId), txn.id);
-  await redis.ltrim(txnHistoryKey(accountId), 0, TXN_HISTORY_MAX - 1);
+  // Index d'historique des recharges du compte (sans troncature).
+  await getRedis().zadd(txnAcctKey(accountId), {
+    score: Number(txn.createdAt) || Date.now(),
+    member: txn.id,
+  });
   // Index global daté, une seule fois à la création : le score est
   // `createdAt`, il ne bouge plus quand la transaction change de statut.
   await indexTxn(txn.id, txn.createdAt);
@@ -139,11 +148,36 @@ export async function failTransaction(id) {
   return { ok: true, transaction: txn };
 }
 
-/** Historique des recharges d'un compte (transactions), plus récent en tête. */
-export async function listTransactions(accountId, limit = 50) {
-  const redis = getRedis();
-  const ids = await redis.lrange(txnHistoryKey(accountId), 0, limit - 1);
-  if (!ids || ids.length === 0) return [];
-  const txns = await redis.mget(...ids.map(txnKey));
-  return txns.filter(Boolean);
+/**
+ * Historique des recharges d'un compte, plus récent en tête.
+ *
+ * Curseur : `before` (le `createdAt` du dernier élément rendu) et `afterId`
+ * (son `id`). Les deux ensemble franchissent proprement une page dont la fin
+ * comporte des ex æquo à la milliseconde.
+ *
+ * Limite assumée : deux transactions nées dans la même milliseconde sont
+ * ordonnées par identifiant, pas par ordre d'insertion — il n'existe pas
+ * d'ordre « juste » entre elles, et aucune n'est jamais perdue. En pratique
+ * deux recharges d'un même compte sont séparées par plusieurs allers-retours
+ * réseau.
+ */
+export async function listTransactions(
+  accountId,
+  limit = 50,
+  { before, afterId } = {},
+) {
+  return recentDocs({
+    zKey: txnAcctKey(accountId),
+    legacyKey: legacyTxnHistoryKey(accountId),
+    docKey: txnKey,
+    dateField: "createdAt",
+    limit,
+    before,
+    afterId,
+  });
+}
+
+/** Nombre de recharges d'un compte (toutes statuts confondus). */
+export async function countTransactions(accountId) {
+  return countScoped(txnAcctKey(accountId), legacyTxnHistoryKey(accountId));
 }
