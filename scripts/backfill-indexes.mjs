@@ -133,12 +133,19 @@ try {
 } catch (err) {
   finProgression();
   const msg = String(err?.message || err);
-  console.error(`\nÉchec du rattrapage : ${msg}\n`);
+  // L'échec part sur stdout, avec le rapport : ce script est un outil
+  // d'exploitation lu par un humain, et son échec fait partie de ce qu'il a à
+  // dire. Le mettre sur stderr le rendait invisible dès que l'appelant ne
+  // remonte que stdout — on voyait l'en-tête, puis rien, sans savoir s'il
+  // tournait encore ou s'il avait échoué. Le code de sortie 1 reste le signal
+  // pour les machines, et stderr est réservé à l'avancement.
+  console.log(`\nÉchec du rattrapage : ${msg}\n`);
   if (msg.includes("Redis non configuré")) {
-    console.error(
+    console.log(
       "Les identifiants Redis sont absents. Chargez-les avec :\n" +
-        "  node --env-file=.env.local scripts/backfill-indexes.mjs\n" +
-        "ou récupérez-les depuis Vercel (vercel env pull .env.local).\n",
+        "  node --env-file=.env.production scripts/backfill-indexes.mjs\n" +
+        "ou récupérez-les depuis Vercel :\n" +
+        "  vercel env pull .env.production --environment=production\n",
     );
   }
   process.exit(1);
