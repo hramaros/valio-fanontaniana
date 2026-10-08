@@ -25,6 +25,60 @@ const write = process.argv.includes("--write");
 
 const nombre = (n) => new Intl.NumberFormat("fr-FR").format(n);
 
+// — Avancement —
+//
+// Sur stderr, jamais sur stdout : le rapport final est la sortie du script,
+// la progression n'est qu'un signe de vie. Les séparer permet de filtrer le
+// rapport (`| tail`) sans perdre l'un ni l'autre.
+//
+// Sans ce signal, le parcours `SCAN` n'affiche rien pendant toute sa durée —
+// un aller-retour HTTP par lot de 200 clés — et devient indistinguable d'un
+// blocage réseau.
+const interactif = process.stderr.isTTY;
+let dernierAffichage = 0;
+let derniereEtape = null;
+
+function progression({ step, kind, count }) {
+  const maintenant = Date.now();
+  const nouvelleEtape = step !== derniereEtape;
+  // L'étranglement est PAR ÉTAPE, et une nouvelle étape s'annonce toujours :
+  // un intervalle global laisserait la phase la plus longue muette au seul
+  // motif que la précédente vient d'écrire — exactement le silence à éviter.
+  // En terminal on réécrit la même ligne, donc on rafraîchit souvent ; sinon
+  // chaque appel ajoute une ligne et on l'espace pour ne pas inonder un log.
+  if (
+    !nouvelleEtape &&
+    maintenant - dernierAffichage < (interactif ? 150 : 2000)
+  ) {
+    return;
+  }
+  // En terminal on écrasait la ligne en place : il faut la clore avant de
+  // passer à l'étape suivante. En sortie capturée, chaque écriture finit déjà
+  // par un saut de ligne.
+  if (nouvelleEtape && interactif && derniereEtape !== null) {
+    process.stderr.write("\n");
+  }
+  derniereEtape = step;
+  dernierAffichage = maintenant;
+  // Accord en nombre, et surtout : on n'écrit pas « écrits » pendant une
+  // simulation, où rien ne l'est.
+  const pluriel = count > 1 ? "s" : "";
+  const quoi =
+    kind === "scan"
+      ? `clé${pluriel} parcourue${pluriel}`
+      : write
+        ? `index écrit${pluriel}`
+        : `index simulé${pluriel}`;
+  const texte = `${step} : ${nombre(count)} ${quoi}…`;
+  if (interactif) process.stderr.write(`\r  ${texte.padEnd(52)}`);
+  else process.stderr.write(`  ${texte}\n`);
+}
+
+/** Efface la ligne d'avancement avant d'imprimer le rapport. */
+function finProgression() {
+  if (interactif) process.stderr.write(`\r${" ".repeat(54)}\r`);
+}
+
 function ligne(titre, stat) {
   const details = [];
   if (stat.orphelins) details.push(`${nombre(stat.orphelins)} illisible(s)`);
@@ -43,8 +97,9 @@ try {
   );
 
   const debut = Date.now();
-  const r = await backfillIndexes({ dryRun: !write });
+  const r = await backfillIndexes({ dryRun: !write, onProgress: progression });
   const duree = ((Date.now() - debut) / 1000).toFixed(1);
+  finProgression();
 
   ligne("Comptes", r.accounts);
   ligne("Examens", r.exams);
@@ -76,6 +131,7 @@ try {
     console.log("");
   }
 } catch (err) {
+  finProgression();
   const msg = String(err?.message || err);
   console.error(`\nÉchec du rattrapage : ${msg}\n`);
   if (msg.includes("Redis non configuré")) {

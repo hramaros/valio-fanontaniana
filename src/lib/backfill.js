@@ -64,11 +64,20 @@ const emptyStat = () => ({ scanned: 0, indexed: 0, orphelins: 0, sansDate: 0 });
  * Renvoie le nombre de clés et d'entrées, pour que le rapport dise ce qui a
  * été reconstruit et non seulement « c'est passé ».
  */
-async function writeBuckets(bucket, keyOf, dryRun) {
+async function writeBuckets(bucket, keyOf, dryRun, { step, onProgress } = {}) {
   let entries = 0;
+  let done = 0;
   for (const [scope, pairs] of bucket) {
     entries += pairs.length;
     if (!dryRun) await zaddChunked(keyOf(scope), pairs);
+    done++;
+    // Un ZADD par compte/classe : c'est ici que passe l'essentiel du temps
+    // d'un `--write`. On rend compte tous les 25 pour ne pas noyer la sortie,
+    // mais toujours au premier — sinon une étape de moins de 25 clés resterait
+    // entièrement muette.
+    if (done === 1 || done % 25 === 0) {
+      onProgress?.({ step, kind: "write", count: done });
+    }
   }
   return { keys: bucket.size, entries };
 }
@@ -79,11 +88,14 @@ async function writeBuckets(bucket, keyOf, dryRun) {
  * inutilisable (clé orpheline : la valeur a expiré mais l'index qui la
  * référençait subsiste).
  */
-async function rebuild({ pattern, indexKey, pick, dryRun, onDoc }) {
+async function rebuild({ pattern, indexKey, pick, dryRun, onDoc, step, onProgress }) {
   const stat = emptyStat();
   const pairs = [];
   for await (const keys of scanKeys(pattern)) {
     stat.scanned += keys.length;
+    // Un aller-retour HTTP par lot : sans ce signal, un parcours de plusieurs
+    // minutes est indistinguable d'un blocage réseau.
+    onProgress?.({ step, kind: "scan", count: stat.scanned });
     for (const doc of await readDocs(keys)) {
       const picked = doc ? pick(doc) : null;
       if (!picked || !picked.member) {
@@ -107,8 +119,13 @@ async function rebuild({ pattern, indexKey, pick, dryRun, onDoc }) {
  * Rattrape les quatre index reconstructibles.
  * `dryRun` compte tout sans rien écrire — à privilégier pour un premier
  * passage sur des données de production.
+ *
+ * `onProgress({ step, kind, count })` est appelé au fil du parcours
+ * (`kind: "scan"`) et des écritures scopées (`kind: "write"`). Sans lui, un
+ * rattrapage de plusieurs minutes n'affiche rien et devient indistinguable
+ * d'un blocage réseau.
  */
-export async function backfillIndexes({ dryRun = false } = {}) {
+export async function backfillIndexes({ dryRun = false, onProgress } = {}) {
   const report = {
     dryRun,
     accounts: null,
@@ -125,6 +142,8 @@ export async function backfillIndexes({ dryRun = false } = {}) {
     indexKey: IDX_ACCOUNTS,
     pick: (a) => ({ member: a.id, score: a.createdAt }),
     dryRun,
+    step: "Comptes",
+    onProgress,
   });
 
   // Dernière activité connue par compte : à défaut d'historique de connexion
@@ -148,6 +167,8 @@ export async function backfillIndexes({ dryRun = false } = {}) {
     indexKey: IDX_EXAMS,
     pick: (r) => ({ member: r.id, score: r.endedAt }),
     dryRun,
+    step: "Examens",
+    onProgress,
     onDoc: (r) => {
       const at = Number(r.endedAt) || 0;
       const paire = { score: at, member: r.id };
@@ -162,8 +183,14 @@ export async function backfillIndexes({ dryRun = false } = {}) {
 
   // Un ZADD par compte et par classe : ces index sont scopés, on ne peut pas
   // les écrire en un seul lot comme les index globaux.
-  report.examsParCompte = await writeBuckets(parCompte, examAcctKey, dryRun);
-  report.examsParClasse = await writeBuckets(parClasse, examClassKey, dryRun);
+  report.examsParCompte = await writeBuckets(parCompte, examAcctKey, dryRun, {
+    step: "Examens par compte",
+    onProgress,
+  });
+  report.examsParClasse = await writeBuckets(parClasse, examClassKey, dryRun, {
+    step: "Examens par classe",
+    onProgress,
+  });
 
   // `txn:*` ne matche ni `txnHistory:*` ni `txns:acct:*` (deux-points).
   const parCompteTxn = new Map();
@@ -172,6 +199,8 @@ export async function backfillIndexes({ dryRun = false } = {}) {
     indexKey: IDX_TXNS,
     pick: (t) => ({ member: t.id, score: t.createdAt }),
     dryRun,
+    step: "Recharges",
+    onProgress,
     onDoc: (t) => {
       if (!t.accountId) return;
       range(parCompteTxn, t.accountId, {
@@ -180,7 +209,10 @@ export async function backfillIndexes({ dryRun = false } = {}) {
       });
     },
   });
-  report.txnsParCompte = await writeBuckets(parCompteTxn, txnAcctKey, dryRun);
+  report.txnsParCompte = await writeBuckets(parCompteTxn, txnAcctKey, dryRun, {
+    step: "Recharges par compte",
+    onProgress,
+  });
 
   // `gt` : ne jamais faire régresser une activité plus récente déjà
   // enregistrée (une connexion d'aujourd'hui prime sur un examen d'il y a un

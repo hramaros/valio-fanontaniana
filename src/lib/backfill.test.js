@@ -259,3 +259,41 @@ test("reconstruit l'index des recharges par compte", async () => {
   );
   assert.equal(await countTransactions("acc_1"), 2);
 });
+
+test("rend compte de l'avancement pendant le parcours et les écritures", async () => {
+  setRedisClient(createFakeRedis());
+  const r = getRedis();
+  // Assez de clés pour dépasser le lot de SCAN (200) et franchir le palier de
+  // 25 écritures scopées : sans quoi le test ne prouverait rien.
+  for (let i = 0; i < 260; i++) {
+    await r.set(`examRecord:ex_${i}`, {
+      id: `ex_${i}`,
+      accountId: `acc_${i}`, // un compte par examen → 260 index scopés
+      endedAt: 1000 + i,
+    });
+  }
+
+  const vus = [];
+  await backfillIndexes({ onProgress: (p) => vus.push(p) });
+
+  const scans = vus.filter((p) => p.kind === "scan" && p.step === "Examens");
+  assert.ok(scans.length >= 2, "au moins un point d'avancement par lot de SCAN");
+  assert.ok(
+    scans.every((p, i) => i === 0 || p.count >= scans[i - 1].count),
+    "le compteur de clés ne doit jamais régresser",
+  );
+  assert.equal(scans[scans.length - 1].count, 260, "et finir sur le total");
+
+  const ecritures = vus.filter((p) => p.kind === "write");
+  assert.ok(
+    ecritures.some((p) => p.step === "Examens par compte"),
+    "les écritures scopées rendent compte aussi",
+  );
+});
+
+test("l'avancement reste optionnel : sans rappel, rien ne casse", async () => {
+  setRedisClient(createFakeRedis());
+  await seed();
+  const rapport = await backfillIndexes();
+  assert.equal(rapport.exams.indexed, 3);
+});
