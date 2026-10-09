@@ -26,6 +26,7 @@ import { examAggregate } from "./analytics.js";
 import { getClass } from "./classrooms.js";
 import { withLock } from "./lock.js";
 import { indexPlay, touchLastSeen } from "./indexes.js";
+import { isCodeReserved } from "./codeReservation.js";
 
 // Durée de vie d'une salle dans Redis (auto-suppression = côté « éphémère »).
 const ROOM_TTL_SEC = 2 * 60 * 60; // 2h
@@ -80,14 +81,27 @@ export function deriveStatus(meta, ts = now()) {
 /* Salle / meta                                                        */
 /* ------------------------------------------------------------------ */
 
-export async function createRoom(hostName, hostAccountId = null) {
+/**
+ * Crée une salle. `code` permet d'imposer un code déjà réservé — c'est le cas
+ * d'un examen programmé, dont le code a été distribué bien avant que la salle
+ * n'existe (cf. src/lib/codeReservation.js).
+ */
+export async function createRoom(hostName, hostAccountId = null, { code: impose = null } = {}) {
   const redis = getRedis();
   let code;
-  // Évite les collisions de code (rare, mais on vérifie).
-  for (let attempt = 0; attempt < 8; attempt++) {
-    code = generateCode();
-    const exists = await redis.exists(metaKey(code));
-    if (!exists) break;
+  // Évite les collisions de code (rare, mais on vérifie). On écarte aussi les
+  // codes retenus par un examen programmé : ils n'ont pas encore de salle,
+  // mais ils sont déjà affichés quelque part — les réattribuer ferait tomber
+  // deux examens sur le même code.
+  if (impose) {
+    code = impose;
+  } else {
+    for (let attempt = 0; attempt < 8; attempt++) {
+      code = generateCode();
+      const pris =
+        (await redis.exists(metaKey(code))) || (await isCodeReserved(code));
+      if (!pris) break;
+    }
   }
   const meta = {
     code,
@@ -168,8 +182,15 @@ export function validateQuiz(quiz) {
   return { ok: true };
 }
 
-/** Normalise un quiz reçu du client (ids, types, bornes). */
-function sanitizeQuiz(quiz) {
+/**
+ * Normalise un quiz reçu du client (ids, types, bornes).
+ *
+ * Exportée pour la bibliothèque de quiz (src/lib/quizzes.js) : un quiz
+ * enregistré hors salle doit subir EXACTEMENT les mêmes bornes et le même
+ * filtrage qu'un quiz posé dans une salle, sinon la bibliothèque devient une
+ * porte d'entrée qui contourne la validation.
+ */
+export function sanitizeQuiz(quiz) {
   return {
     title: String(quiz.title || "Quiz").slice(0, 120),
     mode: normalizeMode(quiz.mode),
@@ -219,7 +240,7 @@ function sanitizeQuiz(quiz) {
   };
 }
 
-export async function setQuiz(code, quiz) {
+export async function setQuiz(code, quiz, { rosterFallback = null } = {}) {
   const meta = await getMeta(code);
   if (!meta) return { ok: false, error: "Salle introuvable." };
   if (deriveStatus(meta) !== "lobby")
@@ -228,12 +249,25 @@ export async function setQuiz(code, quiz) {
   if (!valid.ok) return valid;
   meta.quiz = sanitizeQuiz(quiz);
   // Examen nominatif : on fige le roster de la classe choisie dans le quiz.
+  //
+  // Le roster est délibérément relu à CHAUD, même pour un examen programmé des
+  // semaines plus tôt : un élève inscrit entre-temps doit pouvoir passer
+  // l'épreuve, et un élève parti ne doit plus y figurer. Ce sont les questions
+  // qu'un examen programmé fige, pas la composition de la classe.
   if (meta.quiz.mode === "examen" && quiz.classId && meta.hostAccountId) {
     const cls = await getClass(meta.hostAccountId, quiz.classId);
     if (cls) {
       meta.quiz.classId = cls.id;
       meta.quiz.className = cls.name;
       meta.quiz.roster = cls.students;
+    } else if (rosterFallback?.length) {
+      // La classe a été supprimée depuis la programmation. On retombe sur le
+      // roster figé : sans lui, un examen nominatif se transformerait en
+      // saisie de pseudo libre, et n'importe qui entrerait sous n'importe quel
+      // nom dans un examen noté.
+      meta.quiz.classId = quiz.classId;
+      meta.quiz.className = quiz.className || "Classe supprimée";
+      meta.quiz.roster = rosterFallback;
     }
   }
   await saveMeta(meta);
