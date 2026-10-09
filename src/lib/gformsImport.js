@@ -47,6 +47,9 @@ const TYPES = {
   4: { cible: "multiple", libelle: "cases à cocher" },
 };
 
+/** Codes qui relèvent de la mise en page, et non d'une question perdue. */
+const STRUCTURE = new Set([6, 8, 11, 13]);
+
 const NON_REPRIS = {
   5: "échelle linéaire",
   6: "titre de section",
@@ -146,10 +149,17 @@ export function mapFormToQuiz(data, { secPerQuestion = DEFAULT_SEC_PER_QUESTION 
     const code = Number(item[3]);
 
     if (NON_REPRIS[code] !== undefined) {
-      // Un saut de page ou un titre de section n'est pas une perte : on ne
-      // l'annonce que s'il portait un intitulé, sinon on inonderait le rapport.
+      // Distinction essentielle, apprise sur formulaires réels : un titre de
+      // section ou un saut de page n'est PAS une question perdue, c'est de la
+      // mise en page. Les mêler aux vraies pertes donnait « 9 éléments non
+      // repris » là où seuls 3 demandaient une ressaisie — un rapport qui
+      // alarme sans informer. On les signale quand même, mais à part.
       if (intitule && code !== 8) {
-        ignores.push({ titre: intitule, raison: `${NON_REPRIS[code]} — non pris en charge` });
+        ignores.push({
+          titre: intitule,
+          critique: !STRUCTURE.has(code),
+          raison: `${NON_REPRIS[code]} — non pris en charge`,
+        });
       }
       continue;
     }
@@ -158,12 +168,17 @@ export function mapFormToQuiz(data, { secPerQuestion = DEFAULT_SEC_PER_QUESTION 
     if (!mappage) {
       ignores.push({
         titre: intitule || `Question de type ${code}`,
+        critique: true,
         raison: "type de question inconnu",
       });
       continue;
     }
     if (!intitule) {
-      ignores.push({ titre: "(sans intitulé)", raison: "question sans texte" });
+      ignores.push({
+        titre: "(sans intitulé)",
+        critique: true,
+        raison: "question sans texte",
+      });
       continue;
     }
 
@@ -203,7 +218,15 @@ export function mapFormToQuiz(data, { secPerQuestion = DEFAULT_SEC_PER_QUESTION 
     }
 
     const options = Array.isArray(corps?.[1]) ? corps[1] : [];
+    // L'option « Autre » de Google se reconnaît à son drapeau en 5e position,
+    // et porte un texte vide. Elle ne peut pas devenir une réponse notée : son
+    // contenu est saisi par le répondant, il n'y a rien à corriger. On
+    // l'écarte donc explicitement — et non par le seul effet du filtre sur les
+    // textes vides, qui marchait par accident. Vérifié sur formulaire réel.
+    const estAutre = (o) => o?.[4] === 1 || o?.[4] === true;
+    const avecAutre = options.some(estAutre);
     const reponses = options
+      .filter((o) => !estAutre(o))
       .map((o) => String(o?.[0] ?? "").trim())
       .filter(Boolean)
       .slice(0, 10);
@@ -211,7 +234,10 @@ export function mapFormToQuiz(data, { secPerQuestion = DEFAULT_SEC_PER_QUESTION 
     if (reponses.length < 2) {
       ignores.push({
         titre: intitule,
-        raison: "moins de deux réponses proposées",
+        critique: true,
+        raison: avecAutre
+          ? `une seule réponse proposée hors « Autre » — rien à départager`
+          : "moins de deux réponses proposées",
       });
       continue;
     }
@@ -309,13 +335,18 @@ export async function importGoogleForm(input, { fetchImpl = fetch, maxHops = 3 }
       continue;
     }
 
-    if (code === 404) {
-      // Vérifié sur de vrais formulaires : Google répond 404, et non 403,
-      // pour un formulaire qui existe mais n'est pas partagé publiquement.
-      // Vu du serveur, « inexistant » et « non partagé » sont donc
-      // indistinguables — le message doit couvrir les deux, sinon le cas le
-      // plus fréquent (formulaire simplement pas publié) envoie le formateur
-      // chercher une faute de frappe qui n'existe pas.
+    if (code === 404 || code === 410) {
+      // Le serveur ne peut pas distinguer « formulaire inexistant » de
+      // « formulaire non partagé » : les deux se présentent comme un 404. Le
+      // message couvre donc les deux causes. Le 410 (formulaire supprimé,
+      // constaté en réel) relève du même message pour le formateur.
+      //
+      // Piège vérifié en réel : `/forms/d/e/{id}/viewform` renvoie 404 pour un
+      // identifiant de formulaire ordinaire — le créneau `/d/e/` attend un
+      // identifiant de PUBLICATION, différent. C'est `/forms/d/{id}/viewform`
+      // qui répond. Les deux formes étant acceptées par `parseGoogleFormUrl`,
+      // un formateur peut coller l'une ou l'autre, d'où l'utilité de citer le
+      // partage ET le lien dans le message.
       return {
         ok: false,
         status: 404,

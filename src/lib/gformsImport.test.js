@@ -464,3 +464,100 @@ test("import complet : quiz, origine et rapport", async () => {
     "l'origine est conservée, sans les paramètres",
   );
 });
+
+/* ------------------------------------------------------------------ */
+/* Structures relevées sur formulaires réels                           */
+/* ------------------------------------------------------------------ */
+
+test("l'option « Autre » est écartée par son drapeau, pas par son texte vide", async () => {
+  // Structure relevée telle quelle sur un formulaire réel : l'option « Autre »
+  // porte un texte vide ET un drapeau `1` en 5e position.
+  const reel = [
+    1265741244,
+    "Où exercez-vous principalement ?",
+    null,
+    2,
+    [
+      [
+        57638704,
+        [
+          ["Madagascar", null, null, null, 0],
+          ["", null, null, null, 1],
+        ],
+        1,
+      ],
+    ],
+  ];
+  const { quiz, ignores } = mapFormToQuiz(form("T", [reel]));
+
+  assert.equal(quiz.questions.length, 0, "une seule vraie option : rien à départager");
+  assert.equal(ignores[0].critique, true);
+  assert.match(ignores[0].raison, /hors « Autre »/);
+});
+
+test("« Autre » ne compte pas comme réponse, mais ne disqualifie pas la question", async () => {
+  const avecAutre = [
+    1,
+    "Quelle est votre matière préférée ?",
+    null,
+    2,
+    [
+      [
+        1,
+        [
+          ["Mathématiques", null, null, null, 0],
+          ["Histoire", null, null, null, 0],
+          ["Sciences", null, null, null, 0],
+          ["", null, null, null, 1],
+        ],
+        0,
+      ],
+    ],
+  ];
+  const { quiz } = mapFormToQuiz(form("T", [avecAutre]));
+  assert.equal(quiz.questions.length, 1);
+  assert.deepEqual(
+    quiz.questions[0].answers.map((a) => a.text),
+    ["Mathématiques", "Histoire", "Sciences"],
+    "« Autre » est saisi par le répondant : il n'y a rien à corriger",
+  );
+});
+
+test("structure et pertes réelles sont distinguées dans le rapport", async () => {
+  const data = form("Sondage", [
+    item("À propos de vous", 6, {}), // titre de section
+    item("Bonne question", 2, { options: ["A", "B"], bonnes: ["A"] }),
+    item("Notez de 1 à 5", 5, {}), // vraie perte
+    item("Une image", 11, {}), // mise en page
+  ]);
+
+  const { ignores } = mapFormToQuiz(data);
+  const pertes = ignores.filter((i) => i.critique);
+  const structure = ignores.filter((i) => !i.critique);
+
+  assert.deepEqual(
+    pertes.map((i) => i.titre),
+    ["Notez de 1 à 5"],
+    "seule une question réellement perdue demande une ressaisie",
+  );
+  assert.deepEqual(
+    structure.map((i) => i.titre),
+    ["À propos de vous", "Une image"],
+    "les titres de section et images sont signalés, mais à part",
+  );
+});
+
+test("un formulaire supprimé (410) donne le même message qu'un 404", async () => {
+  // Constaté en réel : Google répond 410 pour un formulaire supprimé. Vu du
+  // formateur, c'est le même problème — le lien ne mène à rien.
+  const r = await importGoogleForm("https://docs.google.com/forms/d/e/1ABC/viewform", {
+    fetchImpl: async () => ({
+      status: 410,
+      ok: false,
+      headers: { get: () => null },
+      text: async () => "",
+    }),
+  });
+  assert.equal(r.status, 404);
+  assert.match(r.error, /inaccessible/);
+});

@@ -176,6 +176,8 @@ export default function QuizEditorPage() {
 
   const aCorriger =
     rapport && !rapport.corrigeDetecte && questions.some((q) => q.answers?.length);
+  const pertes = (rapport?.ignores || []).filter((x) => x.critique);
+  const structure = (rapport?.ignores || []).filter((x) => !x.critique);
 
   return (
     <div className="stack gap-24">
@@ -208,25 +210,44 @@ export default function QuizEditorPage() {
         </div>
       )}
 
-      {rapport?.ignores?.length > 0 && (
-        <div className="panel stack gap-8">
+      {/* Pertes réelles et mise en page sont séparées : les mêler afficherait
+          « 9 éléments non repris » là où 3 seulement demandent une ressaisie,
+          ce qui alarme sans informer. */}
+      {pertes.length > 0 && (
+        <div className="panel stack gap-8" role="alert">
           <p className="hint">
-            <Icon name="info" size={15} />
+            <Icon name="alertTriangle" size={15} />
             <span>
-              {rapport.ignores.length} élément
-              {rapport.ignores.length > 1 ? "s" : ""} du formulaire n&apos;
-              {rapport.ignores.length > 1 ? "ont" : "a"} pas pu être repris.
-              À ressaisir à la main si besoin :
+              {pertes.length} question{pertes.length > 1 ? "s" : ""} n&apos;
+              {pertes.length > 1 ? "ont" : "a"} pas pu être reprise
+              {pertes.length > 1 ? "s" : ""} — à ressaisir à la main :
             </span>
           </p>
           <ul className="stack gap-4" style={{ margin: 0, paddingLeft: 18 }}>
-            {rapport.ignores.map((x, i) => (
-              <li key={i} className="tiny muted">
-                <strong>{x.titre}</strong> — {x.raison}
+            {pertes.map((x, i) => (
+              <li key={i} className="tiny">
+                <strong>{x.titre}</strong> <span className="muted">— {x.raison}</span>
               </li>
             ))}
           </ul>
         </div>
+      )}
+
+      {structure.length > 0 && (
+        <details className="panel">
+          <summary className="tiny muted" style={{ cursor: "pointer" }}>
+            {structure.length} élément{structure.length > 1 ? "s" : ""} de mise en
+            page ignoré{structure.length > 1 ? "s" : ""} (titres de section,
+            images) — sans incidence sur le quiz
+          </summary>
+          <ul className="stack gap-4" style={{ margin: "8px 0 0", paddingLeft: 18 }}>
+            {structure.map((x, i) => (
+              <li key={i} className="tiny muted">
+                {x.titre} — {x.raison}
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
 
       {erreur && (

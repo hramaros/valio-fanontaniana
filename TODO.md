@@ -121,7 +121,7 @@ lancer, programmer, dupliquer, modifier, supprimer.
   `scheduledAffordability` prévient le formateur en amont, puisqu'une salle qui
   s'ouvre seule n'a personne pour recharger.
 
-### Import Google Forms (`src/lib/gformsImport.js`) — ⚠️ livré, non validé en réel
+### Import Google Forms (`src/lib/gformsImport.js`) — ✅ validé sur formulaires réels
 Par **lien public** et non par l'API : le scope `forms.body.readonly` est
 sensible et exige une vérification Google (plusieurs semaines) — l'OAuth
 restera le second chemin.
@@ -135,19 +135,35 @@ restera le second chemin.
   Le quiz passe par l'éditeur, où le formateur complète, puis enregistre.
 - **Ce qui n'est pas repris est signalé** (échelle, grille, date, type inconnu…)
   avec la raison, plutôt que perdu en silence.
-- **Vérifié en réel** : Google répond `404` — et non `403` — pour un formulaire
-  existant mais non partagé. Le message couvre donc les deux causes.
+**Validé de bout en bout sur quatre formulaires réels** (un formulaire de test
+créé puis supprimé, et les trois sondages du projet) : 38, 30 et 25 questions
+extraites, titres et types corrects. Ce que cette validation a appris :
 
-- [ ] **Valider l'analyseur contre un vrai formulaire public.** Les 26 tests
-      s'appuient sur des structures `FB_PUBLIC_LOAD_DATA_` synthétiques,
-      reconstituées d'après la forme documentée par rétro-ingénierie (items en
-      `[1][1]`, titre en `[1][8]`). Aucun des formulaires du compte n'étant
-      partagé publiquement, le parcours complet n'a pas pu être éprouvé sur une
-      page réelle. **C'est le risque résiduel principal de cette
-      fonctionnalité** : si Google a changé la forme du bloc, l'import échouera
-      proprement (message « impossible de lire la structure ») mais
-      systématiquement. Il suffit de partager un formulaire par lien pour lever
-      le doute.
+- **Forme de l'URL** : `/forms/d/{id}/viewform` répond ; `/forms/d/e/{id}/viewform`
+  renvoie 404, car le créneau `/d/e/` attend un identifiant de *publication*,
+  différent de l'identifiant de formulaire. Les deux formes sont acceptées en
+  entrée, donc le message d'erreur cite le partage ET le lien.
+- **Option « Autre »** : Google la représente par une option à texte vide
+  portant un drapeau `1` en 5e position. Elle est désormais écartée par ce
+  drapeau, et non par le seul effet du filtre sur les textes vides — qui
+  fonctionnait par accident. Une question réduite à une option plus « Autre »
+  est signalée comme telle, et non par un vague « moins de deux réponses ».
+- **Structure vs perte réelle** : les titres de section et les images gonflaient
+  le rapport à « 9 éléments non repris » là où 1 seul demandait une ressaisie.
+  Les deux catégories sont séparées (`critique`), et l'interface met les pertes
+  en avant, la mise en page dans un replié.
+- **404 / 410** : indistinguables côté serveur d'un formulaire non partagé ou
+  supprimé ; même message, qui mentionne les deux causes.
+
+- [ ] **Extraction du corrigé : encore non validée en réel.** Aucun des
+      formulaires disponibles n'est configuré en « questionnaire », et le MCP
+      Google Forms n'expose pas le `batchUpdate` qui permettrait d'activer le
+      mode quiz et de poser un corrigé. Ce chemin reste donc couvert par des
+      structures synthétiques. **L'échec serait bénin** : la recherche du
+      corrigé est défensive, et si la forme diffère elle ne trouve simplement
+      aucune bonne réponse — l'import aboutit, et le formateur les désigne dans
+      l'éditeur, exactement comme pour un formulaire de sondage. À lever en
+      créant un questionnaire noté à la main.
 - [ ] Second chemin OAuth (API Forms officielle), une fois la vérification
       Google obtenue — à enchaîner avec EIN/Stripe, même file d'attente de
       démarches externes.
