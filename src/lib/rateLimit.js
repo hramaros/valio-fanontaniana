@@ -14,6 +14,11 @@ const BUCKETS = {
   verify: { limit: 20, windowSec: 60 }, // consultation publique d'un examen
   passwordReset: { limit: 5, windowSec: 3600 }, // demande de reset de mot de passe
   admin: { limit: 60, windowSec: 60 }, // pilotage : généreux (un dashboard rafraîchit)
+  // Import Google Forms : chaque appel déclenche une requête SORTANTE vers
+  // Google. Clé sur l'identifiant de COMPTE et non sur l'IP — un
+  // établissement entier partage une adresse, et c'est exactement le piège
+  // décrit ci-dessus.
+  gformsImport: { limit: 10, windowSec: 300 },
 };
 
 /**

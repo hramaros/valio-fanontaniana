@@ -8,6 +8,7 @@ import { normalizeCode } from "@/lib/code";
 import { usePolling } from "@/lib/usePolling";
 import { JOIN_MS } from "@/lib/polling";
 import { savePlayerSession, getPlayerSession } from "@/lib/session";
+import ScheduleCountdown from "@/components/ScheduleCountdown";
 
 function JoinInner() {
   const router = useRouter();
@@ -30,11 +31,31 @@ function JoinInner() {
     }
   }, [code]);
 
+  // On distingue « salle absente » d'une erreur quelconque : c'est ce qui
+  // décide d'aller interroger le planning plutôt que d'afficher une panne.
   const stateFetcher = useMemo(
-    () => async () => (await apiGet(`/api/room/${code}/state`)).data,
+    () => async () => {
+      const { ok, status, data } = await apiGet(`/api/room/${code}/state`);
+      if (ok) return data;
+      return status === 404 ? { absente: true } : undefined;
+    },
     [code],
   );
   const state = usePolling(stateFetcher, JOIN_MS, true);
+  const salleAbsente = !!state?.absente;
+
+  // Examen programmé. Cette route n'est interrogée QUE si aucune salle
+  // n'existe sous ce code — et c'est elle qui fait naître la salle à l'heure
+  // dite : il n'y a pas de tâche de fond, l'attente du participant est le
+  // déclencheur. Le sondage de `state` reprend la main dès que la salle est là.
+  const schedFetcher = useMemo(
+    () => async () => {
+      const { ok, data } = await apiGet(`/api/scheduled/${code}`);
+      return ok ? data : { inconnu: true };
+    },
+    [code],
+  );
+  const sched = usePolling(schedFetcher, JOIN_MS, salleAbsente);
 
   // Bascule vers le jeu / résultats quand l'hôte lance ou que le temps est fini.
   useEffect(() => {
@@ -90,6 +111,102 @@ function JoinInner() {
           <Link href="/" className="btn btn--primary">
             Retour à l'accueil
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // — Examen programmé : écrans d'attente —
+  //
+  // Placés AVANT l'étape pseudo : sans salle, il n'y a pas d'inscription
+  // possible, et un formulaire de pseudo qui échoue en boucle serait
+  // incompréhensible pour un élève.
+  if (salleAbsente && sched && !sched.inconnu) {
+    const cadre = (contenu) => (
+      <div className="center-screen">
+        <div className="container container--narrow stack gap-24">
+          <div className="row gap-12">
+            <Link href="/" className="pill">← Quitter</Link>
+            <span className="pill">
+              Salle <span className="code-chip" style={{ fontSize: "1rem" }}>{code}</span>
+            </span>
+          </div>
+          <div className="card stack gap-16" style={{ textAlign: "center" }}>
+            {contenu}
+          </div>
+        </div>
+      </div>
+    );
+
+    if (sched.phase === "annule") {
+      return cadre(
+        <>
+          <span className="icon-badge" aria-hidden="true">
+            <Icon name="close" size={19} />
+          </span>
+          <h1 style={{ fontSize: "1.6rem" }}>Examen annulé</h1>
+          <p className="muted">
+            {sched.title ? `« ${sched.title} » a été annulé` : "Cet examen a été annulé"}{" "}
+            par votre formateur.
+          </p>
+        </>,
+      );
+    }
+
+    if (sched.phase === "bloque") {
+      return cadre(
+        <>
+          <span className="icon-badge" aria-hidden="true">
+            <Icon name="alertTriangle" size={19} />
+          </span>
+          <h1 style={{ fontSize: "1.6rem" }}>L&apos;examen n&apos;a pas pu démarrer</h1>
+          <p className="muted">
+            Prévenez votre formateur. Restez sur cette page : l&apos;examen
+            démarrera dès qu&apos;il aura réglé le problème.
+          </p>
+          <div className="spin" role="status" aria-label="En attente" style={{ margin: "0 auto" }} />
+        </>,
+      );
+    }
+
+    if (sched.phase === "attente") {
+      return cadre(
+        <>
+          <ScheduleCountdown
+            startsAt={sched.startsAt}
+            serverOffset={(sched.serverNow || Date.now()) - Date.now()}
+          />
+          {sched.title && (
+            <h1 style={{ fontSize: "1.5rem" }}>{sched.title}</h1>
+          )}
+          {sched.className && <span className="pill">{sched.className}</span>}
+          <p className="hint" style={{ justifyContent: "center" }}>
+            <Icon name="info" size={14} />
+            <span>
+              Gardez cette page ouverte : les inscriptions s&apos;ouvriront
+              toutes seules, puis l&apos;épreuve commencera
+              {sched.registrationWindowMin
+                ? ` ${sched.registrationWindowMin} min plus tard`
+                : ""}
+              .
+            </span>
+          </p>
+        </>,
+      );
+    }
+  }
+
+  // Code qui ne correspond à rien : ni salle vivante, ni examen programmé.
+  if (salleAbsente && sched?.inconnu) {
+    return (
+      <div className="center-screen">
+        <div className="card stack gap-16" style={{ textAlign: "center", maxWidth: 420 }}>
+          <h2>Session introuvable</h2>
+          <p className="muted">
+            Aucune session sous le code <strong>{code}</strong>. Vérifiez le
+            code auprès de votre formateur.
+          </p>
+          <Link href="/" className="btn btn--primary">Retour à l&apos;accueil</Link>
         </div>
       </div>
     );

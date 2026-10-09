@@ -11,6 +11,7 @@ import { MENU_SET_EVENT } from "@/lib/onboarding";
 const NAV = [
   { href: "/host", label: "Créer un quiz", icon: "plus", exact: true },
   { href: "/host/dashboard", label: "Tableau de bord", icon: "chart" },
+  { href: "/host/quiz", label: "Mes quiz", icon: "bookOpen" },
   { href: "/host/classes", label: "Mes classes", icon: "users" },
   { href: "/host/history", label: "Mes examens", icon: "clock" },
   { href: "/host/wallet", label: "Portefeuille", icon: "wallet" },

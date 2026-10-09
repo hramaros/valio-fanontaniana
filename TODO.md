@@ -95,6 +95,67 @@ seul point non automatisé (sticky notes n8n) est documenté avec sa raison.
 
 ---
 
+## 🔵 Fonctionnalités livrées — bibliothèque, programmation, import
+
+### Bibliothèque de quiz (`src/lib/quizzes.js`) — ✅
+Un quiz n'existait que dans une salle, détruite au bout de 2 h : le formateur
+ressaisissait tout à chaque cours, et rien ne pouvait survivre assez longtemps
+pour être programmé ou importé. `quiz:{id}` sans TTL + ZSET
+`quizzes:acct:{id}` scoré par `updatedAt`. Écran « Mes quiz » (`/host/quiz`) :
+lancer, programmer, dupliquer, modifier, supprimer.
+
+### Examens programmés (`src/lib/scheduled.js`) — ✅
+- **Aucun cron.** Les transitions sont déclenchées par le premier accès après
+  l'heure, sous `withLock`. Un test vérifie que 30 accès simultanés ne créent
+  qu'une seule salle.
+- **Deux heures et non une.** `registerPlayer` ferme les inscriptions dès que
+  la partie est lancée : ouvrir et lancer au même instant aurait exclu tout le
+  monde sauf le premier arrivé. La salle ouvre en lobby à `startsAt`, le chrono
+  part à la fin d'une fenêtre d'inscription (5 min par défaut).
+- **Code réservé dès la programmation** (`codeReservation.js`), pour être
+  distribué à l'avance ; `createRoom` ne peut plus le réattribuer.
+- Questions figées, roster de classe relu à chaud (un élève inscrit entre-temps
+  doit pouvoir passer), repli sur le roster figé si la classe a été supprimée.
+- Solde insuffisant au départ du chrono : phase « bloqué » **non définitive**,
+  la salle et les inscrits sont préservés, une recharge débloque.
+  `scheduledAffordability` prévient le formateur en amont, puisqu'une salle qui
+  s'ouvre seule n'a personne pour recharger.
+
+### Import Google Forms (`src/lib/gformsImport.js`) — ⚠️ livré, non validé en réel
+Par **lien public** et non par l'API : le scope `forms.body.readonly` est
+sensible et exige une vérification Google (plusieurs semaines) — l'OAuth
+restera le second chemin.
+
+- **Barrière anti-SSRF** : liste blanche d'hôtes (`docs.google.com`,
+  `forms.gle`), HTTPS seul, et `redirect: "manual"` avec revalidation à chaque
+  saut — laisser suivre les redirections annulerait la liste blanche. Limitation
+  de débit par **compte** et non par IP (un établissement partage une adresse).
+- **Rien n'est persisté par l'import** : un formulaire qui n'est pas un
+  « questionnaire » n'a aucune bonne réponse, et `validateQuiz` le refuserait.
+  Le quiz passe par l'éditeur, où le formateur complète, puis enregistre.
+- **Ce qui n'est pas repris est signalé** (échelle, grille, date, type inconnu…)
+  avec la raison, plutôt que perdu en silence.
+- **Vérifié en réel** : Google répond `404` — et non `403` — pour un formulaire
+  existant mais non partagé. Le message couvre donc les deux causes.
+
+- [ ] **Valider l'analyseur contre un vrai formulaire public.** Les 26 tests
+      s'appuient sur des structures `FB_PUBLIC_LOAD_DATA_` synthétiques,
+      reconstituées d'après la forme documentée par rétro-ingénierie (items en
+      `[1][1]`, titre en `[1][8]`). Aucun des formulaires du compte n'étant
+      partagé publiquement, le parcours complet n'a pas pu être éprouvé sur une
+      page réelle. **C'est le risque résiduel principal de cette
+      fonctionnalité** : si Google a changé la forme du bloc, l'import échouera
+      proprement (message « impossible de lire la structure ») mais
+      systématiquement. Il suffit de partager un formulaire par lien pour lever
+      le doute.
+- [ ] Second chemin OAuth (API Forms officielle), une fois la vérification
+      Google obtenue — à enchaîner avec EIN/Stripe, même file d'attente de
+      démarches externes.
+- [ ] Notifier les participants d'un examen programmé. Hors de portée
+      aujourd'hui : le roster d'une classe ne contient que des noms, pas
+      d'adresses. Suppose une collecte d'emails élèves, donc une décision
+      produit (et RGPD) préalable.
+
 ## 🟢 Feuille de route de scalabilité (50k+ utilisateurs / 2M+ examens)
 
 Issue de l'audit de scalabilité complet (Phase 0 — bugs de concurrence —
